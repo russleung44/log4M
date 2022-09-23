@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tony.log4m.dao.CategoryDao">
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO category
+        (id,
+        user_id, category, sort)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},
+            #{item.userId}, #{item.category}, #{item.sort})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO category
+        (id,
+        user_id, category, sort)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},
+            #{item.userId}, #{item.category}, #{item.sort})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        id = VALUES(id),
+        user_id = VALUES(user_id),
+        category = VALUES(category),
+        sort = VALUES(sort)
+    </insert>
+</mapper>
+

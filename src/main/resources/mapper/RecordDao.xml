@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tony.log4m.dao.RecordDao">
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO record
+        (id,
+        user_id, account_id, transaction_type, amount, category_id, tag_id, remark)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},
+            #{item.userId}, #{item.accountId}, #{item.transactionType}, #{item.amount}, #{item.categoryId},
+            #{item.tagId}, #{item.remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO record
+        (id,
+        user_id, account_id, transaction_type, amount, category_id, tag_id, remark)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},
+            #{item.userId}, #{item.accountId}, #{item.transactionType}, #{item.amount}, #{item.categoryId},
+            #{item.tagId}, #{item.remark})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        id = VALUES(id),
+        user_id = VALUES(user_id),
+        account_id = VALUES(account_id),
+        transaction_type = VALUES(transaction_type),
+        amount = VALUES(amount),
+        category_id = VALUES(category_id),
+        tag_id = VALUES(tag_id),
+        remark = VALUES(remark)
+    </insert>
+</mapper>
+

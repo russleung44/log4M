@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tony.log4m.dao.AccountDao">
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO account
+        (id,
+        user_id, account_name, balance, consume, income, consume_limit, sort, status)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},
+            #{item.userId}, #{item.accountName}, #{item.balance}, #{item.consume}, #{item.income}, #{item.consumeLimit},
+            #{item.sort}, #{item.status})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO account
+        (id,
+        user_id, account_name, balance, consume, income, consume_limit, sort, status)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},
+            #{item.userId}, #{item.accountName}, #{item.balance}, #{item.consume}, #{item.income}, #{item.consumeLimit},
+            #{item.sort}, #{item.status})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        id = VALUES(id),
+        user_id = VALUES(user_id),
+        account_name = VALUES(account_name),
+        balance = VALUES(balance),
+        consume = VALUES(consume),
+        income = VALUES(income),
+        consume_limit = VALUES(consume_limit),
+        sort = VALUES(sort),
+        status = VALUES(status)
+    </insert>
+</mapper>
+

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tony.log4m.dao.RuleDao">
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO rule
+        (id,
+        name, user_id, account_id, transaction_type, category_id, tag_id, amount, keywords, sort)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},
+            #{item.name}, #{item.userId}, #{item.accountId}, #{item.transactionType}, #{item.categoryId}, #{item.tagId},
+            #{item.amount}, #{item.keywords}, #{item.sort})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO rule
+        (id,
+        name, user_id, account_id, transaction_type, category_id, tag_id, amount, keywords, sort)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id},
+            #{item.name}, #{item.userId}, #{item.accountId}, #{item.transactionType}, #{item.categoryId}, #{item.tagId},
+            #{item.amount}, #{item.keywords}, #{item.sort})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        id = VALUES(id),
+        name = VALUES(name),
+        user_id = VALUES(user_id),
+        account_id = VALUES(account_id),
+        transaction_type = VALUES(transaction_type),
+        category_id = VALUES(category_id),
+        tag_id = VALUES(tag_id),
+        amount = VALUES(amount),
+        keywords = VALUES(keywords),
+        sort = VALUES(sort)
+    </insert>
+</mapper>
+
