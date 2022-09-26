@@ -1,10 +1,8 @@
 package com.tony.log4m.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
+import com.github.pagehelper.PageInfo;
 import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.dto.UserDTO;
-import com.tony.log4m.pojo.entity.User;
 import com.tony.log4m.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -17,7 +15,7 @@ import java.io.Serializable;
 
 /**
  * @author Tony
- * @since 2022-09-23 15:46:49
+ * @since 2022-09-26 12:06:50
  */
 @Api(tags = {"用户"})
 @RestController
@@ -27,10 +25,10 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/page")
+    @GetMapping("/page/{pageNum}/{pageSize}")
     @ApiOperation("用户列表")
-    public Page<UserDTO> page(@Valid @RequestBody PageDTO pageDTO) {
-        return userService.page(pageDTO);
+    public PageInfo<UserDTO> page(@PathVariable Integer pageNum, @PathVariable Integer pageSize) {
+        return userService.page(pageNum, pageSize);
     }
 
     @GetMapping("/{id}")
@@ -39,11 +37,16 @@ public class UserController {
         return userService.get(id);
     }
 
+    @PostMapping
+    @ApiOperation("新增用户")
+    public UserDTO insert(@Valid @RequestBody UserDTO userDTO) {
+        return userService.insert(userDTO);
+    }
 
     @PutMapping
     @ApiOperation("修改用户")
-    public UserDTO update(@Valid @RequestBody User user) {
-        return userService.update(user);
+    public UserDTO update(@Valid @RequestBody UserDTO userDTO) {
+        return userService.update(userDTO);
     }
 
     @DeleteMapping("/{id}")

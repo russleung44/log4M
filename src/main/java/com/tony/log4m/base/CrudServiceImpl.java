@@ -2,6 +2,8 @@ package com.tony.log4m.base;
 
 import cn.hutool.core.convert.Convert;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,14 @@ public abstract class CrudServiceImpl<M extends BaseMapper<T>, T extends BaseEnt
 
     @Autowired
     private C convert;
+
+    @Override
+    public PageInfo<E> page(Integer pageNum, Integer pageSize) {
+        PageInfo pageInfo = PageHelper.startPage(pageNum, pageSize).doSelectPageInfo(this::list);
+        List list = this.toTargetList(pageInfo.getList());
+        pageInfo.setList(list);
+        return pageInfo;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -57,6 +67,16 @@ public abstract class CrudServiceImpl<M extends BaseMapper<T>, T extends BaseEnt
         } else {
             return null;
         }
+    }
+
+    @Override
+    public E update(E e) {
+        if (e == null) {
+            return null;
+        }
+
+        T t = toSource(e);
+        return update(t);
     }
 
     @Override

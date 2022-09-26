@@ -1,10 +1,8 @@
 package com.tony.log4m.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
+import com.github.pagehelper.PageInfo;
 import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.dto.AccountDTO;
-import com.tony.log4m.pojo.entity.Account;
 import com.tony.log4m.service.AccountService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -17,7 +15,7 @@ import java.io.Serializable;
 
 /**
  * @author Tony
- * @since 2022-09-23 15:46:48
+ * @since 2022-09-26 12:06:50
  */
 @Api(tags = {"账户"})
 @RestController
@@ -27,10 +25,10 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    @PostMapping("/page")
+    @GetMapping("/page/{pageNum}/{pageSize}")
     @ApiOperation("账户列表")
-    public Page<AccountDTO> page(@Valid @RequestBody PageDTO pageDTO) {
-        return accountService.page(pageDTO);
+    public PageInfo<AccountDTO> page(@PathVariable Integer pageNum, @PathVariable Integer pageSize) {
+        return accountService.page(pageNum, pageSize);
     }
 
     @GetMapping("/{id}")
@@ -41,14 +39,14 @@ public class AccountController {
 
     @PostMapping
     @ApiOperation("新增账户")
-    public AccountDTO insert(@Valid @RequestBody Account account) {
-        return accountService.insert(account);
+    public AccountDTO insert(@Valid @RequestBody AccountDTO accountDTO) {
+        return accountService.insert(accountDTO);
     }
 
     @PutMapping
     @ApiOperation("修改账户")
-    public AccountDTO update(@Valid @RequestBody Account account) {
-        return accountService.update(account);
+    public AccountDTO update(@Valid @RequestBody AccountDTO accountDTO) {
+        return accountService.update(accountDTO);
     }
 
     @DeleteMapping("/{id}")

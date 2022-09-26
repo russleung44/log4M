@@ -1,10 +1,8 @@
 package com.tony.log4m.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
+import com.github.pagehelper.PageInfo;
 import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.dto.TagDTO;
-import com.tony.log4m.pojo.entity.Tag;
 import com.tony.log4m.service.TagService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -17,7 +15,7 @@ import java.io.Serializable;
 
 /**
  * @author Tony
- * @since 2022-09-23 15:46:49
+ * @since 2022-09-26 12:06:50
  */
 @Api(tags = {"标签"})
 @RestController
@@ -27,10 +25,10 @@ public class TagController {
 
     private final TagService tagService;
 
-    @PostMapping("/page")
+    @GetMapping("/page/{pageNum}/{pageSize}")
     @ApiOperation("标签列表")
-    public Page<TagDTO> page(@Valid @RequestBody PageDTO pageDTO) {
-        return tagService.page(pageDTO);
+    public PageInfo<TagDTO> page(@PathVariable Integer pageNum, @PathVariable Integer pageSize) {
+        return tagService.page(pageNum, pageSize);
     }
 
     @GetMapping("/{id}")
@@ -41,14 +39,14 @@ public class TagController {
 
     @PostMapping
     @ApiOperation("新增标签")
-    public TagDTO insert(@Valid @RequestBody Tag tag) {
-        return tagService.insert(tag);
+    public TagDTO insert(@Valid @RequestBody TagDTO tagDTO) {
+        return tagService.insert(tagDTO);
     }
 
     @PutMapping
     @ApiOperation("修改标签")
-    public TagDTO update(@Valid @RequestBody Tag tag) {
-        return tagService.update(tag);
+    public TagDTO update(@Valid @RequestBody TagDTO tagDTO) {
+        return tagService.update(tagDTO);
     }
 
     @DeleteMapping("/{id}")

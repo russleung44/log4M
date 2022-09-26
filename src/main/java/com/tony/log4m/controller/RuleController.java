@@ -1,10 +1,8 @@
 package com.tony.log4m.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
+import com.github.pagehelper.PageInfo;
 import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.dto.RuleDTO;
-import com.tony.log4m.pojo.entity.Rule;
 import com.tony.log4m.service.RuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -17,7 +15,7 @@ import java.io.Serializable;
 
 /**
  * @author Tony
- * @since 2022-09-23 15:46:48
+ * @since 2022-09-26 12:06:50
  */
 @Api(tags = {"规则"})
 @RestController
@@ -27,10 +25,10 @@ public class RuleController {
 
     private final RuleService ruleService;
 
-    @PostMapping("/page")
+    @GetMapping("/page/{pageNum}/{pageSize}")
     @ApiOperation("规则列表")
-    public Page<RuleDTO> page(@Valid @RequestBody PageDTO pageDTO) {
-        return ruleService.page(pageDTO);
+    public PageInfo<RuleDTO> page(@PathVariable Integer pageNum, @PathVariable Integer pageSize) {
+        return ruleService.page(pageNum, pageSize);
     }
 
     @GetMapping("/{id}")
@@ -41,14 +39,14 @@ public class RuleController {
 
     @PostMapping
     @ApiOperation("新增规则")
-    public RuleDTO insert(@Valid @RequestBody Rule rule) {
-        return ruleService.insert(rule);
+    public RuleDTO insert(@Valid @RequestBody RuleDTO ruleDTO) {
+        return ruleService.insert(ruleDTO);
     }
 
     @PutMapping
     @ApiOperation("修改规则")
-    public RuleDTO update(@Valid @RequestBody Rule rule) {
-        return ruleService.update(rule);
+    public RuleDTO update(@Valid @RequestBody RuleDTO ruleDTO) {
+        return ruleService.update(ruleDTO);
     }
 
     @DeleteMapping("/{id}")

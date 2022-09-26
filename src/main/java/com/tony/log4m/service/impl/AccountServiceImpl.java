@@ -21,6 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AccountServiceImpl extends CrudServiceImpl<AccountDao, Account, AccountDTO, AccountConvert> implements AccountService {
 
+
     @Override
     public AccountDTO insert(Account account) {
         return super.insert(account);

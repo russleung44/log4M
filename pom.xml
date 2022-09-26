@@ -18,6 +18,7 @@
         <hutool.version>5.8.7</hutool.version>
         <knife4j.version>3.0.3</knife4j.version>
         <sa-token.version>1.31.0</sa-token.version>
+        <pagehelper.version>1.4.5</pagehelper.version>
     </properties>
 
     <dependencies>
@@ -35,6 +36,11 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+            <version>${pagehelper.version}</version>
         </dependency>
 
         <dependency>

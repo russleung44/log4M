@@ -1,10 +1,8 @@
 package com.tony.log4m.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
+import com.github.pagehelper.PageInfo;
 import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.dto.CategoryDTO;
-import com.tony.log4m.pojo.entity.Category;
 import com.tony.log4m.service.CategoryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -17,7 +15,7 @@ import java.io.Serializable;
 
 /**
  * @author Tony
- * @since 2022-09-23 15:46:48
+ * @since 2022-09-26 12:06:50
  */
 @Api(tags = {"分类"})
 @RestController
@@ -27,10 +25,10 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @PostMapping("/page")
+    @GetMapping("/page/{pageNum}/{pageSize}")
     @ApiOperation("分类列表")
-    public Page<CategoryDTO> page(@Valid @RequestBody PageDTO pageDTO) {
-        return categoryService.page(pageDTO);
+    public PageInfo<CategoryDTO> page(@PathVariable Integer pageNum, @PathVariable Integer pageSize) {
+        return categoryService.page(pageNum, pageSize);
     }
 
     @GetMapping("/{id}")
@@ -41,14 +39,14 @@ public class CategoryController {
 
     @PostMapping
     @ApiOperation("新增分类")
-    public CategoryDTO insert(@Valid @RequestBody Category category) {
-        return categoryService.insert(category);
+    public CategoryDTO insert(@Valid @RequestBody CategoryDTO categoryDTO) {
+        return categoryService.insert(categoryDTO);
     }
 
     @PutMapping
     @ApiOperation("修改分类")
-    public CategoryDTO update(@Valid @RequestBody Category category) {
-        return categoryService.update(category);
+    public CategoryDTO update(@Valid @RequestBody CategoryDTO categoryDTO) {
+        return categoryService.update(categoryDTO);
     }
 
     @DeleteMapping("/{id}")
