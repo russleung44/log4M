@@ -26,10 +26,9 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 public class Tag extends BaseEntity {
 
-
     private Integer userId;
 
-    private String tag;
+    private String name;
 
     @ApiModelProperty("排序")
     private Integer sort;

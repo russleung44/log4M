@@ -33,6 +33,8 @@ public interface CrudService<T extends BaseEntity, E> extends IService<T> {
     T toSource(E e);
 
     List<T> toSourceList(List<E> models);
+
+    boolean checkName(String name, Serializable id);
 }
 
 

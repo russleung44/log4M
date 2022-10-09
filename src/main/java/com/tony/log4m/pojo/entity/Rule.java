@@ -27,7 +27,6 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 public class Rule extends BaseEntity {
 
-
     @ApiModelProperty("规则名称")
     private String name;
 

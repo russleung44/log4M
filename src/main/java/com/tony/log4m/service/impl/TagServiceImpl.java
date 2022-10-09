@@ -23,12 +23,14 @@ public class TagServiceImpl extends CrudServiceImpl<TagDao, Tag, TagDTO, TagConv
 
     @Override
     public TagDTO insert(Tag tag) {
+        super.checkName(tag.getName(), null);
         return super.insert(tag);
     }
 
     @Override
     public TagDTO update(Tag tag) {
         Optional.ofNullable(this.getById(tag.getId())).orElseThrow();
+        super.checkName(tag.getName(), tag.getId());
         return super.update(tag);
     }
 

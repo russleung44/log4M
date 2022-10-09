@@ -27,7 +27,6 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 public class Account extends BaseEntity {
 
-
     private Integer userId;
 
     @ApiModelProperty("账户名称")

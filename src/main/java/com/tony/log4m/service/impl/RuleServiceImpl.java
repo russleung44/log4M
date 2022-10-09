@@ -23,12 +23,14 @@ public class RuleServiceImpl extends CrudServiceImpl<RuleDao, Rule, RuleDTO, Rul
 
     @Override
     public RuleDTO insert(Rule rule) {
+        super.checkName(rule.getName(), null);
         return super.insert(rule);
     }
 
     @Override
     public RuleDTO update(Rule rule) {
         Optional.ofNullable(this.getById(rule.getId())).orElseThrow();
+        super.checkName(rule.getName(), rule.getId());
         return super.update(rule);
     }
 

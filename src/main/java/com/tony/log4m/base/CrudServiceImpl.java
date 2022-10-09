@@ -1,6 +1,7 @@
 package com.tony.log4m.base;
 
 import cn.hutool.core.convert.Convert;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -115,4 +116,12 @@ public abstract class CrudServiceImpl<M extends BaseMapper<T>, T extends BaseEnt
     public List<T> toSourceList(List<E> models) {
         return convert.toSourceList(models);
     }
+
+    @Override
+    public boolean checkName(String name, Serializable id) {
+        QueryWrapper<T> qw = new QueryWrapper<>();
+        qw.eq("name", name).eq(id != null, "id", id);
+        return this.baseMapper.selectCount(qw) > 0;
+    }
+
 }

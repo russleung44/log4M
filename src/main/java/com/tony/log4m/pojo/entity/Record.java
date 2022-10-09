@@ -27,7 +27,6 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 public class Record extends BaseEntity {
 
-
     private Integer userId;
 
     private Integer accountId;

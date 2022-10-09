@@ -26,10 +26,9 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 public class Category extends BaseEntity {
 
-
     private Integer userId;
 
-    private String category;
+    private String name;
 
     @ApiModelProperty("排序")
     private Integer sort;

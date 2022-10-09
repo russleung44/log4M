@@ -23,7 +23,7 @@ public class BaseEntity extends Model {
 
     @TableId
     @ApiModelProperty(value = "ID")
-    private String id;
+    private Integer id;
 
     @JsonIgnore
     @TableField(select = false)

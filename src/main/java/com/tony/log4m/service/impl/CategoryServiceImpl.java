@@ -23,12 +23,14 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, Category, 
 
     @Override
     public CategoryDTO insert(Category category) {
+        super.checkName(category.getName(), null);
         return super.insert(category);
     }
 
     @Override
     public CategoryDTO update(Category category) {
         Optional.ofNullable(this.getById(category.getId())).orElseThrow();
+        super.checkName(category.getName(), category.getId());
         return super.update(category);
     }
 
