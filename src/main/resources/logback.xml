@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <property name="APP_NAME" value="log4m"/>
+    <property name="APP_HOME" value="/opt/app/"/>
+    <property name="LOG_HOME" value="/opt/log/"/>
+    <property name="log.pattern" value="%d{HH:mm:ss.SSS} %-5([%level]) %-20([%t]) %-25logger{10} %m%n"/>
+
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %d{HH:mm:ss.SSS} %-5highlight([%level]) %-35(%cyan([%t])) %logger{10} - %highlight(%m%n)
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file-info" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <!-- 只接受INFO, 其他过滤 -->
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <!--日志名称，如果没有File 属性，那么只会使用FileNamePattern的文件路径规则
+            如果同时有<File>和<FileNamePattern>，那么当天日志是<File>，明天会自动把今天
+            的日志改名为今天的日期。即，<File> 的日志都是当天的。
+        -->
+        <File>${APP_HOME}${APP_NAME}-info.log</File>
+        <!--滚动策略，按照时间滚动 TimeBasedRollingPolicy-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--文件路径,定义了日志的切分方式——把每一天的日志归档到一个文件中,以防止日志填满整个磁盘空间-->
+            <FileNamePattern>${LOG_HOME}${APP_NAME}-info-%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--只保留最近60天的日志-->
+            <maxHistory>60</maxHistory>
+            <!--用来指定日志文件的上限大小，那么到了这个值，就会删除旧的日志-->
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <!--日志输出编码格式化-->
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+
+    <appender name="file-error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--如果只是想要 Error 级别的日志，那么需要过滤一下，默认是 info 级别的，ThresholdFilter-->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>Error</level>
+        </filter>
+        <!--日志名称，如果没有File 属性，那么只会使用FileNamePattern的文件路径规则
+            如果同时有<File>和<FileNamePattern>，那么当天日志是<File>，明天会自动把今天
+            的日志改名为今天的日期。即，<File> 的日志都是当天的。
+        -->
+        <File>${APP_HOME}${APP_NAME}-error.log</File>
+        <!--滚动策略，按照时间滚动 TimeBasedRollingPolicy-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--文件路径,定义了日志的切分方式——把每一天的日志归档到一个文件中,以防止日志填满整个磁盘空间-->
+            <FileNamePattern>${LOG_HOME}${APP_NAME}-error-%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--只保留最近60天的日志-->
+            <maxHistory>60</maxHistory>
+            <!--用来指定日志文件的上限大小，那么到了这个值，就会删除旧的日志-->
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <!--日志输出编码格式化-->
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- SQL日志输出  -->
+    <appender name="sql" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${APP_HOME}${APP_NAME}-sql.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 按天回滚 daily -->
+            <fileNamePattern>${LOG_HOME}${APP_NAME}-sql.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 日志最大的历史 60天 -->
+            <maxHistory>60</maxHistory>
+            <!--用来指定日志文件的上限大小，那么到了这个值，就会删除旧的日志-->
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <!--SQL级别-->
+    <logger name="com.tony.log4m.dao" level="TRACE">
+        <appender-ref ref="sql"/>
+    </logger>
+
+    <root level="DEBUG">
+        <appender-ref ref="stdout"/>
+    </root>
+
+    <root level="INFO">
+        <appender-ref ref="file-info"/>
+        <appender-ref ref="file-error"/>
+    </root>
+</configuration>

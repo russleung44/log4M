@@ -3,6 +3,7 @@ package com.tony.log4m.controller;
 import com.github.pagehelper.PageInfo;
 import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.dto.RecordDTO;
+import com.tony.log4m.pojo.entity.Record;
 import com.tony.log4m.service.RecordService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,6 +30,12 @@ public class RecordController {
     @ApiOperation("记录列表")
     public PageInfo<RecordDTO> page(@PathVariable Integer pageNum, @PathVariable Integer pageSize) {
         return recordService.page(pageNum, pageSize);
+    }
+
+    @PostMapping("/search/{pageNum}/{pageSize}")
+    @ApiOperation("记录列表")
+    public PageInfo<Record> search(@Valid @RequestBody RecordDTO recordDTO, @PathVariable Integer pageNum, @PathVariable Integer pageSize) {
+        return recordService.search(recordDTO, pageNum, pageSize);
     }
 
     @GetMapping("/{id}")

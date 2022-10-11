@@ -1,5 +1,6 @@
 package com.tony.log4m.base;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
@@ -9,6 +10,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.io.Serial;
 import java.util.Date;
 
 /**
@@ -19,9 +21,10 @@ import java.util.Date;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 public class BaseEntity extends Model {
+    @Serial
     private static final long serialVersionUID = 1L;
 
-    @TableId
+    @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "ID")
     private Integer id;
 

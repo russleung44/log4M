@@ -57,4 +57,9 @@ public class UserServiceImpl extends CrudServiceImpl<UserDao, User, UserDTO, Use
         StpUtil.login(user.getId());
     }
 
+    @Override
+    public Optional<User> getByTgUserId(Long tgUserId) {
+        return this.query().eq("tg_user_id", tgUserId).oneOpt();
+    }
+
 }

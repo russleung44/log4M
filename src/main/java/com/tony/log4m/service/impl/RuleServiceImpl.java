@@ -44,4 +44,8 @@ public class RuleServiceImpl extends CrudServiceImpl<RuleDao, Rule, RuleDTO, Rul
         super.delete(id);
     }
 
+    @Override
+    public Optional<Rule> findByKeyword(Integer userId, String text) {
+        return this.query().eq("user_id", userId).like("keywords", text).last("limit 1").oneOpt();
+    }
 }

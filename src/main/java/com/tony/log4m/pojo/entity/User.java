@@ -35,4 +35,6 @@ public class User extends BaseEntity {
     @ApiModelProperty("0: inactive, 1: active")
     private Integer status;
 
+    private Integer defaultAccountId;
+
 }

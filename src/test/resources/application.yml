@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
   application:
@@ -28,22 +28,6 @@ sa-token:
   token-style: uuid
   # 是否输出操作日志
   is-log: false
-  is-print: true
+  is-print: false
 
-
-mybatis-plus:
-  mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.russ.log4m.entity
-  global-config:
-    db-config:
-      id-type: auto
-      logic-delete-value: 1
-      logic-not-delete-value: 0
-      logic-delete-field: deleted
-    banner: false
-  configuration:
-    map-underscore-to-camel-case: true
-    cache-enabled: false
-
-logging:
-  config: classpath:logback.xml
+log4M_bot: "2333333"

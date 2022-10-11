@@ -1,8 +1,11 @@
 package com.tony.log4m.service;
 
+import com.github.pagehelper.PageInfo;
 import com.tony.log4m.base.CrudService;
 import com.tony.log4m.pojo.dto.RecordDTO;
 import com.tony.log4m.pojo.entity.Record;
+
+import java.math.BigDecimal;
 
 /**
  * @author Tony
@@ -10,4 +13,9 @@ import com.tony.log4m.pojo.entity.Record;
  */
 public interface RecordService extends CrudService<Record, RecordDTO> {
 
+    BigDecimal getAmountByDate(Integer userId, String date);
+
+    BigDecimal getAmountByMonth(Integer userId, String lastMonth);
+
+    PageInfo<Record> search(RecordDTO recordDTO, Integer pageNum, Integer pageSize);
 }
