@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
@@ -209,8 +210,10 @@ public class MoneyBot extends TelegramLongPollingBot {
                         Account account = accountService.getById(record.getAccountId());
                         if (Objects.equals(record.getTransactionType(), TransactionType.EXPENSE.getType())) {
                             account.setBalance(account.getBalance().add(record.getAmount()));
+                            account.setConsume(account.getConsume().subtract(record.getAmount()));
                         } else {
                             account.setBalance(account.getBalance().subtract(record.getAmount()));
+                            account.setIncome(account.getIncome().subtract(record.getAmount()));
                         }
 
                         account.updateById();
@@ -220,37 +223,7 @@ public class MoneyBot extends TelegramLongPollingBot {
                     }
 
                     case "rule" -> {
-                        String ruleId = split[1];
-                        Rule rule = ruleService.getById(ruleId);
-                        if (rule == null) {
-                            return;
-                        }
-
-                        answerText = StrUtil.format("""
-                                        规则名称:   {}\r
-                                        关键词:     #{}\r
-                                        分类:         #{}\r
-                                        标签:         #{}\r
-                                        类型:         #{}\r
-                                        金额:         {}
-                                        """,
-                                rule.getName(),
-                                rule.getKeywords(),
-                                Optional.ofNullable(categoryService.getById(rule.getCategoryId())).map(Category::getName).orElse(""),
-                                Optional.ofNullable(tagService.getById(rule.getTagId())).map(Tag::getName).orElse(""),
-                                TransactionType.valueOf(rule.getTransactionType()).getDesc(),
-                                rule.getAmount()
-                        );
-                        List<InlineKeyboardButton> buttons = new ArrayList<>();
-                        InlineKeyboardButton button = InlineKeyboardButton.builder()
-                                .text("删除")
-                                .callbackData("rule_del::" + rule.getId())
-                                .build();
-
-                        buttons.add(button);
-                        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-                        rowsInline.add(buttons);
-                        message.setReplyMarkup(new InlineKeyboardMarkup(rowsInline));
+                        answerText = getRuleDetails(message, split);
                     }
 
                     case "rule_del" -> {
@@ -276,9 +249,43 @@ public class MoneyBot extends TelegramLongPollingBot {
 
     }
 
-    private String quickRecord(String text, SendMessage sendMessage, User user) {
+    private String getRuleDetails(EditMessageText message, String[] split) {
+        String answerText;
+        String ruleId = split[1];
+        Rule rule = ruleService.getById(ruleId);
+        answerText = StrUtil.format("""
+                        规则名称:   {}\r
+                        关键词:     #{}\r
+                        分类:         #{}\r
+                        标签:         #{}\r
+                        类型:         #{}\r
+                        金额:         {}
+                        """,
+                rule.getName(),
+                rule.getKeywords(),
+                Optional.ofNullable(categoryService.getById(rule.getCategoryId())).map(Category::getName).orElse(""),
+                Optional.ofNullable(tagService.getById(rule.getTagId())).map(Tag::getName).orElse(""),
+                TransactionType.valueOf(rule.getTransactionType()).getDesc(),
+                rule.getAmount()
+        );
+        List<InlineKeyboardButton> buttons = new ArrayList<>();
+        InlineKeyboardButton button = InlineKeyboardButton.builder()
+                .text("删除")
+                .callbackData("rule_del::" + rule.getId())
+                .build();
+
+        buttons.add(button);
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        rowsInline.add(buttons);
+        message.setReplyMarkup(new InlineKeyboardMarkup(rowsInline));
+        return answerText;
+    }
+
+    @Transactional
+    String quickRecord(String text, SendMessage sendMessage, User user) {
         Record record = Record.builder()
                 .userId(user.getId())
+                .title(text)
                 .accountId(user.getDefaultAccountId())
                 .transactionType(TransactionType.EXPENSE.getType())
                 .build();
@@ -306,12 +313,14 @@ public class MoneyBot extends TelegramLongPollingBot {
         }
 
         record.insert();
-
+        BigDecimal amount = record.getAmount();
         Account account = accountService.getById(record.getAccountId());
         if (Objects.equals(record.getTransactionType(), TransactionType.EXPENSE.getType())) {
-            account.setBalance(account.getBalance().subtract(record.getAmount()));
+            account.setBalance(account.getBalance().subtract(amount));
+            account.setConsume(account.getConsume().add(amount));
         } else {
-            account.setBalance(account.getBalance().add(record.getAmount()));
+            account.setBalance(account.getBalance().add(amount));
+            account.setIncome(account.getIncome().add(amount));
         }
 
         account.updateById();
@@ -330,14 +339,11 @@ public class MoneyBot extends TelegramLongPollingBot {
 
         sendMessage.setReplyMarkup(new InlineKeyboardMarkup(rowsInline));
 
-        String sendText = StrUtil.format("记账成功 \r\n账户: {} \r\n账户余额: {} \r\n金额: {}",
+        return StrUtil.format("记账成功 \r\n账户:        #{} \r\n余额:        {} \r\n金额:        {}",
                 account.getAccountName(),
                 account.getBalance(),
-                record.getAmount()
+                amount
         );
-
-
-        return sendText;
     }
 
     /**
@@ -361,11 +367,11 @@ public class MoneyBot extends TelegramLongPollingBot {
      */
     public void setMyCommands() {
         List<BotCommand> commands = new ArrayList<>();
-        commands.add(new BotCommand("rule", "规则"));
         commands.add(new BotCommand("today", "今日消费报告"));
         commands.add(new BotCommand("yesterday", "昨日消费报告"));
         commands.add(new BotCommand("last_month", "上个月消费报告"));
         commands.add(new BotCommand("current_month", "本月消费报告"));
+        commands.add(new BotCommand("rule", "规则"));
 
         SetMyCommands setMyCommands = new SetMyCommands();
         setMyCommands.setCommands(commands);
