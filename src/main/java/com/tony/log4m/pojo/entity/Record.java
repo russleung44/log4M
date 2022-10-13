@@ -31,7 +31,11 @@ public class Record extends BaseEntity {
 
     private Integer accountId;
 
+    @ApiModelProperty("标题")
     private String title;
+
+    @ApiModelProperty("日期")
+    private String date;
 
     @ApiModelProperty("交易类型 EXPENSE: 支出, INCOME: 收入")
     private String transactionType;

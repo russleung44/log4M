@@ -27,6 +27,7 @@
         <sa-token.version>1.31.0</sa-token.version>
         <pagehelper.version>1.4.5</pagehelper.version>
         <telegrambots.version>6.1.0</telegrambots.version>
+        <meilisearch.version>0.7.2</meilisearch.version>
     </properties>
 
     <dependencies>
@@ -107,6 +108,12 @@
             <artifactId>telegrambots</artifactId>
             <version>${telegrambots.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.meilisearch.sdk</groupId>
+            <artifactId>meilisearch-java</artifactId>
+            <version>${meilisearch.version}</version>
+        </dependency>
+
     </dependencies>
 
 

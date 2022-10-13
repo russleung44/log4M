@@ -6,6 +6,7 @@ import com.tony.log4m.enums.TransactionType;
 import com.tony.log4m.pojo.entity.Record;
 import com.tony.log4m.pojo.entity.*;
 import com.tony.log4m.service.*;
+import com.tony.log4m.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,8 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author TonyLeung
@@ -51,21 +50,6 @@ public class MoneyBot extends TelegramLongPollingBot {
 
     @Value("${log4M_bot}")
     private String botToken;
-
-    /**
-     * 获取第一个金额
-     *
-     * @param text 文本
-     * @return 金额, 可负数, 保留两位小数
-     */
-    public static String getAmount(String text) {
-        Pattern integerPattern = Pattern.compile("-?\\d+(\\.\\d{1,2})?");
-        Matcher matcher = integerPattern.matcher(text);
-        if (matcher.find()) {
-            return matcher.group();
-        }
-        return null;
-    }
 
     private SendMessage getRuleMessage(Long chatId, User user) {
         SendMessage message = SendMessage.builder()
@@ -284,8 +268,9 @@ public class MoneyBot extends TelegramLongPollingBot {
     @Transactional
     String quickRecord(String text, SendMessage sendMessage, User user) {
         Record record = Record.builder()
-                .userId(user.getId())
                 .title(text)
+                .userId(user.getId())
+                .date(DateUtil.today())
                 .accountId(user.getDefaultAccountId())
                 .transactionType(TransactionType.EXPENSE.getType())
                 .build();
@@ -304,7 +289,7 @@ public class MoneyBot extends TelegramLongPollingBot {
 
         } else {
             // 提取消息中的金额
-            String amount = getAmount(text);
+            String amount = MoneyUtil.getAmount(text);
             if (amount == null) {
                 return null;
             }
@@ -312,7 +297,8 @@ public class MoneyBot extends TelegramLongPollingBot {
             record.setAmount(new BigDecimal(amount)).setRemark("快速记账");
         }
 
-        record.insert();
+        recordService.insert(record);
+
         BigDecimal amount = record.getAmount();
         Account account = accountService.getById(record.getAccountId());
         if (Objects.equals(record.getTransactionType(), TransactionType.EXPENSE.getType())) {
@@ -326,7 +312,6 @@ public class MoneyBot extends TelegramLongPollingBot {
         account.updateById();
 
         String callbackData = "record::" + record.getId();
-
         List<InlineKeyboardButton> buttons = new ArrayList<>();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         InlineKeyboardButton delButton = InlineKeyboardButton.builder()
@@ -339,7 +324,7 @@ public class MoneyBot extends TelegramLongPollingBot {
 
         sendMessage.setReplyMarkup(new InlineKeyboardMarkup(rowsInline));
 
-        return StrUtil.format("记账成功 \r\n账户:        #{} \r\n余额:        {} \r\n金额:        {}",
+        return StrUtil.format("记账成功 \r\n账户:        #{}\r\n余额:        {} \r\n金额:        {}",
                 account.getAccountName(),
                 account.getBalance(),
                 amount
