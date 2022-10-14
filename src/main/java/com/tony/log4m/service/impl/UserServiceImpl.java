@@ -1,6 +1,7 @@
 package com.tony.log4m.service.impl;
 
 
+import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import com.tony.log4m.base.CrudServiceImpl;
 import com.tony.log4m.convert.UserConvert;
@@ -45,7 +46,7 @@ public class UserServiceImpl extends CrudServiceImpl<UserDao, User, UserDTO, Use
     }
 
     @Override
-    public void login(LoginDTO loginDTO) {
+    public SaTokenInfo login(LoginDTO loginDTO) {
         String username = loginDTO.getUsername();
         String password = loginDTO.getPassword();
 
@@ -55,6 +56,8 @@ public class UserServiceImpl extends CrudServiceImpl<UserDao, User, UserDTO, Use
         }
 
         StpUtil.login(user.getId());
+
+        return StpUtil.getTokenInfo();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.tony.log4m.service;
 
+import cn.dev33.satoken.stp.SaTokenInfo;
 import com.tony.log4m.base.CrudService;
 import com.tony.log4m.pojo.dto.LoginDTO;
 import com.tony.log4m.pojo.dto.UserDTO;
@@ -15,7 +16,7 @@ public interface UserService extends CrudService<User, UserDTO> {
 
     void register(User user);
 
-    void login(LoginDTO loginDTO);
+    SaTokenInfo login(LoginDTO loginDTO);
 
     Optional<User> getByTgUserId(Long tgUserId);
 }

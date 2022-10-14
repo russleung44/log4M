@@ -1,5 +1,7 @@
 package com.tony.log4m.controller;
 
+import cn.dev33.satoken.stp.SaTokenInfo;
+import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.dto.LoginDTO;
 import com.tony.log4m.pojo.entity.User;
 import com.tony.log4m.service.UserService;
@@ -32,8 +34,8 @@ public class LoginController {
 
     @ApiOperation("登录")
     @PostMapping("/login")
-    public void login(LoginDTO loginDTO) {
-        userService.login(loginDTO);
+    public R<SaTokenInfo> login(@Valid @RequestBody LoginDTO loginDTO) {
+        return R.ok(userService.login(loginDTO));
     }
 
 }

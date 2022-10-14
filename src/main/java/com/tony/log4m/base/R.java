@@ -84,6 +84,14 @@ public class R<T> implements Serializable {
         return new R(data, code, message, show);
     }
 
+    public static R fail(String message) {
+        return new R(-1, message);
+    }
+
+    public static R fail(String msg, boolean show) {
+        return new R(msg, show);
+    }
+
     public R setMsg(String msg) {
         this.msg = msg;
         return this;
