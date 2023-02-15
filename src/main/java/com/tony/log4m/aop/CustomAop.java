@@ -24,7 +24,7 @@ public class CustomAop {
 
     @AfterThrowing(throwing = "ex", pointcut = "api()")
     public void afterThrowing(JoinPoint joinPoint, Throwable ex) {
-        log.error("=========进销存异常输出()=========");
+        log.error("=========异常输出()=========");
         AopUtil.exceptionLog(joinPoint, ex);
     }
 

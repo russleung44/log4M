@@ -50,4 +50,6 @@ public class Account extends BaseEntity {
     @ApiModelProperty("0: inactive, 1: active")
     private Integer status;
 
+    @ApiModelProperty("0: no, 1: yes")
+    private boolean isDefault;
 }

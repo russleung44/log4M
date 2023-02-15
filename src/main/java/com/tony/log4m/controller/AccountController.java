@@ -1,8 +1,11 @@
 package com.tony.log4m.controller;
 
 import com.github.pagehelper.PageInfo;
+import com.tony.log4m.base.PageDTO;
 import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.dto.AccountDTO;
+import com.tony.log4m.pojo.entity.Account;
+import com.tony.log4m.pojo.vo.AccountStatVO;
 import com.tony.log4m.service.AccountService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -25,10 +28,10 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    @GetMapping("/page/{pageNum}/{pageSize}")
+    @PostMapping("/page")
     @ApiOperation("账户列表")
-    public PageInfo<AccountDTO> page(@PathVariable Integer pageNum, @PathVariable Integer pageSize) {
-        return accountService.page(pageNum, pageSize);
+    public PageInfo<Account> page(@RequestBody PageDTO<Account> pageDTO) {
+        return accountService.getAccountPage(pageDTO);
     }
 
     @GetMapping("/{id}")
@@ -53,6 +56,19 @@ public class AccountController {
     @ApiOperation("删除账户")
     public R delete(@PathVariable Serializable id) {
         accountService.delete(id);
+        return R.ok();
+    }
+
+    @GetMapping("/stat/{userId}")
+    @ApiOperation("统计账户")
+    public AccountStatVO stat(@PathVariable Integer userId) {
+        return accountService.getStat(userId);
+    }
+
+    @PutMapping("/default/{id}")
+    @ApiOperation("设为默认账户")
+    public R setDefault(@PathVariable Serializable id) {
+        accountService.setDefault(id);
         return R.ok();
     }
 }

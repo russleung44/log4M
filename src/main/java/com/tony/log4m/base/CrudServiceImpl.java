@@ -21,11 +21,8 @@ public abstract class CrudServiceImpl<M extends BaseMapper<T>, T extends BaseEnt
     private C convert;
 
     @Override
-    public PageInfo<E> page(Integer pageNum, Integer pageSize) {
-        PageInfo pageInfo = PageHelper.startPage(pageNum, pageSize).doSelectPageInfo(this::list);
-        List list = this.toTargetList(pageInfo.getList());
-        pageInfo.setList(list);
-        return pageInfo;
+    public PageInfo page(Integer pageNum, Integer pageSize) {
+        return PageHelper.startPage(pageNum, pageSize).doSelectPageInfo(this::list);
     }
 
     @Override

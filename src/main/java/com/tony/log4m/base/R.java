@@ -5,12 +5,14 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 
 @Data
 @ApiModel("通用返回类")
 public class R<T> implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty("状态码 1:成功 -1:失败")

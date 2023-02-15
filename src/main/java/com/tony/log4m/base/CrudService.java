@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface CrudService<T extends BaseEntity, E> extends IService<T> {
 
-    PageInfo<E> page(Integer pageNum, Integer pageSize);
+    PageInfo page(Integer pageNum, Integer pageSize);
 
     E get(Serializable id);
 

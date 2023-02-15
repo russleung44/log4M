@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = false)
 public class AccountDTO {
 
-    @ApiModelProperty("")
     private Integer id;
 
     private Integer userId;

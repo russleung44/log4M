@@ -3,6 +3,7 @@ package com.tony.log4m.aop;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tony.log4m.base.R;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -15,14 +16,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  * @author TonyLeung
  * @date 2022/3/22
  */
-@RestControllerAdvice(basePackages = "com.wining.inventory.controller")
+@RestControllerAdvice(basePackages = "com.tony.log4m.controller")
 public class ResponseAdvice implements ResponseBodyAdvice<Object> {
 
     /**
      * 是否开启功能 true:开启
      */
     @Override
-    public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> aClass) {
+    public boolean supports(@NotNull MethodParameter methodParameter, @NotNull Class<? extends HttpMessageConverter<?>> aClass) {
         return true;
     }
 

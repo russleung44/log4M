@@ -1,14 +1,15 @@
 package com.tony.log4m.base;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mappings;
 import org.mapstruct.Named;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 
 public interface BasicConvert<SOURCE, TARGET> {
 
@@ -32,5 +33,14 @@ public interface BasicConvert<SOURCE, TARGET> {
             return null;
         }
         return JSONUtil.toJsonStr(obj);
+    }
+
+    @Named("toList")
+    default List toList(String str) {
+        if (StrUtil.isBlank(str)) {
+            return new ArrayList<>();
+        } else {
+            return JSONUtil.toList(str, Object.class);
+        }
     }
 }
