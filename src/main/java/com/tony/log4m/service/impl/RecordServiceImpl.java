@@ -6,15 +6,19 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.tony.log4m.base.CrudServiceImpl;
 import com.tony.log4m.convert.RecordConvert;
+import com.tony.log4m.dao.AccountDao;
 import com.tony.log4m.dao.RecordDao;
+import com.tony.log4m.enums.TransactionType;
 import com.tony.log4m.pojo.dto.RecordDTO;
 import com.tony.log4m.pojo.dto.RecordUpdateDTO;
+import com.tony.log4m.pojo.entity.Account;
 import com.tony.log4m.pojo.entity.Record;
 import com.tony.log4m.service.RecordService;
 import com.tony.log4m.utils.CommonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -30,17 +34,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RecordServiceImpl extends CrudServiceImpl<RecordDao, Record, RecordDTO, RecordConvert> implements RecordService {
 
+    private final AccountDao accountDao;
 
-    @Override
-    public RecordDTO insert(Record record) {
-        return super.insert(record);
-    }
-
-    @Override
-    public RecordDTO update(Record record) {
-        Optional.ofNullable(this.getById(record.getId())).orElseThrow();
-        return super.update(record);
-    }
 
     @Override
     public RecordDTO get(Serializable id) {
@@ -48,9 +43,34 @@ public class RecordServiceImpl extends CrudServiceImpl<RecordDao, Record, Record
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(Serializable id) {
-        super.delete(id);
+        Record record = Optional.ofNullable(this.getById(id)).orElseThrow();
+        BigDecimal amount = record.getAmount();
+        Integer accountId = record.getAccountId();
+
+        Account account = accountDao.selectById(accountId);
+        if (account == null) {
+            return;
+        }
+
+        BigDecimal balance = account.getBalance();
+        TransactionType transactionType = TransactionType.valueOf(record.getTransactionType());
+        switch (transactionType) {
+            case CONSUME -> {
+                account.setBalance(balance.add(amount));
+                account.setConsume(account.getConsume().subtract(amount));
+            }
+            case INCOME -> {
+                account.setBalance(balance.subtract(amount));
+                account.setIncome(account.getIncome().subtract(amount));
+            }
+        }
+
+        account.updateById();
+        record.deleteById();
     }
+
 
     @Override
     public BigDecimal getAmountByDate(Integer userId, String date) {
@@ -84,7 +104,7 @@ public class RecordServiceImpl extends CrudServiceImpl<RecordDao, Record, Record
 
     @Override
     public RecordDTO update(RecordUpdateDTO updateDTO) {
-        Record record = Optional.ofNullable(this.getById(updateDTO.getRecordId())).orElseThrow();
+        Integer recordId = updateDTO.getRecordId();
         this.update()
                 .set(CommonUtil.isNotZero(updateDTO.getCategoryId()), "category_id", updateDTO.getCategoryId())
                 .set(CommonUtil.isNotZero(updateDTO.getAccountId()), "account_id", updateDTO.getAccountId())
@@ -92,10 +112,10 @@ public class RecordServiceImpl extends CrudServiceImpl<RecordDao, Record, Record
                 .set(StrUtil.isNotBlank(updateDTO.getTitle()), "title", updateDTO.getTitle())
                 .set(StrUtil.isNotBlank(updateDTO.getDate()), "date", updateDTO.getDate())
                 .set(updateDTO.getAmount() != null, "amount", updateDTO.getAmount())
-                .eq("id", updateDTO.getRecordId())
+                .eq("id", recordId)
                 .update();
 
-        return null;
+        return this.get(recordId);
     }
 
     @Override

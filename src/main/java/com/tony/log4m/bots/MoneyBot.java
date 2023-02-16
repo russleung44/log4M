@@ -192,7 +192,7 @@ public class MoneyBot extends TelegramLongPollingBot {
                         }
 
                         Account account = accountService.getById(record.getAccountId());
-                        if (Objects.equals(record.getTransactionType(), TransactionType.EXPENSE.getType())) {
+                        if (Objects.equals(record.getTransactionType(), TransactionType.CONSUME.getType())) {
                             account.setBalance(account.getBalance().add(record.getAmount()));
                             account.setConsume(account.getConsume().subtract(record.getAmount()));
                         } else {
@@ -272,7 +272,7 @@ public class MoneyBot extends TelegramLongPollingBot {
                 .userId(user.getId())
                 .date(DateUtil.today())
                 .accountId(user.getDefaultAccountId())
-                .transactionType(TransactionType.EXPENSE.getType())
+                .transactionType(TransactionType.CONSUME.getType())
                 .build();
         // 关键词查找规则
         Optional<Rule> ruleOpt = ruleService.findByKeyword(user.getId(), text);
@@ -301,7 +301,7 @@ public class MoneyBot extends TelegramLongPollingBot {
 
         BigDecimal amount = record.getAmount();
         Account account = accountService.getById(record.getAccountId());
-        if (Objects.equals(record.getTransactionType(), TransactionType.EXPENSE.getType())) {
+        if (Objects.equals(record.getTransactionType(), TransactionType.CONSUME.getType())) {
             account.setBalance(account.getBalance().subtract(amount));
             account.setConsume(account.getConsume().add(amount));
         } else {

@@ -15,7 +15,6 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = false)
 public class CategoryDTO {
 
-    @ApiModelProperty("")
     private Integer id;
 
     private Integer userId;

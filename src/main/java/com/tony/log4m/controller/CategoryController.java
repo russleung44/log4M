@@ -17,7 +17,7 @@ import java.io.Serializable;
  * @author Tony
  * @since 2022-09-26 12:06:50
  */
-@Api(tags = {"分类"})
+@Api(tags = {"记录分类"})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/category")

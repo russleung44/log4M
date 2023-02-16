@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 /**
@@ -16,9 +17,8 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = false)
 public class AccountDTO {
 
+    @NotNull(message = "id不能为空")
     private Integer id;
-
-    private Integer userId;
 
     @ApiModelProperty("账户名称")
     private String accountName;

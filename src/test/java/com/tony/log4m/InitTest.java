@@ -83,7 +83,7 @@ class InitTest {
                 .keywords("咖啡,生椰")
                 .tagId(tag2.getId())
                 .categoryId(category.getId())
-                .transactionType(TransactionType.EXPENSE.getType())
+                .transactionType(TransactionType.CONSUME.getType())
                 .build();
         rule.insert();
 
@@ -93,7 +93,7 @@ class InitTest {
                 .userId(10001)
                 .keywords("红包")
                 .categoryId(category2.getId())
-                .transactionType(TransactionType.EXPENSE.getType())
+                .transactionType(TransactionType.CONSUME.getType())
                 .build();
         rule2.insert();
 
@@ -104,7 +104,7 @@ class InitTest {
                 .keywords("濑粉")
                 .tagId(tag.getId())
                 .categoryId(category.getId())
-                .transactionType(TransactionType.EXPENSE.getType())
+                .transactionType(TransactionType.CONSUME.getType())
                 .build();
         rule3.insert();
     }

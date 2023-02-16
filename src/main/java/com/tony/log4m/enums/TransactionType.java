@@ -11,7 +11,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum TransactionType {
 
-    EXPENSE("EXPENSE", "支出"),
+    CONSUME("CONSUME", "支出"),
     INCOME("INCOME", "收入");
 
     private final String type;

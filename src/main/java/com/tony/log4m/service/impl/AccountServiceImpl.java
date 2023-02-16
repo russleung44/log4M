@@ -1,6 +1,7 @@
 package com.tony.log4m.service.impl;
 
 
+import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.tony.log4m.base.CrudServiceImpl;
@@ -30,11 +31,19 @@ public class AccountServiceImpl extends CrudServiceImpl<AccountDao, Account, Acc
 
     @Override
     public AccountDTO insert(Account account) {
+        // 检查账户名是否重复
+        if (this.query().eq("account_name", account.getAccountName()).eq("user_id", account.getUserId()).exists()) {
+            throw new RuntimeException("账户名重复");
+        }
         return super.insert(account);
     }
 
     @Override
     public AccountDTO update(Account account) {
+        // 检查账户名是否重复
+        if (this.query().eq("account_name", account.getAccountName()).eq("user_id", account.getUserId()).ne("id", account.getId()).exists()) {
+            throw new RuntimeException("账户名重复");
+        }
         Optional.ofNullable(this.getById(account.getId())).orElseThrow();
         return super.update(account);
     }
@@ -68,8 +77,7 @@ public class AccountServiceImpl extends CrudServiceImpl<AccountDao, Account, Acc
 
     @Override
     public void setDefault(Serializable id) {
-        Account account = Optional.ofNullable(this.getById(id)).orElseThrow();
-        account.setDefault(true).updateById();
+        Optional.ofNullable(this.getById(id)).orElseThrow().setDefault(true).updateById();
     }
 
     @Override
@@ -83,7 +91,7 @@ public class AccountServiceImpl extends CrudServiceImpl<AccountDao, Account, Acc
                 this.query()
                         .eq(userId != null, "user_id", userId)
                         .eq(status != null, "status", status)
-                        .like(accountName != null, "account_name", accountName)
+                        .like(StrUtil.isNotBlank(accountName), "account_name", accountName)
                         .list();
             } else {
                 this.list();

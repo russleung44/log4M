@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
- * 分类
+ * 记录分类
  *
  * @author Tony
  * @since 2022-09-23 16:00:42

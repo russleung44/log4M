@@ -46,6 +46,13 @@ public class RecordController {
         return recordService.get(id);
     }
 
+    @PostMapping
+    @ApiOperation("新增记录")
+    public RecordDTO save(@Valid @RequestBody RecordDTO recordDTO) {
+        return recordService.insert(recordDTO);
+    }
+
+
     @PutMapping
     @ApiOperation("修改记录")
     public RecordDTO update(@Valid @RequestBody RecordUpdateDTO recordDTO) {
