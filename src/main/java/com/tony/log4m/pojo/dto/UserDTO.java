@@ -1,7 +1,7 @@
 package com.tony.log4m.pojo.dto;
 
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -15,7 +15,7 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = false)
 public class UserDTO {
 
-    @ApiModelProperty("")
+    @Schema(name = "")
     private Integer id;
 
     private String username;
@@ -24,7 +24,7 @@ public class UserDTO {
 
     private String email;
 
-    @ApiModelProperty("0: inactive, 1: active")
+    @Schema(name = "0: inactive, 1: active")
     private Integer status;
 
 }

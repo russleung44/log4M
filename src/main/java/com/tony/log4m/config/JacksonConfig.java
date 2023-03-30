@@ -9,7 +9,7 @@ import java.text.SimpleDateFormat;
 
 /**
  * @author TonyLeung
- * @date 2021/9/18
+ * @since 2021/9/18
  */
 @Configuration
 public class JacksonConfig {

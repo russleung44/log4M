@@ -1,6 +1,6 @@
 package com.tony.log4m.pojo.dto;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -22,19 +22,19 @@ public class RecordDTO {
 
     private Integer accountId;
 
-    @ApiModelProperty("交易类型 EXPENSE: 支出, INCOME: 收入")
+    @Schema(name = "交易类型 EXPENSE: 支出, INCOME: 收入")
     private String transactionType;
 
-    @ApiModelProperty("金额")
+    @Schema(name = "金额")
     private BigDecimal amount;
 
-    @ApiModelProperty("分类")
+    @Schema(name = "分类")
     private Integer categoryId;
 
-    @ApiModelProperty("标签")
+    @Schema(name = "标签")
     private Integer tagId;
 
-    @ApiModelProperty("备注")
+    @Schema(name = "备注")
     private String remark;
 
 }

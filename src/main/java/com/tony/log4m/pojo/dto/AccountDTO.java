@@ -1,6 +1,6 @@
 package com.tony.log4m.pojo.dto;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -20,25 +20,25 @@ public class AccountDTO {
     @NotNull(message = "id不能为空")
     private Integer id;
 
-    @ApiModelProperty("账户名称")
+    @Schema(name = "账户名称")
     private String accountName;
 
-    @ApiModelProperty("账户余额")
+    @Schema(name = "账户余额")
     private BigDecimal balance;
 
-    @ApiModelProperty("消费总额")
+    @Schema(name = "消费总额")
     private BigDecimal consume;
 
-    @ApiModelProperty("收入总额")
+    @Schema(name = "收入总额")
     private BigDecimal income;
 
-    @ApiModelProperty("消费限制")
+    @Schema(name = "消费限制")
     private BigDecimal consumeLimit;
 
-    @ApiModelProperty("排序")
+    @Schema(name = "排序")
     private Integer sort;
 
-    @ApiModelProperty("0: inactive, 1: active")
+    @Schema(name = "0: inactive, 1: active")
     private Integer status;
 
 }

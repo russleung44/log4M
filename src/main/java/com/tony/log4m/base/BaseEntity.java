@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,7 +17,7 @@ import java.util.Date;
 
 /**
  * @author TonyLeung
- * @date 2022/9/23
+ * @since 2022/9/23
  */
 @Data
 @NoArgsConstructor
@@ -29,17 +29,17 @@ public class BaseEntity extends Model {
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
-    @ApiModelProperty(value = "ID")
+    @Schema(name = "ID")
     private Integer id;
 
     @JsonIgnore
     @TableField(select = false)
-    @ApiModelProperty(value = "逻辑删除字段", hidden = true)
+    @Schema(name = "逻辑删除字段", hidden = true)
     private Boolean deleted;
 
-    @ApiModelProperty(value = "创建时间")
+    @Schema(name = "创建时间")
     private Date createTime;
 
-    @ApiModelProperty(value = "更新时间", hidden = true)
+    @Schema(name = "更新时间", hidden = true)
     private Date updateTime;
 }

@@ -1,7 +1,7 @@
 package com.tony.log4m.pojo.dto;
 
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -15,14 +15,14 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = false)
 public class TagDTO {
 
-    @ApiModelProperty("")
+    @Schema(name = "")
     private Integer id;
 
     private Integer userId;
 
     private String tag;
 
-    @ApiModelProperty("排序")
+    @Schema(name = "排序")
     private Integer sort;
 
 }

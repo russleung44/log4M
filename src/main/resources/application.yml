@@ -33,7 +33,7 @@ sa-token:
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.russ.log4m.entity
+  type-aliases-package: com.tony.log4m.pojo.entity
   global-config:
     db-config:
       id-type: auto
@@ -47,3 +47,15 @@ mybatis-plus:
 
 logging:
   config: classpath:logback.xml
+
+springdoc:
+  swagger-ui:
+    path: /swagger # 访问路径
+    enabled: true
+  packages-to-scan: com.tony.log4m.controller # 扫描路径 ','分隔
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+    swagger-model-name: 实体类列表

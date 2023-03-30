@@ -6,11 +6,11 @@ import com.tony.log4m.pojo.entity.Category;
 import com.tony.log4m.pojo.entity.Rule;
 import com.tony.log4m.pojo.entity.Tag;
 import com.tony.log4m.pojo.entity.User;
-import com.tony.log4m.service.impl.AccountServiceImpl;
-import com.tony.log4m.service.impl.CategoryServiceImpl;
-import com.tony.log4m.service.impl.RuleServiceImpl;
-import com.tony.log4m.service.impl.TagServiceImpl;
-import com.tony.log4m.service.impl.UserServiceImpl;
+import com.tony.log4m.service.AccountService;
+import com.tony.log4m.service.CategoryService;
+import com.tony.log4m.service.RuleService;
+import com.tony.log4m.service.TagService;
+import com.tony.log4m.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,20 +19,20 @@ import java.math.BigDecimal;
 
 /**
  * @author TonyLeung
- * @date 2022/10/10
+ * @since 2022/10/10
  */
 @SpringBootTest
 class InitTest {
     @Autowired
-    private TagServiceImpl tagService;
+    private TagService tagService;
     @Autowired
-    private RuleServiceImpl ruleService;
+    private RuleService ruleService;
     @Autowired
-    private UserServiceImpl userService;
+    private UserService userService;
     @Autowired
-    private AccountServiceImpl accountService;
+    private AccountService accountService;
     @Autowired
-    private CategoryServiceImpl categoryService;
+    private CategoryService categoryService;
 
 
     @Test

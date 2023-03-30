@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CustomAop {
 
-    @Pointcut("@annotation(io.swagger.annotations.Api)")
+    @Pointcut("@annotation(io.swagger.v3.oas.annotations.tags.Tag)")
     public void api() {
     }
 

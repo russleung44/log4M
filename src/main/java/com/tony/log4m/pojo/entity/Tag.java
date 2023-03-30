@@ -3,7 +3,7 @@ package com.tony.log4m.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,7 +30,7 @@ public class Tag extends BaseEntity {
 
     private String name;
 
-    @ApiModelProperty("排序")
+    @Schema(name = "排序")
     private Integer sort;
 
 }

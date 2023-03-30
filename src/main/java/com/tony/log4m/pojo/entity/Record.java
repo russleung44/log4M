@@ -2,7 +2,7 @@ package com.tony.log4m.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,25 +31,25 @@ public class Record extends BaseEntity {
 
     private Integer accountId;
 
-    @ApiModelProperty("标题")
+    @Schema(name = "标题")
     private String title;
 
-    @ApiModelProperty("日期")
+    @Schema(name = "日期")
     private String date;
 
-    @ApiModelProperty("交易类型 EXPENSE: 支出, INCOME: 收入")
+    @Schema(name = "交易类型 EXPENSE: 支出, INCOME: 收入")
     private String transactionType;
 
-    @ApiModelProperty("金额")
+    @Schema(name = "金额")
     private BigDecimal amount;
 
-    @ApiModelProperty("分类")
+    @Schema(name = "分类")
     private Integer categoryId;
 
-    @ApiModelProperty("标签")
+    @Schema(name = "标签")
     private Integer tagId;
 
-    @ApiModelProperty("备注")
+    @Schema(name = "备注")
     private String remark;
 
 }

@@ -1,8 +1,7 @@
 package com.tony.log4m.base;
 
 import cn.hutool.json.JSONUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serial;
@@ -10,18 +9,18 @@ import java.io.Serializable;
 
 
 @Data
-@ApiModel("通用返回类")
+@Schema(defaultValue = "通用返回类")
 public class R<T> implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty("状态码 1:成功 -1:失败")
+    @Schema(name = "状态码 1:成功 -1:失败")
     private int code = 1;
-    @ApiModelProperty("返回消息")
+    @Schema(name = "返回消息")
     private String msg = "成功";
-    @ApiModelProperty("承载数据")
+    @Schema(name = "承载数据")
     private T data;
-    @ApiModelProperty("是否展示信息")
+    @Schema(name = "是否展示信息")
     private Boolean show = false;
 
     public R() {

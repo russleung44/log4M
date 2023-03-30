@@ -2,7 +2,7 @@ package com.tony.log4m.utils;
 
 /**
  * @author TonyLeung
- * @date 2022/10/11
+ * @since 2022/10/11
  */
 public class CommonUtil {
 

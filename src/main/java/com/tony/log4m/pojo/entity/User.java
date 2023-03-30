@@ -3,7 +3,7 @@ package com.tony.log4m.pojo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,7 +32,7 @@ public class User extends BaseEntity {
 
     private String email;
 
-    @ApiModelProperty("0: inactive, 1: active")
+    @Schema(name = "0: inactive, 1: active")
     private Integer status;
 
     private Integer defaultAccountId;

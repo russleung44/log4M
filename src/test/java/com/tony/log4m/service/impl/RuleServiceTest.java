@@ -1,19 +1,20 @@
 package com.tony.log4m.service.impl;
 
 import com.tony.log4m.pojo.entity.Rule;
+import com.tony.log4m.service.RuleService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * @author TonyLeung
- * @date 2022/10/10
+ * @since 2022/10/10
  */
 @SpringBootTest
-class RuleServiceImplTest {
+class RuleServiceTest {
 
     @Autowired
-    private RuleServiceImpl ruleService;
+    private RuleService ruleService;
 
 
     @Test

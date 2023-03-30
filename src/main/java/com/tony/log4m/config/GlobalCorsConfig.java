@@ -8,7 +8,7 @@ import org.springframework.web.filter.CorsFilter;
 
 /**
  * @author TonyLeung
- * @date 2020/6/22
+ * @since 2020/6/22
  */
 @Configuration
 public class GlobalCorsConfig {

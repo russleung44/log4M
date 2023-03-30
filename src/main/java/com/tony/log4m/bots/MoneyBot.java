@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
@@ -34,7 +35,7 @@ import java.util.Optional;
 
 /**
  * @author TonyLeung
- * @date 2022/9/27
+ * @since 2022/9/27
  */
 @Slf4j
 @Component
@@ -51,36 +52,9 @@ public class MoneyBot extends TelegramLongPollingBot {
     @Value("${log4M_bot}")
     private String botToken;
 
-    private SendMessage getRuleMessage(Long chatId, User user) {
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId)
-                .text("规则列表")
-                .build();
-
-        List<InlineKeyboardButton> buttons = new ArrayList<>();
-        ruleService.query().eq("user_id", user.getId()).list().forEach(rule -> {
-            InlineKeyboardButton button = InlineKeyboardButton.builder()
-                    .text(rule.getName())
-                    .callbackData("rule::" + rule.getId())
-                    .build();
-
-            buttons.add(button);
-        });
-        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        rowsInline.add(buttons);
-        message.setReplyMarkup(new InlineKeyboardMarkup(rowsInline));
-
-        return message;
-    }
-
     @Override
     public String getBotUsername() {
         return "log4M_bot";
-    }
-
-    @Override
-    public String getBotToken() {
-        return botToken;
     }
 
     @Override
@@ -233,6 +207,29 @@ public class MoneyBot extends TelegramLongPollingBot {
 
     }
 
+
+    private SendMessage getRuleMessage(Long chatId, User user) {
+        SendMessage message = SendMessage.builder()
+                .chatId(chatId)
+                .text("规则列表")
+                .build();
+
+        List<InlineKeyboardButton> buttons = new ArrayList<>();
+        ruleService.query().eq("user_id", user.getId()).list().forEach(rule -> {
+            InlineKeyboardButton button = InlineKeyboardButton.builder()
+                    .text(rule.getName())
+                    .callbackData("rule::" + rule.getId())
+                    .build();
+
+            buttons.add(button);
+        });
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        rowsInline.add(buttons);
+        message.setReplyMarkup(new InlineKeyboardMarkup(rowsInline));
+
+        return message;
+    }
+
     private String getRuleDetails(EditMessageText message, String[] split) {
         String answerText;
         String ruleId = split[1];
@@ -266,7 +263,7 @@ public class MoneyBot extends TelegramLongPollingBot {
     }
 
     @Transactional
-    String quickRecord(String text, SendMessage sendMessage, User user) {
+    public String quickRecord(String text, SendMessage sendMessage, User user) {
         Record record = Record.builder()
                 .title(text)
                 .userId(user.getId())
@@ -339,8 +336,14 @@ public class MoneyBot extends TelegramLongPollingBot {
         try {
             log.info("===注册机器人===");
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-            botsApi.registerBot(this);
-            setMyCommands();
+
+            DefaultBotOptions options = this.getOptions();
+            options.setProxyHost("127.0.0.1");
+            options.setProxyPort(8888);
+            options.setProxyType(DefaultBotOptions.ProxyType.SOCKS5);
+
+//            botsApi.registerBot(new MoneyBot(options, botToken));
+//            setMyCommands();
         } catch (TelegramApiException e) {
             e.printStackTrace();
             log.error("TelegramApiException: {}", e.getMessage());

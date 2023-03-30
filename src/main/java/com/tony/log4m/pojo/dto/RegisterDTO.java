@@ -4,9 +4,10 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 
+
 /**
  * @author TonyLeung
- * @date 2022/9/23
+ * @since 2022/9/23
  */
 @Data
 public class RegisterDTO {
