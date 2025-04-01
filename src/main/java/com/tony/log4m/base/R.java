@@ -1,6 +1,6 @@
 package com.tony.log4m.base;
 
-import com.tony.log4m.utils.JacksonUtil;
+import com.alibaba.fastjson2.JSON;
 import lombok.Data;
 
 import java.io.Serial;
@@ -94,6 +94,6 @@ public class R<T> implements Serializable {
 
     @Override
     public String toString() {
-        return JacksonUtil.toStr(this);
+        return JSON.toJSONString(this);
     }
 }

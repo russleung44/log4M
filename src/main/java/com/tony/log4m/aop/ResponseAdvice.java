@@ -1,18 +1,16 @@
 package com.tony.log4m.aop;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tony.log4m.base.R;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
-import javax.validation.constraints.NotNull;
 
 /**
  * @author TonyLeung
@@ -35,23 +33,13 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
      */
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter methodParameter, MediaType mediaType, Class<? extends HttpMessageConverter<?>> aClass, ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse) {
-        if (body == null) {
-            return R.ok();
-        }
+        return switch (body) {
+            case null -> ResponseEntity.ok().build();
+            case String s -> body;
+            case ResponseEntity<?> responseEntity -> body;
+            default -> ResponseEntity.ok(body);
+        };
 
-        if (body instanceof String) {
-            try {
-                return new ObjectMapper().writeValueAsString(R.ok(body));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-
-            }
-        }
-
-        if (body instanceof R) {
-            return body;
-        }
-        return R.ok(body);
     }
 }
 

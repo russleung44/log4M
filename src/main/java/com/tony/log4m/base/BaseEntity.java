@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,18 +22,17 @@ import java.util.Date;
 @AllArgsConstructor
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class BaseEntity extends Model {
+public class BaseEntity<T> extends Model<BaseEntity<T>> {
     @Serial
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    @JsonIgnore
     @TableField(select = false)
     private Boolean deleted;
 
-    private Date createTime;
+    private Date crTime;
 
-    private Date updateTime;
+    private Date mdTime;
 }

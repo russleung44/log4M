@@ -1,8 +1,7 @@
 package com.tony.log4m.pojo.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-
-import javax.validation.constraints.NotBlank;
 
 
 /**

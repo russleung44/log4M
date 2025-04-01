@@ -1,21 +1,12 @@
 package com.tony.log4m.bots;
 
+import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.UpdatesListener;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
-import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
-import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
-import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
-import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.generics.TelegramClient;
-
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -24,32 +15,44 @@ import java.util.List;
  */
 @Slf4j
 @Component
-public class MoneyBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
+@RequiredArgsConstructor
+public class MoneyBot {
 
 
-    private final TelegramClient telegramClient;
-    private final CommonFunction commonFunction;
     @Value("${botToken}")
     private String botToken;
 
-    public MoneyBot(@Value("${botToken}") String botToken, CommonFunction commonFunction) {
-        telegramClient = new OkHttpTelegramClient(botToken);
-        this.commonFunction = commonFunction;
-    }
+    private final CommonFunction commonFunction;
+
 
     @PostConstruct
     public void init() {
-        try {
-            log.info("===写入菜单===");
-            setMyCommands();
-        } catch (TelegramApiException e) {
-            log.error("写入菜单失败: {}", e.getLocalizedMessage());
-        }
+        TelegramBot bot = new TelegramBot(botToken);
+        log.info("===init bot===");
+        bot.setUpdatesListener(updates -> {
+            log.info("收到消息:{}", updates);
+            updates.forEach(update -> {
+                commonFunction.mainFunc(bot, update);
+            });
+            return UpdatesListener.CONFIRMED_UPDATES_ALL;
+        }, e -> {
+            if (e.response() != null) {
+                // got bad response from telegram
+                e.response().errorCode();
+                e.response().description();
+            } else {
+                // probably network error
+                log.error("init bot error", e);
+            }
+        });
     }
 
-    /**
-     * 设置菜单
+    /*
      */
+/**
+ * 设置菜单
+ *//*
+
     private void setMyCommands() throws TelegramApiException {
         List<BotCommand> commands = new ArrayList<>();
         commands.add(new BotCommand("today", "今日消费报告"));
@@ -61,25 +64,7 @@ public class MoneyBot implements SpringLongPollingBot, LongPollingSingleThreadUp
         SetMyCommands setMyCommands = new SetMyCommands(commands);
         telegramClient.execute(setMyCommands);
     }
+*/
 
 
-    @Override
-    public String getBotToken() {
-        return botToken;
-    }
-
-    @Override
-    public LongPollingUpdateConsumer getUpdatesConsumer() {
-        return this;
-    }
-
-    @Override
-    public void consume(List<Update> updates) {
-        LongPollingSingleThreadUpdateConsumer.super.consume(updates);
-    }
-
-    @Override
-    public void consume(Update update) {
-        commonFunction.mainFunc(telegramClient, update);
-    }
 }

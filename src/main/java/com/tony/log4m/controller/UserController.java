@@ -2,10 +2,10 @@ package com.tony.log4m.controller;
 
 import com.tony.log4m.pojo.entity.User;
 import com.tony.log4m.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.io.Serializable;
 
 
