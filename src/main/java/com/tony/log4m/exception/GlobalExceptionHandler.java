@@ -1,23 +1,24 @@
 package com.tony.log4m.exception;
 
-import com.tony.log4m.base.R;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
-import org.springframework.validation.FieldError;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.telegram.telegrambots.longpolling.exceptions.TelegramApiErrorResponseException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import javax.servlet.http.HttpServletRequest;
-import java.sql.SQLException;
-import java.sql.SQLTransientException;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 /**
+ * 全局异常处理
+ *
  * @author Tony
  * @since 2021/8/11
  */
@@ -25,105 +26,67 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-
-    /**
-     * 全局异常处理
-     */
     @ExceptionHandler(Throwable.class)
-    public R handleThrowable(Throwable e) {
-        log.error("系统异常", e);
-        return R.fail("系统异常");
+    public ResponseEntity<?> handleThrowable(Throwable e, HttpServletRequest request) {
+        log.error(request.getRequestURL().toString(), e);
+        return ResponseEntity.internalServerError().body("系统异常");
     }
 
-    @ExceptionHandler(IndexOutOfBoundsException.class)
-    public R handleIndexOutOfBoundsException(IndexOutOfBoundsException e) {
-        log.error("越界异常", e);
-        return R.fail("系统异常");
-    }
-
-    /**
-     * 运行异常处理
-     */
     @ExceptionHandler(RuntimeException.class)
-    public R handleRuntimeException(RuntimeException e, HttpServletRequest request) {
+    public ResponseEntity<?> handleRuntimeException(RuntimeException e, HttpServletRequest request) {
         log.error(request.getRequestURL().toString(), e);
-        return R.fail(e.getMessage());
+        return ResponseEntity.internalServerError().body("系统异常");
     }
 
-    /**
-     * 全局异常处理
-     */
     @ExceptionHandler(Exception.class)
-    public R handleException(Exception e, HttpServletRequest request) {
+    public ResponseEntity<?> handleException(Exception e, HttpServletRequest request) {
         log.error(request.getRequestURL().toString(), e);
-        return R.fail(e.getMessage());
+        return ResponseEntity.internalServerError().body("系统异常");
     }
 
 
-    /**
-     * SQL异常处理
-     */
-    @ExceptionHandler(DataAccessException.class)
-    public R handleException(DataAccessException e, HttpServletRequest request) {
-        log.error(request.getRequestURL().toString(), e);
-        return R.fail("查询错误");
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Object> handleValidationExceptions(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request) {
+
+        // 提取验证错误信息
+        final BindingResult bindingResult = ex.getBindingResult();
+        final List<String> errorMessages = bindingResult.getAllErrors()
+                .stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.toList());
+
+        // 记录日志（可自定义日志级别）
+        log.warn("参数校验失败: {}, URL: {}", errorMessages, request.getRequestURL());
+
+        // 返回400 Bad Request响应
+        return ResponseEntity
+                .badRequest()
+                .body("参数校验失败: " + String.join(", ", errorMessages));
     }
 
-    /**
-     * SQL异常处理
-     */
-    @ExceptionHandler(SQLException.class)
-    public R handleException(SQLException e, HttpServletRequest request) {
-        log.error(request.getRequestURL().toString(), e);
-        return R.fail("查询错误");
-    }
-
-
-
-    /**
-     * 自定义验证异常
-     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BindException.class)
-    public R validatedBindException(BindException e, HttpServletRequest request) {
-        List<FieldError> allErrors = e.getBindingResult().getFieldErrors();
-        String msg = allErrors.stream().map(v -> v.getField() + " " + v.getDefaultMessage() + ", ").collect(Collectors.joining());
-        log.error("BindException: {} {}", msg, request.getRequestURL());
-        return R.fail(msg, false);
+    public ResponseEntity<?> handleBindException(BindException e, HttpServletRequest request) {
+        String msg = e.getFieldErrors().stream()
+                .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        log.warn("BindException: [{}] {}", request.getRequestURL(), msg);
+        return ResponseEntity.badRequest().body(msg);
     }
 
-
-    /**
-     * 非法参数异常
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public R illegalArgumentExceptionHandler(IllegalArgumentException e) {
-        log.error("IllegalArgumentException: {}", e.getMessage());
-        return R.fail(e.getMessage(), false);
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<?> handleTypeMismatchException(MethodArgumentTypeMismatchException e, HttpServletRequest request) {
+        String errorMessage = String.format(
+                "参数转换错误：参数 '%s' 应为 %s 类型，但值 '%s' 无法被转换。",
+                e.getName(),
+                e.getRequiredType() != null ? e.getRequiredType().getSimpleName() : "未知类型",
+                e.getValue() != null ? e.getValue() : "null"
+        );
+        log.warn("TypeMismatchException: [{}] {}", request.getRequestURL(), errorMessage);
+        return ResponseEntity.badRequest().body(errorMessage);
     }
 
-
-    @ExceptionHandler(NoSuchElementException.class)
-    public R noSuchElementExceptionHandler() {
-        return R.fail("数据不存在");
-    }
-
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public R httpMessageNotReadableExceptionHandler(HttpMessageNotReadableException e) {
-        log.error("HttpMessageNotReadableException: {}", e.getMessage());
-        return R.fail("请求参数不合法", false);
-    }
-
-
-    @ExceptionHandler(SQLTransientException.class)
-    public R mySQLTransactionRollbackExceptionHandler(SQLTransientException e) {
-        log.error("SQLTransientException", e);
-        return R.fail("SQL事务异常", false);
-    }
-
-    @ExceptionHandler(TelegramApiErrorResponseException.class)
-    public void telegramApiErrorResponseExceptionHandler(TelegramApiErrorResponseException e) {
-        log.error("TelegramApiErrorResponseException: {}", e.getMessage());
-    }
 
 }

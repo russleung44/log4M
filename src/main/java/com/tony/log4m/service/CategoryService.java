@@ -2,14 +2,11 @@ package com.tony.log4m.service;
 
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tony.log4m.convert.CategoryConvert;
-import com.tony.log4m.dao.CategoryDao;
-import com.tony.log4m.pojo.dto.CategoryDTO;
+import com.tony.log4m.mapper.CategoryMapper;
 import com.tony.log4m.pojo.entity.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.Serializable;
 import java.util.Optional;
 
 /**
@@ -18,7 +15,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class CategoryService extends ServiceImpl<CategoryDao, Category> {
+public class CategoryService extends ServiceImpl<CategoryMapper, Category> {
 
     public void insert(Category category) {
         // todo 检查账户名是否重复

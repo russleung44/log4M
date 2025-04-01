@@ -1,12 +1,12 @@
 package com.tony.log4m.controller;
 
-import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.entity.Category;
 import com.tony.log4m.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.io.Serializable;
 
 
@@ -28,18 +28,18 @@ public class CategoryController {
     }
 
     @PostMapping
-    public void insert(@Valid @RequestBody Category categoryDTO) {
-        categoryService.insert(categoryDTO);
+    public void insert(@Valid @RequestBody Category category) {
+        categoryService.insert(category);
     }
 
-    @PutMapping
-    public void update(@Valid @RequestBody Category categoryDTO) {
-        categoryService.update(categoryDTO);
+    @PutMapping("/{id}")
+    public void update(@Valid @RequestBody Category category) {
+        categoryService.update(category);
     }
 
     @DeleteMapping("/{id}")
-    public R delete(@PathVariable Serializable id) {
+    public ResponseEntity<?> delete(@PathVariable Serializable id) {
         categoryService.removeById(id);
-        return R.ok();
+        return ResponseEntity.ok().build();
     }
 }

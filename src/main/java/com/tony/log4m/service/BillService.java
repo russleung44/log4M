@@ -3,8 +3,7 @@ package com.tony.log4m.service;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tony.log4m.dao.AccountDao;
-import com.tony.log4m.dao.BillDao;
+import com.tony.log4m.mapper.BillMapper;
 import com.tony.log4m.pojo.dto.RecordDTO;
 import com.tony.log4m.pojo.dto.RecordUpdateDTO;
 import com.tony.log4m.pojo.entity.Bill;
@@ -23,16 +22,16 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BillService extends ServiceImpl<BillDao, Bill> {
+public class BillService extends ServiceImpl<BillMapper, Bill> {
 
 
     public BigDecimal getAmountByDate(String day) {
-        return this.query().eq("day", day).select("sum(amount) as amount")
+        return this.query().eq("bill_day", day).select("sum(amount) as amount")
                 .oneOpt().map(Bill::getAmount).orElse(BigDecimal.ZERO);
     }
 
     public BigDecimal getAmountByMonth(String month) {
-        return this.query().likeRight("month", month).select("sum(amount) as amount")
+        return this.query().likeRight("bill_month", month).select("sum(amount) as amount")
                 .oneOpt().map(Bill::getAmount).orElse(BigDecimal.ZERO);
     }
 
@@ -42,25 +41,25 @@ public class BillService extends ServiceImpl<BillDao, Bill> {
         Integer categoryId = recordDTO.getCategoryId();
         String transactionType = recordDTO.getTransactionType();
 
-        List<Bill> list = this.query()
-                .eq(CommonUtil.isNotZero(tagId), "tag_id", tagId)
-                .eq(CommonUtil.isNotZero(accountId), "account_id", accountId)
-                .eq(CommonUtil.isNotZero(categoryId), "category_id", categoryId)
-                .eq(StrUtil.isNotBlank(transactionType), "transaction_type", transactionType)
+        List<Bill> list = this.lambdaQuery()
+                .eq(CommonUtil.isNotZero(tagId), Bill::getTagId, tagId)
+                .eq(CommonUtil.isNotZero(accountId), Bill::getAccountId, accountId)
+                .eq(CommonUtil.isNotZero(categoryId), Bill::getCategoryId, categoryId)
+                .eq(StrUtil.isNotBlank(transactionType), Bill::getTransactionType, transactionType)
                 .list();
         return list;
     }
 
     public void update(RecordUpdateDTO updateDTO) {
         Integer recordId = updateDTO.getRecordId();
-        this.update()
-                .set(CommonUtil.isNotZero(updateDTO.getCategoryId()), "category_id", updateDTO.getCategoryId())
-                .set(CommonUtil.isNotZero(updateDTO.getAccountId()), "account_id", updateDTO.getAccountId())
-                .set(CommonUtil.isNotZero(updateDTO.getTagId()), "tag_id", updateDTO.getTagId())
-                .set(StrUtil.isNotBlank(updateDTO.getTitle()), "title", updateDTO.getTitle())
-                .set(StrUtil.isNotBlank(updateDTO.getDate()), "date", updateDTO.getDate())
-                .set(updateDTO.getAmount() != null, "amount", updateDTO.getAmount())
-                .eq("id", recordId)
+        this.lambdaUpdate()
+                .set(CommonUtil.isNotZero(updateDTO.getCategoryId()), Bill::getCategoryId, updateDTO.getCategoryId())
+                .set(CommonUtil.isNotZero(updateDTO.getAccountId()), Bill::getAccountId, updateDTO.getAccountId())
+                .set(CommonUtil.isNotZero(updateDTO.getTagId()), Bill::getTagId, updateDTO.getTagId())
+                .set(StrUtil.isNotBlank(updateDTO.getTitle()), Bill::getTitle, updateDTO.getTitle())
+                .set(StrUtil.isNotBlank(updateDTO.getDate()), Bill::getBillDate, updateDTO.getDate())
+                .set(updateDTO.getAmount() != null, Bill::getAmount, updateDTO.getAmount())
+                .eq(Bill::getId, recordId)
                 .update();
 
     }

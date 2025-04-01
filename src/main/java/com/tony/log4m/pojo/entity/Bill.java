@@ -1,15 +1,9 @@
 package com.tony.log4m.pojo.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
 import com.tony.log4m.enums.TransactionType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
@@ -29,7 +23,7 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 @TableName(value = "bill", autoResultMap = true)
 @EqualsAndHashCode(callSuper = true)
-public class Bill extends BaseEntity {
+public class Bill extends BaseEntity<Bill> {
 
     private Integer userId;
 
@@ -39,11 +33,9 @@ public class Bill extends BaseEntity {
 
     private LocalDateTime billDate;
 
-    @TableField(insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
-    private LocalDate day;
+    private LocalDate billDay;
 
-    @TableField(insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
-    private int month;
+    private Integer billMonth;
 
     private TransactionType transactionType;
 

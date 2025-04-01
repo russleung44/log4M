@@ -86,7 +86,7 @@
     </appender>
 
     <!--SQL级别-->
-    <logger name="com.tony.log4m.dao" level="TRACE">
+    <logger name="com.tony.log4m.mapper" level="TRACE">
         <appender-ref ref="sql"/>
     </logger>
 

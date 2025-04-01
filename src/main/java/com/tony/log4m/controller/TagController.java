@@ -1,12 +1,12 @@
 package com.tony.log4m.controller;
 
-import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.entity.Tag;
 import com.tony.log4m.service.TagService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.io.Serializable;
 
 
@@ -38,8 +38,8 @@ public class TagController {
     }
 
     @DeleteMapping("/{id}")
-    public R delete(@PathVariable Serializable id) {
+    public ResponseEntity<?> delete(@PathVariable Serializable id) {
         tagService.removeById(id);
-        return R.ok();
+        return ResponseEntity.ok().build();
     }
 }

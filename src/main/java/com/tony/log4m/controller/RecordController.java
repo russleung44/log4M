@@ -1,13 +1,13 @@
 package com.tony.log4m.controller;
 
-import com.tony.log4m.base.R;
 import com.tony.log4m.pojo.dto.RecordUpdateDTO;
 import com.tony.log4m.pojo.entity.Bill;
 import com.tony.log4m.service.BillService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.io.Serializable;
 
 
@@ -30,18 +30,18 @@ public class RecordController {
 
     @PostMapping
     public void save(@Valid @RequestBody Bill bill) {
-         billService.save(bill);
+        billService.save(bill);
     }
 
 
-    @PutMapping
+    @PutMapping("/id")
     public void update(@Valid @RequestBody RecordUpdateDTO recordDTO) {
-         billService.update(recordDTO);
+        billService.update(recordDTO);
     }
 
     @DeleteMapping("/{id}")
-    public R delete(@PathVariable Serializable id) {
+    public ResponseEntity<?> delete(@PathVariable Serializable id) {
         billService.removeById(id);
-        return R.ok();
+        return ResponseEntity.ok().build();
     }
 }

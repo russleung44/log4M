@@ -2,7 +2,7 @@ package com.tony.log4m.service;
 
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tony.log4m.dao.AccountDao;
+import com.tony.log4m.mapper.AccountMapper;
 import com.tony.log4m.pojo.entity.Account;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class AccountService extends ServiceImpl<AccountDao, Account> {
+public class AccountService extends ServiceImpl<AccountMapper, Account> {
 
 
     public void insert(Account account) {

@@ -1,7 +1,7 @@
 package com.tony.log4m.base;
 
 import cn.hutool.core.util.StrUtil;
-import com.tony.log4m.utils.JacksonUtil;
+import com.alibaba.fastjson2.JSON;
 import org.mapstruct.InheritConfiguration;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mappings;
@@ -32,7 +32,7 @@ public interface BasicConvert<SOURCE, TARGET> {
         if (obj == null) {
             return null;
         }
-        return JacksonUtil.toStr(obj);
+        return JSON.toJSONString(obj);
     }
 
     @Named("toList")
@@ -40,7 +40,7 @@ public interface BasicConvert<SOURCE, TARGET> {
         if (StrUtil.isBlank(str)) {
             return new ArrayList<>();
         } else {
-            return JacksonUtil.toList(str, Object.class);
+            return JSON.parseArray(str, Object.class);
         }
     }
 }

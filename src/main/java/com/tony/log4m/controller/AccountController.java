@@ -1,15 +1,12 @@
 package com.tony.log4m.controller;
 
-import com.tony.log4m.base.PageDTO;
-import com.tony.log4m.base.R;
-import com.tony.log4m.pojo.dto.AccountDTO;
 import com.tony.log4m.pojo.entity.Account;
-import com.tony.log4m.pojo.vo.AccountStatVO;
 import com.tony.log4m.service.AccountService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.io.Serializable;
 
 
@@ -32,24 +29,24 @@ public class AccountController {
 
     @PostMapping
     public void insert(@Valid @RequestBody Account account) {
-         accountService.insert(account);
+        accountService.insert(account);
     }
 
-    @PutMapping
+    @PutMapping("/id")
     public void update(@Valid @RequestBody Account account) {
         accountService.update(account);
     }
 
     @DeleteMapping("/{id}")
-    public R delete(@PathVariable Serializable id) {
+    public ResponseEntity<?> delete(@PathVariable Serializable id) {
         accountService.removeById(id);
-        return R.ok();
+        return ResponseEntity.noContent().build();
     }
 
 
-    @PutMapping("/default/{id}")
-    public R setDefault(@PathVariable Serializable id) {
+    @PutMapping("/{id}/default")
+    public ResponseEntity<?> setDefault(@PathVariable Serializable id) {
         accountService.setDefault(id);
-        return R.ok();
+        return ResponseEntity.ok().build();
     }
 }
