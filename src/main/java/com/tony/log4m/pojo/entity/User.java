@@ -15,9 +15,11 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-@TableName(value = "user", autoResultMap = true)
+@TableName(value = "sys_user", autoResultMap = true)
 @EqualsAndHashCode(callSuper = true)
 public class User extends BaseEntity<User> {
+
+    private Long tgUserId;
 
     private String username;
 

@@ -25,9 +25,9 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class Bill extends BaseEntity<Bill> {
 
-    private Integer userId;
+    private Long userId;
 
-    private Integer accountId;
+    private Long accountId;
 
     private String title;
 
@@ -41,9 +41,9 @@ public class Bill extends BaseEntity<Bill> {
 
     private BigDecimal amount;
 
-    private Integer categoryId;
+    private Long categoryId;
 
-    private Integer tagId;
+    private Long tagId;
 
     private String remark;
 

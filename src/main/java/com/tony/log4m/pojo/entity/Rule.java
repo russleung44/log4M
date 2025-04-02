@@ -23,15 +23,15 @@ public class Rule extends BaseEntity<Rule> {
 
     private String name;
 
-    private Integer userId;
+    private Long userId;
 
-    private Integer accountId;
+    private Long accountId;
 
     private TransactionType transactionType;
 
-    private Integer categoryId;
+    private Long categoryId;
 
-    private Integer tagId;
+    private Long tagId;
 
     private BigDecimal amount;
 

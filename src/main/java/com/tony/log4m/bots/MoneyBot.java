@@ -2,11 +2,19 @@ package com.tony.log4m.bots;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
+import com.pengrad.telegrambot.model.BotCommand;
+import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.User;
+import com.pengrad.telegrambot.request.SetMyCommands;
+import com.tony.log4m.enums.CommandType;
+import com.tony.log4m.service.UserService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
 
 
 /**
@@ -18,20 +26,26 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MoneyBot {
 
-
+    private final UserService userService;
+    private final CommonFunction commonFunction;
+    private TelegramBot bot;
     @Value("${botToken}")
     private String botToken;
 
-    private final CommonFunction commonFunction;
-
-
     @PostConstruct
     public void init() {
-        TelegramBot bot = new TelegramBot(botToken);
+        bot = new TelegramBot(botToken);
         log.info("===init bot===");
+        setMyCommands();
         bot.setUpdatesListener(updates -> {
-            log.info("收到消息:{}", updates);
             updates.forEach(update -> {
+                log.info("receive message:{}", update);
+                Message message = update.message();
+                if (message != null) {
+                    User from = message.from();
+                    userService.saveTgUser(from.id(), from.username());
+                }
+
                 commonFunction.mainFunc(bot, update);
             });
             return UpdatesListener.CONFIRMED_UPDATES_ALL;
@@ -48,23 +62,15 @@ public class MoneyBot {
     }
 
     /*
+     *设置菜单
      */
-/**
- * 设置菜单
- *//*
+    private void setMyCommands() {
+        log.info("===set commands===");
+        BotCommand[] commands = Arrays.stream(CommandType.values())
+                .map(ct -> new BotCommand(ct.getCode(), ct.getDesc()))
+                .toArray(BotCommand[]::new);
 
-    private void setMyCommands() throws TelegramApiException {
-        List<BotCommand> commands = new ArrayList<>();
-        commands.add(new BotCommand("today", "今日消费报告"));
-        commands.add(new BotCommand("yesterday", "昨日消费报告"));
-        commands.add(new BotCommand("last_month", "上个月消费报告"));
-        commands.add(new BotCommand("current_month", "本月消费报告"));
-        commands.add(new BotCommand("rule", "规则"));
-
-        SetMyCommands setMyCommands = new SetMyCommands(commands);
-        telegramClient.execute(setMyCommands);
+        bot.execute(new SetMyCommands(commands));
     }
-*/
-
 
 }
