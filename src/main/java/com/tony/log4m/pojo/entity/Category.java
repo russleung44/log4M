@@ -19,7 +19,7 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 public class Category extends BaseEntity<Category> {
 
-    private Integer userId;
+    private Long userId;
 
     private String name;
 

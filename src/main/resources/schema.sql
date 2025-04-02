@@ -1,4 +1,4 @@
-CREATE TABLE account
+CREATE TABLE IF NOT EXISTS account
 (
     id            int AUTO_INCREMENT
         PRIMARY KEY,
@@ -16,7 +16,7 @@ CREATE TABLE account
     md_time       datetime       DEFAULT NOW() NOT NULL
 );
 
-CREATE TABLE bill
+CREATE TABLE IF NOT EXISTS bill
 (
     id               int AUTO_INCREMENT
         PRIMARY KEY,
@@ -36,7 +36,7 @@ CREATE TABLE bill
     md_time          datetime     DEFAULT NOW() NOT NULL
 );
 
-CREATE TABLE category
+CREATE TABLE IF NOT EXISTS category
 (
     id      int AUTO_INCREMENT
         PRIMARY KEY,
@@ -48,7 +48,7 @@ CREATE TABLE category
     md_time datetime   DEFAULT NOW() NOT NULL
 );
 
-CREATE TABLE rule
+CREATE TABLE IF NOT EXISTS rule
 (
     id               int AUTO_INCREMENT
         PRIMARY KEY,
@@ -66,7 +66,7 @@ CREATE TABLE rule
     deleted          tinyint(1)     DEFAULT 0     NULL
 );
 
-CREATE TABLE `user`
+CREATE TABLE IF NOT EXISTS `sys_user`
 (
     id                 int AUTO_INCREMENT
         PRIMARY KEY,
@@ -81,7 +81,7 @@ CREATE TABLE `user`
     md_time            datetime     DEFAULT NOW() NOT NULL
 );
 
-CREATE TABLE tag
+CREATE TABLE IF NOT EXISTS tag
 (
     id      int AUTO_INCREMENT
         PRIMARY KEY,

@@ -7,8 +7,6 @@ import com.tony.log4m.pojo.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 /**
  * @author Tony
  * @since 2022-09-23 15:31:38
@@ -17,8 +15,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService extends ServiceImpl<UserMapper, User> {
 
-    public Optional<User> getByTgUserId(Long tgUserId) {
-        return this.query().eq("tg_user_id", tgUserId).oneOpt();
+    public User getByTgUserId(Long tgUserId) {
+        return this.lambdaQuery().eq(User::getTgUserId, tgUserId).one();
     }
 
+    public void saveTgUser(Long tgUserId, String username) {
+        User user = getByTgUserId(tgUserId);
+        if (user == null) {
+            new User().setTgUserId(tgUserId).setUsername(username).insert();
+        }
+    }
 }

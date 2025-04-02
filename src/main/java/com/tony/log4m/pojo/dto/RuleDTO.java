@@ -15,19 +15,19 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = false)
 public class RuleDTO {
 
-    private Integer id;
+    private Long id;
 
     private String name;
 
-    private Integer userId;
+    private Long userId;
 
-    private Integer accountId;
+    private Long accountId;
 
     private String transactionType;
 
-    private Integer categoryId;
+    private Long categoryId;
 
-    private Integer tagId;
+    private Long tagId;
 
     private BigDecimal amount;
 

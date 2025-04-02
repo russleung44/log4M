@@ -20,7 +20,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 public class Account extends BaseEntity<Account> {
 
-    private Integer userId;
+    private Long userId;
 
     private String accountName;
 
@@ -36,5 +36,7 @@ public class Account extends BaseEntity<Account> {
 
     private Integer status;
 
-    private boolean isDefault;
+    private Boolean isDefault;
+
+
 }

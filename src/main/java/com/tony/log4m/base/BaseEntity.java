@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serial;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * @author TonyLeung
@@ -27,12 +27,12 @@ public class BaseEntity<T> extends Model<BaseEntity<T>> {
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)
-    private Integer id;
+    private Long id;
+
+    private LocalDateTime crTime;
+
+    private LocalDateTime mdTime;
 
     @TableField(select = false)
     private Boolean deleted;
-
-    private Date crTime;
-
-    private Date mdTime;
 }
