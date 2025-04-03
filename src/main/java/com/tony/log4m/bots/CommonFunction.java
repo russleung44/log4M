@@ -12,15 +12,16 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.convert.RuleConvert;
-import com.tony.log4m.enums.CommandType;
+import com.tony.log4m.enums.Command;
+import com.tony.log4m.enums.MenuCommand;
 import com.tony.log4m.enums.TransactionType;
 import com.tony.log4m.pojo.entity.*;
 import com.tony.log4m.service.*;
+import com.tony.log4m.utils.CommonUtil;
 import com.tony.log4m.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -46,12 +47,16 @@ public class CommonFunction {
     private final UserService userService;
 
     public void mainFunc(TelegramBot bot, Update update) {
-        if (update.message() != null) {
-            handleTextMessage(bot, update.message());
-        } else if (update.callbackQuery() != null) {
-            handleCallbackQuery(bot, update.callbackQuery());
-        } else {
-            log.error("unknown update: {}", update);
+        try {
+            if (update.message() != null) {
+                handleTextMessage(bot, update.message());
+            } else if (update.callbackQuery() != null) {
+                handleCallbackQuery(bot, update.callbackQuery());
+            } else {
+                log.error("unknown update: {}", update);
+            }
+        } catch (Exception e) {
+            log.error("TelegramApiException: {}", e.getMessage());
         }
     }
 
@@ -70,6 +75,8 @@ public class CommonFunction {
         SendMessage responseMessage;
         if (text.startsWith("/")) {
             responseMessage = processCommand(text, chatId);
+        } else if (text.startsWith("@")) {
+            responseMessage = processCustomCommand(text, chatId, user);
         } else {
             responseMessage = processQuickRecord(text, chatId, user);
         }
@@ -78,15 +85,66 @@ public class CommonFunction {
         }
     }
 
+    private SendMessage processCustomCommand(String text, Long chatId, User user) {
+        Long userId = user.getId();
+        String replyText = "命令执行成功";
+        Command command = Command.valueOf(text.substring(1, text.lastIndexOf("@")).toUpperCase());
+        // 获取截取后的text
+        text = text.substring(text.lastIndexOf("@") + 1);
+        // 用,分割text
+        String[] split = text.split("-");
+        switch (command) {
+            case RULE -> {
+                if (split.length < 3) {
+                    return new SendMessage(chatId, "参数错误");
+                }
+
+                String keyword = split[0];
+                BigDecimal amount = new BigDecimal(split[1]);
+                TransactionType transactionType = split[2].equals("1") ? TransactionType.EXPENSE : TransactionType.INCOME;
+
+                Rule rule = new Rule(keyword, amount, transactionType).setUserId(userId);
+                if (split.length > 3) {
+                    String tagName = split[3];
+                    Tag tag = tagService.lambdaQuery().eq(Tag::getName, tagName).one();
+                    if (tag == null) {
+                        tag = new Tag();
+                        tag.setName(tagName).setUserId(userId).insert();
+                    }
+
+                    rule.setTagId(tag.getId());
+                }
+
+                rule.insert();
+                replyText = "规则添加成功";
+            }
+
+            case TAG -> {
+                if (split.length < 1) {
+                    return new SendMessage(chatId, "参数错误");
+                }
+                String tagName = split[1];
+                new Tag().setName(tagName).setUserId(userId).insert();
+                replyText = "标签添加成功";
+            }
+
+            case CLEAR -> {
+                billService.lambdaUpdate().eq(Bill::getUserId, userId).remove();
+            }
+        }
+
+        return new SendMessage(chatId, replyText);
+    }
+
     /**
      * 处理命令消息
      */
     private SendMessage processCommand(String text, Long chatId) {
-        CommandType commandType = CommandType.getByCode(text.replace("/", ""));
-        String desc = commandType.getDesc();
+        MenuCommand menuCommand = MenuCommand.getByCommand(text.replace("/", ""));
+        String desc = menuCommand.getDesc();
 
         BigDecimal amount = BigDecimal.ZERO;
-        switch (commandType) {
+        switch (menuCommand) {
             case TODAY -> {
                 amount = billService.getAmountByDate(DateUtil.today());
             }
@@ -118,6 +176,7 @@ public class CommonFunction {
         if (bill == null) return null;
 
         BigDecimal amount = bill.getAmount();
+        String amountPrefix = bill.getTransactionType() == TransactionType.EXPENSE ? "-" : "+";
         Account account = updateAccount(bill, amount);
 
         // 返回模板
@@ -131,7 +190,7 @@ public class CommonFunction {
                 template,
                 account.getAccountName(),
                 account.getBalance(),
-                amount);
+                amountPrefix + amount);
 
         SendMessage sendMessage = new SendMessage(chatId, replyText);
 
@@ -159,7 +218,6 @@ public class CommonFunction {
         return account;
     }
 
-    @Nullable
     private Bill saveBill(String text, User user) {
         Long userId = user.getId();
         Bill bill = Bill.builder()
@@ -175,8 +233,12 @@ public class CommonFunction {
         if (ruleOpt.isPresent()) {
             Rule rule = ruleOpt.get();
             log.info("rule: {}", rule);
-
             RuleConvert.INSTANCE.updateBill(rule, bill);
+            if (CommonUtil.isZero(bill.getAccountId())) {
+                // 获取默认账户
+                Account account = accountService.getDefaultAccount(userId);
+                bill.setAccountId(account.getId());
+            }
             bill.setRemark("关键词匹配");
         } else {
             // 提取消息中的金额
@@ -207,16 +269,27 @@ public class CommonFunction {
         Integer messageId = updateMessage.messageId();
 
         String answerText = "ok, ok";
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         if (callData.contains("::")) {
             String[] split = callData.split("::");
+            String id = split[1];
             switch (split[0]) {
-                case "record" -> answerText = handleRecordDeletion(split[1]);
-                case "rule" -> answerText = handleRuleDetails(split[1]);
-                case "rule_del" -> answerText = handleRuleDeletion(split[1]);
+                case "rule" -> {
+                    answerText = handleRuleDetails(split[1]);
+
+                    InlineKeyboardButton delButton = new InlineKeyboardButton();
+                    delButton.setText("删除");
+                    delButton.callbackData("rule_del::" + id);
+                    inlineKeyboardMarkup.addRow(delButton);
+
+                }
+                case "record" -> answerText = handleRecordDeletion(id);
+                case "rule_del" -> answerText = handleRuleDeletion(id);
                 default -> log.error("unknown callback command: {}", split[0]);
             }
         }
         EditMessageText editMessageText = new EditMessageText(chatId, messageId, answerText);
+        editMessageText.replyMarkup(inlineKeyboardMarkup);
         bot.execute(editMessageText);
     }
 
@@ -250,32 +323,24 @@ public class CommonFunction {
             return "规则不存在";
         }
 
-        String answerText = StrUtil.format("""
-                        规则名称:   {}\r
-                        关键词:     #{}\r
-                        分类:         #{}\r
-                        标签:         #{}\r
-                        类型:         #{}\r
-                        金额:         {}
-                        """,
-                rule.getName(),
-                rule.getKeywords(),
-                Optional.ofNullable(categoryService.getById(rule.getCategoryId()))
-                        .map(Category::getName).orElse(""),
-                Optional.ofNullable(tagService.getById(rule.getTagId()))
-                        .map(Tag::getName).orElse(""),
-                rule.getTransactionType().getDesc(),
-                rule.getAmount()
-        );
-
-        // 如果需要更新按钮，可额外构造 InlineKeyboardMarkup 后通过 EditMessageText.replyMarkup 传递
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        InlineKeyboardButton delButton = new InlineKeyboardButton();
-        delButton.setText("删除");
-        delButton.callbackData("rule_del::" + rule.getId());
-        inlineKeyboardMarkup.addRow(delButton);
-        // 此处示例中没有直接使用 inlineKeyboardMarkup，但可按需求修改
-        return answerText;
+        return
+                StrUtil.format("""
+                                规则名称:   {}\r
+                                关键词:     #{}\r
+                                分类:         #{}\r
+                                标签:         #{}\r
+                                类型:         #{}\r
+                                金额:         {}
+                                """,
+                        rule.getName(),
+                        rule.getKeywords(),
+                        Optional.ofNullable(categoryService.getById(rule.getCategoryId()))
+                                .map(Category::getName).orElse(""),
+                        Optional.ofNullable(tagService.getById(rule.getTagId()))
+                                .map(Tag::getName).orElse(""),
+                        rule.getTransactionType().getDesc(),
+                        rule.getAmount()
+                );
     }
 
     /**
@@ -287,7 +352,7 @@ public class CommonFunction {
             return "规则不存在";
         }
         rule.deleteById();
-        return "删除成功";
+        return "规则删除成功";
     }
 
     /**

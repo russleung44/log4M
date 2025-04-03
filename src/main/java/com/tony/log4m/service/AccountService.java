@@ -43,7 +43,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> {
      */
     @Transactional(rollbackFor = Exception.class)
     public void setDefault(Serializable id) {
-        Optional.ofNullable(this.getById(id)).orElseThrow().setIsDefault(true).updateById();
+        this.getOptById(id).orElseThrow().setIsDefault(true).updateById();
         this.lambdaUpdate().ne(Account::getId, id).eq(Account::getIsDefault, true).set(Account::getIsDefault, false).update();
     }
 

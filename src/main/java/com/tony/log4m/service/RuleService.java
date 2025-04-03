@@ -7,6 +7,7 @@ import com.tony.log4m.pojo.entity.Rule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 /**
@@ -17,19 +18,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RuleService extends ServiceImpl<RuleMapper, Rule> {
 
-    public void insert(Rule rule) {
-        //todo checkName
-        super.save(rule);
-    }
-
-    public void update(Rule rule) {
-        Optional.ofNullable(this.getById(rule.getId())).orElseThrow();
+    public void update(Serializable ruleId, Rule rule) {
+        this.getOptById(ruleId).orElseThrow();
         // todo checkName
         rule.updateById();
     }
 
 
     public Optional<Rule> findByKeyword(String text) {
-        return this.query().like("keywords", text).last("limit 1").oneOpt();
+        return this.lambdaQuery().like(Rule::getKeywords, text).last("limit 1").oneOpt();
     }
+
+
 }

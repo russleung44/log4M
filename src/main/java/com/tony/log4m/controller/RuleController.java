@@ -22,24 +22,24 @@ public class RuleController {
     private final RuleService ruleService;
 
 
-    @GetMapping("/{id}")
-    public Rule get(@PathVariable Serializable id) {
-        return ruleService.getById(id);
+    @GetMapping("/{ruleId}")
+    public Rule get(@PathVariable Serializable ruleId) {
+        return ruleService.getById(ruleId);
     }
 
     @PostMapping
     public void insert(@Valid @RequestBody Rule rule) {
-        ruleService.insert(rule);
+        ruleService.save(rule);
     }
 
-    @PutMapping
-    public void update(@Valid @RequestBody Rule rule) {
-        ruleService.update(rule);
+    @PutMapping("/{ruleId}")
+    public void update(@PathVariable Serializable ruleId, @Valid @RequestBody Rule rule) {
+        ruleService.update(ruleId, rule);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Serializable id) {
-        ruleService.removeById(id);
+    @DeleteMapping("/{ruleId}")
+    public ResponseEntity<?> delete(@PathVariable Serializable ruleId) {
+        ruleService.removeById(ruleId);
         return ResponseEntity.ok().build();
     }
 }
