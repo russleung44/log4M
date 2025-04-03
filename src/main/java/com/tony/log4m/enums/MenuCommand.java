@@ -1,5 +1,6 @@
 package com.tony.log4m.enums;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -9,7 +10,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum CommandType {
+public enum MenuCommand {
 
     TODAY("today", "今日消费"),
     YESTERDAY("yesterday", "昨日消费"),
@@ -18,12 +19,16 @@ public enum CommandType {
     RULES("rules", "规则列表");;
 
 
-    private final String code;
+    private final String command;
     private final String desc;
 
-    public static CommandType getByCode(String replace) {
-        for (CommandType value : CommandType.values()) {
-            if (value.getCode().equals(replace)) {
+    public static MenuCommand getByCommand(String command) {
+        if (StrUtil.isBlank(command)) {
+            throw new RuntimeException("指令不能为空");
+        }
+
+        for (MenuCommand value : MenuCommand.values()) {
+            if (command.equals(value.getCommand())) {
                 return value;
             }
         }

@@ -29,7 +29,7 @@ public class CategoryController {
 
     @PostMapping
     public void insert(@Valid @RequestBody Category category) {
-        categoryService.insert(category);
+        categoryService.save(category);
     }
 
     @PutMapping("/{id}")
