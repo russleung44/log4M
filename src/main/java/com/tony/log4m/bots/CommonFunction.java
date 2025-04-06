@@ -1,21 +1,24 @@
 package com.tony.log4m.bots;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.CallbackQuery;
-import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.*;
 import com.pengrad.telegrambot.model.message.MaybeInaccessibleMessage;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.EditMessageText;
+import com.pengrad.telegrambot.request.GetFile;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.GetFileResponse;
 import com.tony.log4m.convert.RuleConvert;
 import com.tony.log4m.enums.Command;
 import com.tony.log4m.enums.MenuCommand;
 import com.tony.log4m.enums.TransactionType;
+import com.tony.log4m.external.tutu.TutuService;
 import com.tony.log4m.pojo.entity.*;
+import com.tony.log4m.pojo.entity.User;
 import com.tony.log4m.service.*;
 import com.tony.log4m.utils.CommonUtil;
 import com.tony.log4m.utils.MoneyUtil;
@@ -45,20 +48,38 @@ public class CommonFunction {
     private final AccountService accountService;
     private final CategoryService categoryService;
     private final UserService userService;
+    private final TutuService tutuService;
 
     public void mainFunc(TelegramBot bot, Update update) {
         try {
-            if (update.message() != null) {
-                handleTextMessage(bot, update.message());
-            } else if (update.callbackQuery() != null) {
-                handleCallbackQuery(bot, update.callbackQuery());
-            } else {
-                log.error("unknown update: {}", update);
+            // 处理文本消息
+            Message message = update.message();
+            if (message != null) {
+                // 处理文件消息
+                Document document = message.document();
+                if (document != null) {
+                    GetFile request = new GetFile(document.fileId());
+                    GetFileResponse getFileResponse = bot.execute(request);
+                    File file = getFileResponse.file();
+                    String fullFilePath = bot.getFullFilePath(file);
+                    log.info("{}: {}", document.fileName(), fullFilePath);
+                     tutuService.read(fullFilePath, message.from().id());
+                }
+
+                handleTextMessage(bot, message);
             }
+            // 处理回调消息
+            if (update.callbackQuery() != null) {
+                handleCallbackQuery(bot, update.callbackQuery());
+            }
+
+
         } catch (Exception e) {
-            log.error("TelegramApiException: {}", e.getMessage());
+            log.error("TelegramApiException: {}", e.getMessage(), e);
         }
     }
+
+
 
     private void handleTextMessage(TelegramBot bot, Message message) {
         String text = message.text();
@@ -152,11 +173,11 @@ public class CommonFunction {
                 amount = billService.getAmountByDate(DateUtil.yesterday().toDateStr());
             }
             case LAST_MONTH -> {
-                String lastMonth = DateUtil.format(DateUtil.lastMonth(), "yyyy-MM");
+                String lastMonth = DateUtil.format(DateUtil.lastMonth(), "yyyyMM");
                 amount = billService.getAmountByMonth(lastMonth);
             }
             case THIS_MONTH -> {
-                String currentMonth = DateUtil.format(DateUtil.date(), "yyyy-MM");
+                String currentMonth = DateUtil.format(DateUtil.date(), "yyyyMM");
                 amount = billService.getAmountByMonth(currentMonth);
             }
             case RULES -> {
@@ -188,7 +209,7 @@ public class CommonFunction {
 
         String replyText = StrUtil.format(
                 template,
-                account.getAccountName(),
+                account.getName(),
                 account.getBalance(),
                 amountPrefix + amount);
 
@@ -220,12 +241,13 @@ public class CommonFunction {
 
     private Bill saveBill(String text, User user) {
         Long userId = user.getId();
+        LocalDateTime now = LocalDateTime.now();
         Bill bill = Bill.builder()
                 .title(text)
                 .userId(userId)
-                .billDay(LocalDate.now())
-                .billDate(LocalDateTime.now())
-                .billMonth(LocalDate.now().getMonthValue())
+                .billDate(now)
+                .billDay(now.toLocalDate())
+                .billMonth(LocalDateTimeUtil.format(now, "yyyyMM"))
                 .transactionType(TransactionType.EXPENSE)
                 .build();
         // 关键词查找规则
@@ -233,13 +255,13 @@ public class CommonFunction {
         if (ruleOpt.isPresent()) {
             Rule rule = ruleOpt.get();
             log.info("rule: {}", rule);
-            RuleConvert.INSTANCE.updateBill(rule, bill);
+            RuleConvert.INSTANCE.updateBill(bill, rule);
             if (CommonUtil.isZero(bill.getAccountId())) {
                 // 获取默认账户
                 Account account = accountService.getDefaultAccount(userId);
                 bill.setAccountId(account.getId());
             }
-            bill.setRemark("关键词匹配");
+            bill.setNote("关键词匹配");
         } else {
             // 提取消息中的金额
             String amount = MoneyUtil.getAmount(text);
@@ -248,7 +270,7 @@ public class CommonFunction {
             }
             bill
                     .setAmount(new BigDecimal(amount))
-                    .setRemark("快速记账");
+                    .setNote("快速记账");
 
             // 获取默认账户
             Account account = accountService.getDefaultAccount(userId);

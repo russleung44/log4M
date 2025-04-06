@@ -6,6 +6,7 @@ import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.SetMyCommands;
+import com.pengrad.telegrambot.response.BaseResponse;
 import com.tony.log4m.enums.MenuCommand;
 import com.tony.log4m.service.UserService;
 import jakarta.annotation.PostConstruct;
@@ -35,7 +36,7 @@ public class MoneyBot {
     @PostConstruct
     public void init() {
         bot = new TelegramBot(botToken);
-        log.info("===init bot===");
+        log.info("===init bot:{}===", botToken);
         setMyCommands();
         bot.setUpdatesListener(updates -> {
             updates.forEach(update -> {
@@ -70,7 +71,8 @@ public class MoneyBot {
                 .map(ct -> new BotCommand(ct.getCommand(), ct.getDesc()))
                 .toArray(BotCommand[]::new);
 
-        bot.execute(new SetMyCommands(commands));
+        BaseResponse response = bot.execute(new SetMyCommands(commands));
+        log.info("set commands response:{}", response);
     }
 
 }

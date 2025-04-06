@@ -22,7 +22,7 @@ public class Account extends BaseEntity<Account> {
 
     private Long userId;
 
-    private String accountName;
+    private String name;
 
     private BigDecimal balance;
 
