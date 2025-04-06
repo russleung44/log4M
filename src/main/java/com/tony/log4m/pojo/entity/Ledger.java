@@ -1,29 +1,27 @@
 package com.tony.log4m.pojo.entity;
 
-
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * 记录分类
- *
  * @author Tony
- * @since 2022-09-23 16:00:42
+ * @since 4/6/2025
  */
 @Data
 @Accessors(chain = true)
-@TableName(value = "category", autoResultMap = true)
 @EqualsAndHashCode(callSuper = true)
-public class Category extends BaseEntity<Category> {
+public class Ledger extends BaseEntity<Ledger> {
 
+    /**
+     * 用户id
+     */
     private Long userId;
 
+    /**
+     * 账本名称
+     */
     private String name;
 
-    private Integer sort;
-
-    private Long parentId;
 }

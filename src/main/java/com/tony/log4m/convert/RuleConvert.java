@@ -18,5 +18,5 @@ public interface RuleConvert extends BasicConvert<Rule, RuleDTO> {
     RuleConvert INSTANCE = Mappers.getMapper(RuleConvert.class);
 
     @IgnoreMetadata
-    void updateBill(Rule rule, @MappingTarget Bill bill);
+    void updateBill( @MappingTarget Bill bill, Rule rule);
 }

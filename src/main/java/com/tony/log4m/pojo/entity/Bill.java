@@ -35,7 +35,7 @@ public class Bill extends BaseEntity<Bill> {
 
     private LocalDate billDay;
 
-    private Integer billMonth;
+    private String billMonth;
 
     private TransactionType transactionType;
 
@@ -43,8 +43,27 @@ public class Bill extends BaseEntity<Bill> {
 
     private Long categoryId;
 
+    private String categoryName;
+
+    private Long subCategoryId;
+
+    private String subCategoryName;
+
     private Long tagId;
 
-    private String remark;
+    private String tagName;
 
+    private Long ledgerId;
+
+    private String ledgerName;
+
+    /**
+     * 备注
+     */
+    private String note;
+
+    /**
+     * 货币
+     */
+    private String currency;
 }

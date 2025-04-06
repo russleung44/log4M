@@ -21,17 +21,16 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> {
 
     public void insert(Account account) {
         // 检查账户名是否重复
-        if (this.query().eq("account_name", account.getAccountName()).eq("user_id", account.getUserId()).exists()) {
+        if (this.lambdaQuery().eq(Account::getName, account.getName()).eq(Account::getUserId, account.getUserId()).exists()) {
             throw new RuntimeException("账户名重复");
         }
     }
 
     public void update(Account account) {
         // 检查账户名是否重复
-        if (this.query().eq("account_name", account.getAccountName()).eq("user_id", account.getUserId()).ne("id", account.getId()).exists()) {
+        if (this.lambdaQuery().eq(Account::getName, account.getName()).eq(Account::getUserId, account.getUserId()).ne(Account::getId, account.getId()).exists()) {
             throw new RuntimeException("账户名重复");
         }
-        Optional.ofNullable(this.getById(account.getId())).orElseThrow();
         account.updateById();
     }
 
@@ -60,7 +59,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> {
             defaultAccount = new Account()
                     .setIsDefault(true)
                     .setUserId(userId)
-                    .setAccountName("默认账户");
+                    .setName("默认账户");
             defaultAccount.insert();
         }
 

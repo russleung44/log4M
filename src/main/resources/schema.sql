@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS account
     id            int AUTO_INCREMENT
         PRIMARY KEY,
     user_id       int                          NOT NULL,
-    account_name  varchar(255)                 NOT NULL COMMENT '账户名称',
+    name  varchar(255)                 NOT NULL COMMENT '账户名称',
     balance       decimal(10, 2) DEFAULT 0.00  NOT NULL COMMENT '账户余额',
     consume       decimal(10, 2) DEFAULT 0.00  NOT NULL COMMENT '消费总额',
     income        decimal(10, 2) DEFAULT 0.00  NOT NULL COMMENT '收入总额',
@@ -29,8 +29,15 @@ CREATE TABLE IF NOT EXISTS bill
     bill_month       char(7)                    NOT NULL,
     amount           decimal(10, 2)             NOT NULL COMMENT '金额',
     category_id      int          DEFAULT 0     NULL COMMENT '分类',
+    category_name    varchar(255) DEFAULT ''    NULL COMMENT '分类名称',
+    sub_category_id  int          DEFAULT 0     NULL,
+    sub_category_name varchar(255) DEFAULT ''    NULL,
     tag_id           int          DEFAULT 0     NULL COMMENT '标签',
-    remark           varchar(255) DEFAULT ''    NULL COMMENT '备注',
+    tag_name         varchar(255) DEFAULT ''    NULL COMMENT '标签名称',
+    ledger_id        int          DEFAULT 0     NULL,
+    ledger_name      varchar(255) DEFAULT ''    NULL COMMENT '账本名称',
+    note           varchar(255) DEFAULT ''    NULL COMMENT '备注',
+    currency    varchar(255) DEFAULT ''    NULL COMMENT '货币',
     deleted          tinyint(1)   DEFAULT 0     NOT NULL,
     cr_time          datetime     DEFAULT NOW() NOT NULL,
     md_time          datetime     DEFAULT NOW() NOT NULL
@@ -41,6 +48,7 @@ CREATE TABLE IF NOT EXISTS category
     id      int AUTO_INCREMENT
         PRIMARY KEY,
     user_id int        DEFAULT 0     NULL,
+    parent_id int        DEFAULT 0     NULL,
     name    varchar(255)             NOT NULL,
     sort    int        DEFAULT 99    NOT NULL COMMENT '排序',
     deleted tinyint(1) DEFAULT 0     NOT NULL,
@@ -93,3 +101,13 @@ CREATE TABLE IF NOT EXISTS tag
     md_time datetime   DEFAULT NOW() NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS ledger
+(
+    id      int AUTO_INCREMENT
+        PRIMARY KEY,
+    user_id int        DEFAULT 0     NULL,
+    name    varchar(255)             NOT NULL,
+    deleted tinyint(1) DEFAULT 0     NOT NULL,
+    cr_time datetime   DEFAULT NOW() NOT NULL,
+    md_time datetime   DEFAULT NOW() NOT NULL
+);
