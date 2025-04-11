@@ -139,64 +139,67 @@ public class TutuService {
             // 保存账单
             List<Bill> billList = new ArrayList<>();
             dataList.forEach(data -> {
-                // 账单日期
-                String date = data.getDate().substring(0, 8);
-                LocalDateTime billDate = LocalDateTimeUtil.parse(date, "yyyyMMdd");
+                try {
+                    // 账单日期
+                    String date = data.getDate().substring(0, 8);
+                    LocalDateTime billDate = LocalDateTimeUtil.parse(date, "yyyyMMdd");
 
-                // 账单类型
-                TransactionType transactionType = data.getType().equals("收入") ? TransactionType.INCOME : TransactionType.EXPENSE;
+                    // 账单类型
+                    TransactionType transactionType = data.getType().equals("收入") ? TransactionType.INCOME : TransactionType.EXPENSE;
 
-                Bill bill = Bill.builder()
-                        .title(data.getNote())
-                        .note(data.getNote())
-                        .tagName(data.getTags())
-                        .billDate(billDate)
-                        .billDay(billDate.toLocalDate())
-                        .billMonth(LocalDateTimeUtil.format(billDate, "yyyyMM"))
-                        .transactionType(transactionType)
-                        .amount(data.getAmount())
-                        .build();
+                    Bill bill = Bill.builder()
+                            .title(data.getNote())
+                            .note(data.getNote())
+                            .tagName(data.getTags())
+                            .billDate(billDate)
+                            .billDay(billDate.toLocalDate())
+                            .billMonth(LocalDateTimeUtil.format(billDate, "yyyyMM"))
+                            .transactionType(transactionType)
+                            .amount(data.getAmount())
+                            .build();
 
-                // 账单分类
-                String category = data.getCategory();
-                categoryList.stream().filter(c -> c.getName().equals(category))
-                        .findFirst().ifPresent(c ->
-                                bill.setCategoryId(c.getId()).setCategoryName(c.getName())
-                        );
-
-                String subCategory = data.getSubCategory();
-                if (StrUtil.isNotBlank(subCategory)) {
-                    subCategoryList.stream().filter(c -> c.getName().equals(subCategory))
+                    // 账单分类
+                    String category = data.getCategory();
+                    categoryList.stream().filter(c -> c.getName().equals(category))
                             .findFirst().ifPresent(c ->
-                                    bill.setSubCategoryId(c.getId()).setSubCategoryName(c.getName())
+                                    bill.setCategoryId(c.getId()).setCategoryName(c.getName())
                             );
-                }
 
-                // 账单标签
-                String tags = data.getTags();
-                if (StrUtil.isNotBlank(tags)) {
-                    String[] tagNames = tags.split(",");
-                    List<Long> tagIds = new ArrayList<>();
-                    for (String tagName : tagNames) {
-                        tagList.stream().filter(t -> t.getName().equals(tagName))
-                                .findFirst().ifPresent(t ->
-                                        tagIds.add(t.getId())
+                    String subCategory = data.getSubCategory();
+                    if (StrUtil.isNotBlank(subCategory)) {
+                        subCategoryList.stream().filter(c -> c.getName().equals(subCategory))
+                                .findFirst().ifPresent(c ->
+                                        bill.setSubCategoryId(c.getId()).setSubCategoryName(c.getName())
                                 );
                     }
-                    bill.setTagId(tagIds.get(0));
+
+                    // 账单标签
+                    String tags = data.getTags();
+                    if (StrUtil.isNotBlank(tags)) {
+                        String[] tagNames = tags.split(",");
+                        List<Long> tagIds = new ArrayList<>();
+                        for (String tagName : tagNames) {
+                            tagList.stream().filter(t -> t.getName().equals(tagName))
+                                    .findFirst().ifPresent(t ->
+                                            tagIds.add(t.getId())
+                                    );
+                        }
+                        bill.setTagId(tagIds.get(0));
+                    }
+
+                    // 账本
+                    String ledger = data.getLedger();
+                    if (StrUtil.isNotBlank(ledger)) {
+                        ledgerList.stream().filter(l -> l.getName().equals(ledger))
+                                .findFirst().ifPresent(l ->
+                                        bill.setLedgerId(l.getId()).setLedgerName(l.getName())
+                                );
+                    }
+
+                    billList.add(bill);
+                } catch (Exception e) {
+                    log.error("账单数据解析失败:{}", JSON.toJSONString(data), e);
                 }
-
-                // 账本
-                String ledger = data.getLedger();
-                if (StrUtil.isNotBlank(ledger)) {
-                    ledgerList.stream().filter(l -> l.getName().equals(ledger))
-                            .findFirst().ifPresent(l ->
-                                    bill.setLedgerId(l.getId()).setLedgerName(l.getName())
-                            );
-                }
-
-                billList.add(bill);
-
             });
 
             billService.saveBatch(billList);

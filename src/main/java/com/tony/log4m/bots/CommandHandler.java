@@ -120,9 +120,11 @@ public class CommandHandler {
             if (amount == null) {
                 return null;
             }
+
+            // 获取除amount外的text
             bill
                     .setAmount(new BigDecimal(amount))
-                    .setNote("快速记账");
+                    .setNote(text.replace(amount, ""));
 
             // 获取默认账户
             Account account = accountService.getOrCreateDefaultAccount();
