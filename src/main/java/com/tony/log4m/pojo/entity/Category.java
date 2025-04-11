@@ -19,8 +19,6 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 public class Category extends BaseEntity<Category> {
 
-    private Long userId;
-
     private String name;
 
     private Integer sort;

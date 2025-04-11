@@ -20,8 +20,6 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 public class Account extends BaseEntity<Account> {
 
-    private Long userId;
-
     private String name;
 
     private BigDecimal balance;

@@ -19,8 +19,6 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 public class Tag extends BaseEntity<Tag> {
 
-    private Long userId;
-
     private String name;
 
     private Integer sort;

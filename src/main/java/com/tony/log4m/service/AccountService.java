@@ -18,16 +18,10 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class AccountService extends ServiceImpl<AccountMapper, Account> {
 
-    public void insert(Account account) {
-        // 检查账户名是否重复
-        if (this.lambdaQuery().eq(Account::getName, account.getName()).eq(Account::getUserId, account.getUserId()).exists()) {
-            throw new RuntimeException("账户名重复");
-        }
-    }
 
     public void update(Account account) {
         // 检查账户名是否重复
-        if (this.lambdaQuery().eq(Account::getName, account.getName()).eq(Account::getUserId, account.getUserId()).ne(Account::getId, account.getId()).exists()) {
+        if (this.lambdaQuery().eq(Account::getName, account.getName()).ne(Account::getId, account.getId()).exists()) {
             throw new RuntimeException("账户名重复");
         }
         account.updateById();
@@ -49,15 +43,13 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> {
     /**
      * 获取默认账户
      *
-     * @param userId 用户ID
      * @return 默认账户
      */
-    public Account getOrCreateDefaultAccount(Long userId) {
+    public Account getOrCreateDefaultAccount() {
         Account defaultAccount = this.lambdaQuery().eq(Account::getIsDefault, true).one();
         if (defaultAccount == null) {
             defaultAccount = new Account()
                     .setIsDefault(true)
-                    .setUserId(userId)
                     .setName("默认账户");
             defaultAccount.insert();
         }

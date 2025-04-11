@@ -8,6 +8,6 @@ import com.tony.log4m.enums.MenuCommand;
  * @since 4/11/2025
  */
 public interface SystemCommandStrategy {
-    SendMessage execute(MenuCommand menuCommand, Long chatId, Long userId);
+    SendMessage execute(MenuCommand menuCommand, Long chatId);
 }
 

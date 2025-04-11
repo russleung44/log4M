@@ -25,8 +25,6 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class Bill extends BaseEntity<Bill> {
 
-    private Long userId;
-
     private Long accountId;
 
     private String title;

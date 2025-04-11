@@ -30,10 +30,10 @@ import static com.tony.log4m.enums.TransactionType.EXPENSE;
 public class CallbackProcessor {
 
     private final BillService billService;
+    private final TagService tagService;
     private final RuleService ruleService;
     private final AccountService accountService;
     private final CategoryService categoryService;
-    private final TagService tagService;
 
     /**
      * 处理所有回调查询

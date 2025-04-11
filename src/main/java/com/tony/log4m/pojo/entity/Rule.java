@@ -25,8 +25,6 @@ public class Rule extends BaseEntity<Rule> {
 
     private String name;
 
-    private Long userId;
-
     private Long accountId;
 
     private TransactionType transactionType;

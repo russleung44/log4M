@@ -6,7 +6,7 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.convert.RuleConvert;
-import com.tony.log4m.enums.Command;
+import com.tony.log4m.enums.CustomCommand;
 import com.tony.log4m.enums.MenuCommand;
 import com.tony.log4m.enums.TransactionType;
 import com.tony.log4m.pojo.entity.Account;
@@ -42,23 +42,23 @@ public class CommandHandler {
     private final AccountService accountService;
 
 
-    public SendMessage handleSystemCommand(String command, Long chatId, Long userId) {
+    public SendMessage handleSystemCommand(String command, Long chatId) {
         MenuCommand menuCmd = MenuCommand.getByCommand(command);
-        return systemStrategies.get(menuCmd.getStrategy()).execute(menuCmd, chatId, userId);
+        return systemStrategies.get(menuCmd.getStrategy()).execute(menuCmd, chatId);
     }
 
-    public SendMessage handleCustomCommand(String text, Long chatId, Long userId) {
+    public SendMessage handleCustomCommand(String text, Long chatId) {
         CommandParser parser = new CommandParser(text);
-        Command command = parser.getCommand();
-        return customStrategies.get(command.getStrategy()).execute(parser.getParams(), chatId, userId);
+        CustomCommand customCommand = parser.getCommand();
+        return customStrategies.get(customCommand.getStrategy()).execute(parser.getParams(), chatId);
     }
 
 
     /**
      * 快速记账处理，支持规则匹配和金额提取
      */
-    public SendMessage handleQuickRecord(String text, Long chatId, Long userId) {
-        Bill bill = saveBill(text, userId);
+    public SendMessage handleQuickRecord(String text, Long chatId) {
+        Bill bill = saveBill(text);
         if (bill == null) return null;
 
         BigDecimal amount = bill.getAmount();
@@ -90,11 +90,10 @@ public class CommandHandler {
         return sendMessage;
     }
 
-    private Bill saveBill(String text, Long userId) {
+    private Bill saveBill(String text) {
         LocalDateTime now = LocalDateTime.now();
         Bill bill = Bill.builder()
                 .title(text)
-                .userId(userId)
                 .billDate(now)
                 .billDay(now.toLocalDate())
                 .billMonth(LocalDateTimeUtil.format(now, "yyyyMM"))
@@ -109,7 +108,7 @@ public class CommandHandler {
             RuleConvert.INSTANCE.updateBill(bill, rule);
             if (CommonUtil.isZero(bill.getAccountId())) {
                 // 获取默认账户
-                Account account = accountService.getOrCreateDefaultAccount(userId);
+                Account account = accountService.getOrCreateDefaultAccount();
                 bill.setAccountId(account.getId());
             }
             bill.setNote("关键词匹配");
@@ -124,7 +123,7 @@ public class CommandHandler {
                     .setNote("快速记账");
 
             // 获取默认账户
-            Account account = accountService.getOrCreateDefaultAccount(userId);
+            Account account = accountService.getOrCreateDefaultAccount();
             bill.setAccountId(account.getId());
         }
 
