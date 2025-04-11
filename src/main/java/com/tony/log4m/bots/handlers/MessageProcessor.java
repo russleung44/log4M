@@ -1,8 +1,9 @@
-package com.tony.log4m.bots;
+package com.tony.log4m.bots.handlers;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.tony.log4m.bots.CommandHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

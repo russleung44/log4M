@@ -1,7 +1,7 @@
-package com.tony.log4m.bots;
+package com.tony.log4m.bots.commands.system;
 
 import com.pengrad.telegrambot.request.SendMessage;
-import com.tony.log4m.enums.MenuCommand;
+import com.tony.log4m.bots.enums.MenuCommand;
 
 /**
  * @author Tony

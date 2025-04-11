@@ -1,4 +1,4 @@
-package com.tony.log4m.bots;
+package com.tony.log4m.bots.commands.custom;
 
 import com.pengrad.telegrambot.request.SendMessage;
 

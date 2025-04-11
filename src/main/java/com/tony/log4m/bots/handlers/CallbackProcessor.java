@@ -1,4 +1,4 @@
-package com.tony.log4m.bots;
+package com.tony.log4m.bots.handlers;
 
 import cn.hutool.core.util.StrUtil;
 import com.pengrad.telegrambot.TelegramBot;
@@ -6,7 +6,6 @@ import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.message.MaybeInaccessibleMessage;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.pojo.entity.*;
@@ -49,8 +48,7 @@ public class CallbackProcessor {
             InlineKeyboardMarkup markup = buildKeyboardMarkup(data);
 
             EditMessageText editRequest = new EditMessageText(chatId, messageId, responseText)
-                    .replyMarkup(markup)
-                    .parseMode(ParseMode.HTML);
+                    .replyMarkup(markup);
             bot.execute(editRequest);
 
         } catch (NoSuchElementException e) {

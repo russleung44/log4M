@@ -1,6 +1,6 @@
 package com.tony.log4m.bots;
 
-import com.tony.log4m.enums.CustomCommand;
+import com.tony.log4m.bots.enums.CustomCommand;
 
 /**
  * 命令解析器

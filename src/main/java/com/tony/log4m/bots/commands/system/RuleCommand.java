@@ -1,9 +1,9 @@
-package com.tony.log4m.bots;
+package com.tony.log4m.bots.commands.system;
 
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
-import com.tony.log4m.enums.MenuCommand;
+import com.tony.log4m.bots.enums.MenuCommand;
 import com.tony.log4m.service.RuleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
