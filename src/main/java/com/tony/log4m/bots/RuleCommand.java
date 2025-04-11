@@ -1,0 +1,49 @@
+package com.tony.log4m.bots;
+
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.pengrad.telegrambot.request.SendMessage;
+import com.tony.log4m.enums.MenuCommand;
+import com.tony.log4m.pojo.entity.Rule;
+import com.tony.log4m.service.RuleService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author Tony
+ * @since 4/11/2025
+ */
+@Component
+@RequiredArgsConstructor
+public class RuleCommand implements SystemCommandStrategy {
+
+    private final RuleService ruleService;
+
+    @Override
+    public SendMessage execute(MenuCommand menuCommand, Long chatId, Long userId) {
+        switch (menuCommand) {
+            case RULES -> {
+                return getRuleMessage(chatId, userId);
+            }
+            default -> {
+                return new SendMessage(chatId, "未识别的命令");
+            }
+        }
+    }
+
+    /**
+     * 获取规则列表消息（带 inline 按钮）
+     */
+    private SendMessage getRuleMessage(Long chatId, Long userId) {
+        SendMessage message = new SendMessage(chatId, "规则列表");
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        ruleService.lambdaQuery().eq(Rule::getUserId, userId).list().forEach(rule -> {
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            button.setText(rule.getName());
+            button.setCallbackData("rule::" + rule.getId());
+            inlineKeyboardMarkup.addRow(button);
+        });
+        message.replyMarkup(inlineKeyboardMarkup);
+        return message;
+    }
+}

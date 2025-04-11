@@ -27,11 +27,13 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class MoneyBot {
 
-    private final UserService userService;
-    private final CommonFunction commonFunction;
     private TelegramBot bot;
+
     @Value("${botToken}")
     private String botToken;
+
+    private final UserService userService;
+    private final CommonFunction commonFunction;
 
     @PostConstruct
     public void init() {

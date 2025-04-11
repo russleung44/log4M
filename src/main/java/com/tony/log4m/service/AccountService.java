@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
-import java.util.Optional;
 
 /**
  * @author Tony
@@ -53,7 +52,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> {
      * @param userId 用户ID
      * @return 默认账户
      */
-    public Account getDefaultAccount(Long userId) {
+    public Account getOrCreateDefaultAccount(Long userId) {
         Account defaultAccount = this.lambdaQuery().eq(Account::getIsDefault, true).one();
         if (defaultAccount == null) {
             defaultAccount = new Account()
