@@ -21,7 +21,7 @@ public class RuleCustomCommand implements CustomCommandStrategy {
     private final TagService tagService;
 
     @Override
-    public SendMessage execute(String[] params, Long chatId, Long userId) {
+    public SendMessage execute(String[] params, Long chatId) {
         // 处理 RULE 命令逻辑
         if (params.length < 3) {
             return new SendMessage(chatId, "参数错误");
@@ -31,13 +31,13 @@ public class RuleCustomCommand implements CustomCommandStrategy {
         BigDecimal amount = new BigDecimal(params[1]);
         TransactionType transactionType = params[2].equals("1") ? TransactionType.EXPENSE : TransactionType.INCOME;
 
-        Rule rule = new Rule(keyword, amount, transactionType).setUserId(userId);
+        Rule rule = new Rule(keyword, amount, transactionType);
         if (params.length > 3) {
             String tagName = params[3];
             Tag tag = tagService.lambdaQuery().eq(Tag::getName, tagName).one();
             if (tag == null) {
                 tag = new Tag();
-                tag.setName(tagName).setUserId(userId).insert();
+                tag.setName(tagName).insert();
             }
 
             rule.setTagId(tag.getId());

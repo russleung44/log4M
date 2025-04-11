@@ -8,8 +8,14 @@ import cn.idev.excel.context.AnalysisContext;
 import cn.idev.excel.read.listener.ReadListener;
 import com.alibaba.fastjson2.JSON;
 import com.tony.log4m.enums.TransactionType;
-import com.tony.log4m.pojo.entity.*;
-import com.tony.log4m.service.*;
+import com.tony.log4m.pojo.entity.Bill;
+import com.tony.log4m.pojo.entity.Category;
+import com.tony.log4m.pojo.entity.Ledger;
+import com.tony.log4m.pojo.entity.Tag;
+import com.tony.log4m.service.BillService;
+import com.tony.log4m.service.CategoryService;
+import com.tony.log4m.service.LedgerService;
+import com.tony.log4m.service.TagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,21 +41,17 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TutuService {
 
-    private final CategoryService categoryService;
+    private final BillService billService;
     private final TagService tagService;
     private final LedgerService ledgerService;
-    private final UserService userService;
-    private final BillService billService;
+    private final CategoryService categoryService;
 
 
     private final List<TutuData> dataList = new ArrayList<>();
     private final Map<String, List<String>> categoryMap = new HashMap<>();
 
-    private User user;
 
-
-    public void read(String fileUrl, Long tgUserId) throws IOException {
-        user = userService.getByTgUserId(tgUserId);
+    public void read(String fileUrl) throws IOException {
 
         URL url = URI.create(fileUrl).toURL();
         try (InputStream inputStream = url.openConnection().getInputStream()) {
@@ -83,8 +85,6 @@ public class TutuService {
         public void doAfterAllAnalysed(AnalysisContext context) {
             log.info("所有数据解析完成！");
 
-            Long userId = user.getId();
-
             // 保存分类
             List<String> categoryNames = dataList.stream()
                     .map(TutuData::getCategory)
@@ -92,7 +92,7 @@ public class TutuService {
                     .toList();
 
             List<Category> categoryList = categoryNames.stream()
-                    .map(name -> new Category().setName(name).setUserId(userId))
+                    .map(name -> new Category().setName(name))
                     .toList();
 
             categoryService.saveBatch(categoryList);
@@ -103,7 +103,7 @@ public class TutuService {
                 log.info("{} -> {}", k, v);
                 categoryList.stream().filter(c -> c.getName().equals(k)).findFirst().ifPresent(category -> {
                     v.forEach(subCategory -> {
-                        subCategoryList.add(new Category().setName(subCategory).setParentId(category.getId()).setUserId(userId));
+                        subCategoryList.add(new Category().setName(subCategory).setParentId(category.getId()));
                     });
                 });
             });
@@ -119,7 +119,7 @@ public class TutuService {
                     .flatMap(List::stream)
                     .distinct()
                     .forEach(tagName -> {
-                        tagList.add(new Tag().setName(tagName).setUserId(userId));
+                        tagList.add(new Tag().setName(tagName));
                     });
 
             tagService.saveBatch(tagList);
@@ -131,7 +131,7 @@ public class TutuService {
                     .filter(StrUtil::isNotBlank)
                     .distinct()
                     .forEach(ledgerName -> {
-                        ledgerList.add(new Ledger().setName(ledgerName).setUserId(userId));
+                        ledgerList.add(new Ledger().setName(ledgerName));
                     });
 
             ledgerService.saveBatch(ledgerList);
@@ -147,7 +147,6 @@ public class TutuService {
                 TransactionType transactionType = data.getType().equals("收入") ? TransactionType.INCOME : TransactionType.EXPENSE;
 
                 Bill bill = Bill.builder()
-                        .userId(userId)
                         .title(data.getNote())
                         .note(data.getNote())
                         .tagName(data.getTags())

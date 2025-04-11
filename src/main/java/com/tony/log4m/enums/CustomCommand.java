@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum Command {
+public enum CustomCommand {
 
     RULE("ruleCustomCommand"),
     TAG("tagCustomCommand"),

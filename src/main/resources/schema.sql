@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS account
     id            int AUTO_INCREMENT
         PRIMARY KEY,
     user_id       int                          NOT NULL,
-    name  varchar(255)                 NOT NULL COMMENT '账户名称',
+    name varchar(255) NOT NULL COMMENT '账户名称',
     balance       decimal(10, 2) DEFAULT 0.00  NOT NULL COMMENT '账户余额',
     consume       decimal(10, 2) DEFAULT 0.00  NOT NULL COMMENT '消费总额',
     income        decimal(10, 2) DEFAULT 0.00  NOT NULL COMMENT '收入总额',
@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS bill
     tag_name         varchar(255) DEFAULT ''    NULL COMMENT '标签名称',
     ledger_id        int          DEFAULT 0     NULL,
     ledger_name      varchar(255) DEFAULT ''    NULL COMMENT '账本名称',
-    note           varchar(255) DEFAULT ''    NULL COMMENT '备注',
-    currency    varchar(255) DEFAULT ''    NULL COMMENT '货币',
+    note             varchar(255) DEFAULT ''    NULL COMMENT '备注',
+    currency         varchar(255) DEFAULT ''    NULL COMMENT '货币',
     deleted          tinyint(1)   DEFAULT 0     NOT NULL,
     cr_time          datetime     DEFAULT NOW() NOT NULL,
     md_time          datetime     DEFAULT NOW() NOT NULL

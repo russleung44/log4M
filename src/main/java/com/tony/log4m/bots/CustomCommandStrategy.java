@@ -7,6 +7,5 @@ import com.pengrad.telegrambot.request.SendMessage;
  * @since 4/11/2025
  */
 public interface CustomCommandStrategy {
-    SendMessage execute(String[] params, Long chatId, Long userId);
+    SendMessage execute(String[] params, Long chatId);
 }
-

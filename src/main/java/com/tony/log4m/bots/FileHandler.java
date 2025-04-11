@@ -30,10 +30,9 @@ public class FileHandler {
      */
     public void handle(TelegramBot bot, Message message) {
         Document document = message.document();
-        Long userId = message.from().id();
 
         try {
-            processDocument(bot, document, userId);
+            processDocument(bot, document);
         } catch (IOException e) {
             log.error("文件下载失败: {}", e.getMessage(), e);
             bot.execute(new SendMessage(message.chat().id(), "文件处理失败，请重试"));
@@ -43,7 +42,7 @@ public class FileHandler {
         }
     }
 
-    private void processDocument(TelegramBot bot, Document document, Long userId) throws IOException {
+    private void processDocument(TelegramBot bot, Document document) throws IOException {
         String fileId = document.fileId();
         String fileName = document.fileName();
 
@@ -52,7 +51,7 @@ public class FileHandler {
         String filePath = bot.getFullFilePath(fileResponse.file());
 
         log.info("开始处理文件: {} ({})", fileName, filePath);
-        tutuService.read(filePath, userId);
+        tutuService.read(filePath);
     }
 
 

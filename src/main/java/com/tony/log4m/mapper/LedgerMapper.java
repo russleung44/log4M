@@ -7,5 +7,5 @@ import com.tony.log4m.pojo.entity.Ledger;
  * @author Tony
  * @since 4/6/2025
  */
-public interface LedgerMapper  extends BaseMapper<Ledger> {
+public interface LedgerMapper extends BaseMapper<Ledger> {
 }

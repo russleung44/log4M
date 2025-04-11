@@ -15,11 +15,6 @@ import lombok.experimental.Accessors;
 public class Ledger extends BaseEntity<Ledger> {
 
     /**
-     * 用户id
-     */
-    private Long userId;
-
-    /**
      * 账本名称
      */
     private String name;

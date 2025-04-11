@@ -1,6 +1,6 @@
 package com.tony.log4m.bots;
 
-import com.tony.log4m.enums.Command;
+import com.tony.log4m.enums.CustomCommand;
 
 /**
  * 命令解析器
@@ -16,9 +16,9 @@ public class CommandParser {
         this.text = text;
     }
 
-    public Command getCommand() {
+    public CustomCommand getCommand() {
         String cmd = text.substring(1, text.lastIndexOf("@")).toUpperCase();
-        return Command.valueOf(cmd);
+        return CustomCommand.valueOf(cmd);
     }
 
     public String[] getParams() {

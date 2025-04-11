@@ -20,7 +20,7 @@ public class BillCommand implements SystemCommandStrategy {
     private final BillService billService;
 
     @Override
-    public SendMessage execute(MenuCommand menuCommand, Long chatId, Long userId) {
+    public SendMessage execute(MenuCommand menuCommand, Long chatId) {
         BigDecimal amount = BigDecimal.ZERO;
         switch (menuCommand) {
             case TODAY -> {

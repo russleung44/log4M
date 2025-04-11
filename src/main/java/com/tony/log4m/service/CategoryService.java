@@ -15,9 +15,5 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CategoryService extends ServiceImpl<CategoryMapper, Category> {
 
-    public void update(Category category) {
-        this.getOptById(category.getId()).orElseThrow();
-        category.updateById();
-    }
 
 }

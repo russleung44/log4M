@@ -7,7 +7,6 @@ import com.tony.log4m.pojo.entity.Rule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.Serializable;
 import java.util.Optional;
 
 /**
@@ -17,12 +16,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class RuleService extends ServiceImpl<RuleMapper, Rule> {
-
-    public void update(Serializable ruleId, Rule rule) {
-        this.getOptById(ruleId).orElseThrow();
-        // todo checkName
-        rule.updateById();
-    }
 
 
     public Optional<Rule> findByKeyword(String text) {
