@@ -16,7 +16,11 @@ public enum MenuCommand {
     YESTERDAY("yesterday", "昨日消费", "billCommand"),
     THIS_MONTH("this_month", "本月消费", "billCommand"),
     LAST_MONTH("last_month", "上月消费", "billCommand"),
-    RULES("rules", "规则列表", "ruleCommand");
+    RULES("rules", "规则列表", "ruleCommand"),
+    HELP("help", "帮助", "systemCommand"),
+
+
+    ;
 
 
     private final String command;

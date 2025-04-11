@@ -26,4 +26,11 @@ public enum TransactionType {
     private final String type;
     private final String desc;
 
+    public String getPrefix() {
+        return switch (this) {
+            case EXPENSE -> "-";
+            case INCOME -> "+";
+            default -> "";
+        };
+    }
 }

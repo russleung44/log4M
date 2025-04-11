@@ -2,7 +2,6 @@ CREATE TABLE IF NOT EXISTS account
 (
     id            int AUTO_INCREMENT
         PRIMARY KEY,
-    user_id       int                          NOT NULL,
     name varchar(255) NOT NULL COMMENT '账户名称',
     balance       decimal(10, 2) DEFAULT 0.00  NOT NULL COMMENT '账户余额',
     consume       decimal(10, 2) DEFAULT 0.00  NOT NULL COMMENT '消费总额',
@@ -20,7 +19,6 @@ CREATE TABLE IF NOT EXISTS bill
 (
     id               int AUTO_INCREMENT
         PRIMARY KEY,
-    user_id          int          DEFAULT 0     NULL,
     account_id       int          DEFAULT 0     NULL,
     title            varchar(64)  DEFAULT ''    NULL,
     transaction_type varchar(32)                NOT NULL COMMENT '交易类型 EXPENSE: 支出, INCOME: 收入',
@@ -47,7 +45,6 @@ CREATE TABLE IF NOT EXISTS category
 (
     id      int AUTO_INCREMENT
         PRIMARY KEY,
-    user_id int        DEFAULT 0     NULL,
     parent_id int        DEFAULT 0     NULL,
     name    varchar(255)             NOT NULL,
     sort    int        DEFAULT 99    NOT NULL COMMENT '排序',
@@ -61,7 +58,6 @@ CREATE TABLE IF NOT EXISTS rule
     id               int AUTO_INCREMENT
         PRIMARY KEY,
     name             varchar(255)                 NOT NULL COMMENT '规则名称',
-    user_id          int            DEFAULT 0     NULL,
     account_id       int            DEFAULT 0     NULL,
     transaction_type varchar(32)                  NOT NULL COMMENT '交易类型 EXPENSE: 支出, INCOME: 收入',
     category_id      int            DEFAULT 0     NULL COMMENT '分类',
@@ -93,7 +89,6 @@ CREATE TABLE IF NOT EXISTS tag
 (
     id      int AUTO_INCREMENT
         PRIMARY KEY,
-    user_id int        DEFAULT 0     NULL,
     name    varchar(255)             NOT NULL,
     sort    int        DEFAULT 99    NOT NULL COMMENT '排序',
     deleted tinyint(1) DEFAULT 0     NOT NULL,
@@ -105,7 +100,6 @@ CREATE TABLE IF NOT EXISTS ledger
 (
     id      int AUTO_INCREMENT
         PRIMARY KEY,
-    user_id int        DEFAULT 0     NULL,
     name    varchar(255)             NOT NULL,
     deleted tinyint(1) DEFAULT 0     NOT NULL,
     cr_time datetime   DEFAULT NOW() NOT NULL,

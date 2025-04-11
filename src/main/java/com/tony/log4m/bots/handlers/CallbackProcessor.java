@@ -77,9 +77,9 @@ public class CallbackProcessor {
         Rule rule = ruleService.getOptById(ruleId).orElseThrow();
 
         return StrUtil.format("""
-                        <b>规则详情</b>
+                        规则详情
                         名称: {}
-                        关键词: <code>{}</code>
+                        关键词: {}
                         分类: {}
                         标签: {}
                         类型: {}
@@ -89,7 +89,7 @@ public class CallbackProcessor {
                 rule.getKeywords(),
                 getCategoryName(rule.getCategoryId()),
                 getTagName(rule.getTagId()),
-                rule.getTransactionType().getDesc(),
+                rule.getTransactionType().getType(),
                 rule.getAmount());
     }
 
@@ -125,12 +125,13 @@ public class CallbackProcessor {
     }
 
     private InlineKeyboardMarkup buildKeyboardMarkup(String data) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         if (data.startsWith("rule::")) {
             InlineKeyboardButton deleteBtn = new InlineKeyboardButton("❌ 删除规则")
                     .callbackData("rule_del::" + data.split("::")[1]);
-            return new InlineKeyboardMarkup(deleteBtn);
+            inlineKeyboardMarkup.addRow(deleteBtn);
         }
-        return null;
+        return inlineKeyboardMarkup;
     }
 
     private String getCategoryName(Long categoryId) {
