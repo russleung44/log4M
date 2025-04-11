@@ -1,14 +1,12 @@
 package com.tony.log4m.external.tutu;
 
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.idev.excel.FastExcel;
 import cn.idev.excel.context.AnalysisContext;
 import cn.idev.excel.read.listener.ReadListener;
 import com.alibaba.fastjson2.JSON;
-import com.baomidou.mybatisplus.extension.activerecord.AbstractModel;
 import com.tony.log4m.enums.TransactionType;
 import com.tony.log4m.pojo.entity.*;
 import com.tony.log4m.service.*;
@@ -19,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -45,8 +42,8 @@ public class TutuService {
     private final BillService billService;
 
 
-    private List<TutuData> dataList = new ArrayList<>();
-    private Map<String, List<String>> categoryMap = new HashMap<>();
+    private final List<TutuData> dataList = new ArrayList<>();
+    private final Map<String, List<String>> categoryMap = new HashMap<>();
 
     private User user;
 
@@ -99,7 +96,6 @@ public class TutuService {
                     .toList();
 
             categoryService.saveBatch(categoryList);
-//            categoryList.forEach(AbstractModel::insert);
 
             // 保存子分类
             List<Category> subCategoryList = new ArrayList<>();
