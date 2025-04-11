@@ -1,4 +1,4 @@
-package com.tony.log4m.enums;
+package com.tony.log4m.bots.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

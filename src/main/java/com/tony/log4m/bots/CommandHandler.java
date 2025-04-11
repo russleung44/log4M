@@ -5,9 +5,11 @@ import cn.hutool.core.util.StrUtil;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.tony.log4m.bots.commands.custom.CustomCommandStrategy;
+import com.tony.log4m.bots.commands.system.SystemCommandStrategy;
+import com.tony.log4m.bots.enums.CustomCommand;
+import com.tony.log4m.bots.enums.MenuCommand;
 import com.tony.log4m.convert.RuleConvert;
-import com.tony.log4m.enums.CustomCommand;
-import com.tony.log4m.enums.MenuCommand;
 import com.tony.log4m.enums.TransactionType;
 import com.tony.log4m.pojo.entity.Account;
 import com.tony.log4m.pojo.entity.Bill;
@@ -67,9 +69,9 @@ public class CommandHandler {
 
         // 返回模板
         String template = """
-                记账成功\s
+                记账成功
                 账户:        #{}
-                余额:        {}\s
+                余额:        {}
                 金额:        {}""";
 
         String replyText = StrUtil.format(

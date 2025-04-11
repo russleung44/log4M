@@ -1,4 +1,4 @@
-package com.tony.log4m.bots;
+package com.tony.log4m.bots.handlers;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Document;

@@ -1,4 +1,4 @@
-package com.tony.log4m.enums;
+package com.tony.log4m.bots.enums;
 
 import cn.hutool.core.util.StrUtil;
 import lombok.AllArgsConstructor;

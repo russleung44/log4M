@@ -1,4 +1,4 @@
-package com.tony.log4m.bots;
+package com.tony.log4m.bots.core;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
@@ -7,7 +7,7 @@ import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.SetMyCommands;
 import com.pengrad.telegrambot.response.BaseResponse;
-import com.tony.log4m.enums.MenuCommand;
+import com.tony.log4m.bots.enums.MenuCommand;
 import com.tony.log4m.service.UserService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
