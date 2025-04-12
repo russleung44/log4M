@@ -5,10 +5,8 @@ import cn.hutool.core.util.StrUtil;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
-import com.tony.log4m.bots.commands.custom.CustomCommandStrategy;
-import com.tony.log4m.bots.commands.system.SystemCommandStrategy;
-import com.tony.log4m.bots.enums.CustomCommand;
-import com.tony.log4m.bots.enums.MenuCommand;
+import com.tony.log4m.bots.commands.CommandStrategy;
+import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.convert.RuleConvert;
 import com.tony.log4m.enums.TransactionType;
 import com.tony.log4m.pojo.entity.Account;
@@ -25,7 +23,6 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -37,22 +34,23 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CommandHandler {
 
-    private final Map<String, SystemCommandStrategy> systemStrategies;
-    private final Map<String, CustomCommandStrategy> customStrategies;
+    private final Map<String, CommandStrategy> systemStrategies;
 
     private final RuleService ruleService;
     private final AccountService accountService;
 
 
-    public SendMessage handleSystemCommand(String command, Long chatId) {
-        MenuCommand menuCmd = MenuCommand.getByCommand(command);
-        return systemStrategies.get(menuCmd.getStrategy()).execute(menuCmd, chatId);
-    }
+    public SendMessage handleCommand(String text, Long chatId) {
+        // 使用 split 分割，最多分割3次（保证参数部分保留）
+        String[] parts = text.split("/", 3);
 
-    public SendMessage handleCustomCommand(String text, Long chatId) {
-        CommandParser parser = new CommandParser(text);
-        CustomCommand customCommand = parser.getCommand();
-        return customStrategies.get(customCommand.getStrategy()).execute(parser.getParams(), chatId);
+        // 提取命令和参数
+        String command = parts.length > 1 ? parts[1] : "";
+        String param = parts.length > 2 ? parts[2] : "";
+
+        Command menuCmd = Command.getByCommand(command);
+        String strategy = menuCmd.getStrategy() + "Command";
+        return systemStrategies.get(strategy).execute(menuCmd, param, chatId);
     }
 
 
@@ -64,21 +62,21 @@ public class CommandHandler {
         if (bill == null) return null;
 
         BigDecimal amount = bill.getAmount();
-        String amountPrefix = bill.getTransactionType() == TransactionType.EXPENSE ? "-" : "+";
-        Account account = updateAccount(bill, amount);
+        String amountPrefix = bill.getTransactionType().getPrefix();
 
         // 返回模板
         String template = """
                 记账成功
-                账户:        #{}
-                余额:        {}
-                金额:        {}""";
+                ------------
+                金额:        {}
+                备注:        {}
+                """;
 
         String replyText = StrUtil.format(
                 template,
-                account.getName(),
-                account.getBalance(),
-                amountPrefix + amount);
+                amountPrefix + amount,
+                bill.getNote()
+        );
 
         SendMessage sendMessage = new SendMessage(chatId, replyText);
 
@@ -135,16 +133,5 @@ public class CommandHandler {
         return bill;
     }
 
-    private Account updateAccount(Bill bill, BigDecimal amount) {
-        Account account = accountService.getById(bill.getAccountId());
-        if (Objects.equals(bill.getTransactionType(), TransactionType.EXPENSE)) {
-            account.setBalance(account.getBalance().subtract(amount));
-            account.setConsume(account.getConsume().add(amount));
-        } else {
-            account.setBalance(account.getBalance().add(amount));
-            account.setIncome(account.getIncome().add(amount));
-        }
-        account.updateById();
-        return account;
-    }
+
 }

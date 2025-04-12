@@ -1,7 +1,6 @@
-package com.tony.log4m.bots.commands.system;
+package com.tony.log4m.bots.commands;
 
 import com.pengrad.telegrambot.request.SendMessage;
-import com.tony.log4m.bots.enums.MenuCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,12 +10,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class SystemCommand implements SystemCommandStrategy {
+public class Command implements CommandStrategy {
 
 
     @Override
-    public SendMessage execute(MenuCommand menuCommand, Long chatId) {
-        switch (menuCommand) {
+    public SendMessage execute(com.tony.log4m.bots.enums.Command command, String param, Long chatId) {
+        switch (command) {
             case HELP -> {
                 String help = """
                         新建规则: @RULE@#{规则名称}-#{金额}-#{1:支付，0:收入}
@@ -24,6 +23,11 @@ public class SystemCommand implements SystemCommandStrategy {
                         """;
                 return new SendMessage(chatId, help);
             }
+
+            case RESET -> {
+                return new SendMessage(chatId, "重置成功");
+            }
+
             default -> {
                 return new SendMessage(chatId, "未识别的命令");
             }

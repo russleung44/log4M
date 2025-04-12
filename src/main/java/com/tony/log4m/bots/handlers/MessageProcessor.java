@@ -1,6 +1,7 @@
 package com.tony.log4m.bots.handlers;
 
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.CommandHandler;
@@ -21,19 +22,18 @@ public class MessageProcessor {
 
     public void process(TelegramBot bot, Message message) {
         String text = message.text();
-        Long chatId = message.chat().id();
+        Chat chat = message.chat();
+        if (chat == null) {
+            return;
+        }
+        Long chatId = chat.id();
 
-        SendMessage response = Optional.of(text)
+        SendMessage response = Optional.ofNullable(text)
                 .filter(t -> t.startsWith("/"))
-                .map(cmd -> commandHandler.handleSystemCommand(cmd.substring(1), chatId))
-                .orElseGet(() -> handleNonCommand(text, chatId));
+                .map(t -> commandHandler.handleCommand(t, chatId))
+                .orElseGet(() -> commandHandler.handleQuickRecord(text, chatId));
 
         Optional.ofNullable(response).ifPresent(bot::execute);
     }
 
-    private SendMessage handleNonCommand(String text, Long chatId) {
-        return text.startsWith("@")
-                ? commandHandler.handleCustomCommand(text, chatId)
-                : commandHandler.handleQuickRecord(text, chatId);
-    }
 }
