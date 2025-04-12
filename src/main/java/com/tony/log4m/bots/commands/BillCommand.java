@@ -1,8 +1,8 @@
-package com.tony.log4m.bots.commands.system;
+package com.tony.log4m.bots.commands;
 
 import cn.hutool.core.date.DateUtil;
 import com.pengrad.telegrambot.request.SendMessage;
-import com.tony.log4m.bots.enums.MenuCommand;
+import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.pojo.entity.Bill;
 import com.tony.log4m.service.BillService;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +19,14 @@ import java.util.stream.Collectors;
  */
 @Component
 @RequiredArgsConstructor
-public class BillCommand implements SystemCommandStrategy {
+public class BillCommand implements CommandStrategy {
 
     private final BillService billService;
 
     @Override
-    public SendMessage execute(MenuCommand menuCommand, Long chatId) {
+    public SendMessage execute(Command command, String param, Long chatId) {
         List<Bill> bills = new ArrayList<>();
-        switch (menuCommand) {
+        switch (command) {
             case TODAY -> {
                 bills = billService.lambdaQuery().eq(Bill::getBillDay, DateUtil.today()).list();
             }
@@ -61,7 +61,7 @@ public class BillCommand implements SystemCommandStrategy {
                 当前%s总计：%.2f元
                 """.formatted(
                 billDetails.isEmpty() ? "暂无账单记录" : billDetails,
-                menuCommand.getDesc(),
+                command.getDesc(),
                 amount.doubleValue()
         );
 

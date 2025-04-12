@@ -7,7 +7,7 @@ import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.SetMyCommands;
 import com.pengrad.telegrambot.response.BaseResponse;
-import com.tony.log4m.bots.enums.MenuCommand;
+import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.service.UserService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +67,7 @@ public class MoneyBot {
      */
     private void setMyCommands() {
         log.info("===set commands===");
-        BotCommand[] commands = Arrays.stream(MenuCommand.values())
+        BotCommand[] commands = Arrays.stream(Command.values())
                 .map(ct -> new BotCommand(ct.getCommand(), ct.getDesc()))
                 .toArray(BotCommand[]::new);
 

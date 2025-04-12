@@ -67,10 +67,30 @@ public class CallbackProcessor {
 
         return switch (action) {
             case "rule" -> buildRuleDetails(targetId);
+            case "category" -> buildCategoryDetails(targetId);
             case "record" -> handleRecordAction(targetId, chatId);
             case "rule_del" -> deleteRule(targetId);
+            case "rule_category" -> deleteCategory(targetId);
             default -> throw new IllegalArgumentException("未知操作类型: " + action);
         };
+    }
+
+
+
+    private String buildCategoryDetails(String categoryId) {
+        Category category = categoryService.getOptById(categoryId).orElseThrow();
+
+        String template = """
+                分类详情
+                名称: {}
+                父类: {}
+                """;
+
+        return StrUtil.format(
+                template,
+                category.getName(),
+                getCategoryName(category.getParentId())
+        );
     }
 
     private String buildRuleDetails(String ruleId) {
@@ -124,11 +144,22 @@ public class CallbackProcessor {
         return "✅ 规则已删除";
     }
 
+    private String deleteCategory(String categoryId) {
+        Category category = categoryService.getOptById(categoryId).orElseThrow();
+        category.deleteById();
+        return "✅ 分类已删除";
+    }
+
     private InlineKeyboardMarkup buildKeyboardMarkup(String data) {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         if (data.startsWith("rule::")) {
             InlineKeyboardButton deleteBtn = new InlineKeyboardButton("❌ 删除规则")
                     .callbackData("rule_del::" + data.split("::")[1]);
+            inlineKeyboardMarkup.addRow(deleteBtn);
+        }
+        if (data.startsWith("category::")) {
+            InlineKeyboardButton deleteBtn = new InlineKeyboardButton("❌ 删除分类")
+                    .callbackData("rule_category::" + data.split("::")[1]);
             inlineKeyboardMarkup.addRow(deleteBtn);
         }
         return inlineKeyboardMarkup;
