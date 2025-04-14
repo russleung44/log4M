@@ -32,10 +32,10 @@ public class CommonFunction {
             processUpdate(bot, update);
         } catch (RuntimeException e) {
             log.error("RuntimeException: {}", e.getMessage(), e);
-            bot.execute(new SendMessage(getChatId(update), e.getMessage()));
+            bot.execute(new SendMessage(getChatId(update), "系统错误"));
         } catch (Exception e) {
             log.error("未处理异常: {}", e.getMessage(), e);
-            bot.execute(new SendMessage(getChatId(update), "系统内部错误"));
+            bot.execute(new SendMessage(getChatId(update), "系统错误"));
         }
     }
 
@@ -60,7 +60,7 @@ public class CommonFunction {
     private Long getChatId(Update update) {
         return Optional.ofNullable(update.message())
                 .map(msg -> msg.chat().id())
-                .orElseGet(() -> update.callbackQuery().message().chat().id());
+                .orElseGet(() -> update.callbackQuery().maybeInaccessibleMessage().chat().id());
     }
 
 

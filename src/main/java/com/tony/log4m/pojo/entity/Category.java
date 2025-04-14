@@ -1,6 +1,7 @@
 package com.tony.log4m.pojo.entity;
 
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
 import lombok.Data;
@@ -19,9 +20,14 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 public class Category extends BaseEntity<Category> {
 
-    private String name;
+    @TableId
+    private Long categoryId;
+
+    private String categoryName;
+
+    private Long parentCategoryId;
+
+    private String parentCategoryName;
 
     private Integer sort;
-
-    private Long parentId;
 }

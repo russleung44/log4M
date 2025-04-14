@@ -88,8 +88,8 @@ public class CallbackProcessor {
 
         return StrUtil.format(
                 template,
-                category.getName(),
-                getCategoryName(category.getParentId())
+                category.getCategoryName(),
+                getCategoryName(category.getParentCategoryId())
         );
     }
 
@@ -105,7 +105,7 @@ public class CallbackProcessor {
                         类型: {}
                         金额: {}
                         """,
-                rule.getName(),
+                rule.getRuleName(),
                 rule.getKeywords(),
                 getCategoryName(rule.getCategoryId()),
                 getTagName(rule.getTagId()),
@@ -122,7 +122,7 @@ public class CallbackProcessor {
         bill.deleteById();
 
         return "✅ 记录删除成功\n"
-                + "账户: " + account.getName() + "\n"
+                + "账户: " + account.getAccountName() + "\n"
                 + "余额: " + account.getBalance();
     }
 
@@ -167,13 +167,13 @@ public class CallbackProcessor {
 
     private String getCategoryName(Long categoryId) {
         return categoryService.getOptById(categoryId)
-                .map(Category::getName)
+                .map(Category::getCategoryName)
                 .orElse("未分类");
     }
 
     private String getTagName(Long tagId) {
         return tagService.getOptById(tagId)
-                .map(Tag::getName)
+                .map(Tag::getTagName)
                 .orElse("无标签");
     }
 }

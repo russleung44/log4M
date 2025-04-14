@@ -8,6 +8,8 @@ import org.mapstruct.factory.Mappers;
  * @since 2022-09-23 15:13:05
  */
 @Mapper
-public interface RecordConvert {
-    RecordConvert INSTANCE = Mappers.getMapper(RecordConvert.class);
+public interface BillConvert {
+    BillConvert INSTANCE = Mappers.getMapper(BillConvert.class);
+
+
 }

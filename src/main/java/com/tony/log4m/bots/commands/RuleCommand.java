@@ -48,8 +48,8 @@ public class RuleCommand implements CommandStrategy {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         ruleService.lambdaQuery().list().forEach(rule -> {
             InlineKeyboardButton button = new InlineKeyboardButton();
-            button.setText(rule.getName());
-            button.setCallbackData("rule::" + rule.getId());
+            button.setText(rule.getRuleName());
+            button.setCallbackData("rule::" + rule.getRuleId());
             inlineKeyboardMarkup.addRow(button);
         });
         message.replyMarkup(inlineKeyboardMarkup);
@@ -74,13 +74,13 @@ public class RuleCommand implements CommandStrategy {
         Rule rule = new Rule(keyword, amount, transactionType);
         if (params.length > 3) {
             String tagName = params[3];
-            Tag tag = tagService.lambdaQuery().eq(Tag::getName, tagName).one();
+            Tag tag = tagService.lambdaQuery().eq(Tag::getTagName, tagName).one();
             if (tag == null) {
                 tag = new Tag();
-                tag.setName(tagName).insert();
+                tag.setTagName(tagName).insert();
             }
 
-            rule.setTagId(tag.getId());
+            rule.setTagId(tag.getTagId());
         }
 
         rule.insert();

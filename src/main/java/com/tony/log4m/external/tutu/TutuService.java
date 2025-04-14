@@ -26,7 +26,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -91,9 +92,18 @@ public class TutuService {
                     .distinct()
                     .toList();
 
-            List<Category> categoryList = categoryNames.stream()
-                    .map(name -> new Category().setName(name))
-                    .toList();
+            List<Category> categoryList = new ArrayList<>();
+
+            categoryNames.forEach(v -> {
+                Category category = categoryService.lambdaQuery().eq(Category::getCategoryName, v).one();
+                if (category != null) {
+                    categoryList.add(category);
+                } else {
+                    Category newCategory = new Category().setCategoryName(v);
+                    newCategory.insert();
+                    categoryList.add(newCategory);
+                }
+            });
 
             categoryService.saveBatch(categoryList);
 
@@ -101,9 +111,9 @@ public class TutuService {
             List<Category> subCategoryList = new ArrayList<>();
             categoryMap.forEach((k, v) -> {
                 log.info("{} -> {}", k, v);
-                categoryList.stream().filter(c -> c.getName().equals(k)).findFirst().ifPresent(category -> {
+                categoryList.stream().filter(c -> c.getCategoryName().equals(k)).findFirst().ifPresent(category -> {
                     v.forEach(subCategory -> {
-                        subCategoryList.add(new Category().setName(subCategory).setParentId(category.getId()));
+                        subCategoryList.add(new Category().setCategoryName(subCategory).setParentCategoryId(category.getCategoryId()).setParentCategoryName(category.getCategoryName()));
                     });
                 });
             });
@@ -119,7 +129,7 @@ public class TutuService {
                     .flatMap(List::stream)
                     .distinct()
                     .forEach(tagName -> {
-                        tagList.add(new Tag().setName(tagName));
+                        tagList.add(new Tag().setTagName(tagName));
                     });
 
             tagService.saveBatch(tagList);
@@ -142,34 +152,34 @@ public class TutuService {
                 try {
                     // 账单日期
                     String date = data.getDate().substring(0, 8);
-                    LocalDateTime billDate = LocalDateTimeUtil.parse(date, "yyyyMMdd");
+                    LocalDate billDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd"));
 
                     // 账单类型
                     TransactionType transactionType = data.getType().equals("收入") ? TransactionType.INCOME : TransactionType.EXPENSE;
 
                     Bill bill = Bill.builder()
-                            .title(data.getNote())
                             .note(data.getNote())
                             .tagName(data.getTags())
                             .billDate(billDate)
-                            .billDay(billDate.toLocalDate())
                             .billMonth(LocalDateTimeUtil.format(billDate, "yyyyMM"))
                             .transactionType(transactionType)
                             .amount(data.getAmount())
                             .build();
 
                     // 账单分类
-                    String category = data.getCategory();
-                    categoryList.stream().filter(c -> c.getName().equals(category))
-                            .findFirst().ifPresent(c ->
-                                    bill.setCategoryId(c.getId()).setCategoryName(c.getName())
-                            );
-
                     String subCategory = data.getSubCategory();
                     if (StrUtil.isNotBlank(subCategory)) {
-                        subCategoryList.stream().filter(c -> c.getName().equals(subCategory))
+                        subCategoryList.stream().filter(c -> c.getCategoryName().equals(subCategory))
                                 .findFirst().ifPresent(c ->
-                                        bill.setSubCategoryId(c.getId()).setSubCategoryName(c.getName())
+                                        bill
+                                                .setCategoryId(c.getCategoryId()).setCategoryName(c.getCategoryName())
+                                                .setParentCategoryId(c.getParentCategoryId()).setParentCategoryName(c.getParentCategoryName())
+                                );
+                    } else {
+                        String category = data.getCategory();
+                        categoryList.stream().filter(c -> c.getCategoryName().equals(category))
+                                .findFirst().ifPresent(c ->
+                                        bill.setCategoryId(c.getCategoryId()).setCategoryName(c.getCategoryName())
                                 );
                     }
 
@@ -179,12 +189,12 @@ public class TutuService {
                         String[] tagNames = tags.split(",");
                         List<Long> tagIds = new ArrayList<>();
                         for (String tagName : tagNames) {
-                            tagList.stream().filter(t -> t.getName().equals(tagName))
+                            tagList.stream().filter(t -> t.getTagName().equals(tagName))
                                     .findFirst().ifPresent(t ->
-                                            tagIds.add(t.getId())
+                                            tagIds.add(t.getTagId())
                                     );
                         }
-                        bill.setTagId(tagIds.get(0));
+                        bill.setTagId(tagIds.getFirst());
                     }
 
                     // 账本
@@ -192,7 +202,7 @@ public class TutuService {
                     if (StrUtil.isNotBlank(ledger)) {
                         ledgerList.stream().filter(l -> l.getName().equals(ledger))
                                 .findFirst().ifPresent(l ->
-                                        bill.setLedgerId(l.getId()).setLedgerName(l.getName())
+                                        bill.setLedgerId(l.getLedgerId()).setLedgerName(l.getName())
                                 );
                     }
 

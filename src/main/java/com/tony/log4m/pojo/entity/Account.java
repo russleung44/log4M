@@ -1,5 +1,6 @@
 package com.tony.log4m.pojo.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
 import lombok.Data;
@@ -20,7 +21,10 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 public class Account extends BaseEntity<Account> {
 
-    private String name;
+    @TableId
+    private Long accountId;
+
+    private String accountName;
 
     private BigDecimal balance;
 

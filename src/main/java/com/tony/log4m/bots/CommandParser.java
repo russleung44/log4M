@@ -17,12 +17,12 @@ public class CommandParser {
     }
 
     public CustomCommand getCommand() {
-        String cmd = text.substring(1, text.lastIndexOf("@")).toUpperCase();
+        String cmd = text.substring(1, text.lastIndexOf("/")).toUpperCase();
         return CustomCommand.valueOf(cmd);
     }
 
     public String[] getParams() {
-        return text.substring(text.lastIndexOf("@") + 1).split("-");
+        return text.substring(text.lastIndexOf("/") + 1).split("-");
     }
 
 }

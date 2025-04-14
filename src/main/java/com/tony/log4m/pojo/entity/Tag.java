@@ -1,6 +1,7 @@
 package com.tony.log4m.pojo.entity;
 
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
 import lombok.Data;
@@ -19,7 +20,10 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 public class Tag extends BaseEntity<Tag> {
 
-    private String name;
+    @TableId
+    private Long tagId;
+
+    private String tagName;
 
     private Integer sort;
 

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class Command implements CommandStrategy {
+public class SystemCommand implements CommandStrategy {
 
 
     @Override

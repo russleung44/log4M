@@ -12,7 +12,6 @@ import java.lang.annotation.RetentionPolicy;
  * @since 11/27/2024
  */
 @Retention(RetentionPolicy.CLASS)
-@Mapping(target = "id", ignore = true)
 @Mapping(target = "crTime", ignore = true)
 @Mapping(target = "mdTime", ignore = true)
 @Mapping(target = "deleted", ignore = true)

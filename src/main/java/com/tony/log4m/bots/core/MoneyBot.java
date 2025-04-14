@@ -66,13 +66,16 @@ public class MoneyBot {
      *设置菜单
      */
     private void setMyCommands() {
-        log.info("===set commands===");
         BotCommand[] commands = Arrays.stream(Command.values())
                 .map(ct -> new BotCommand(ct.getCommand(), ct.getDesc()))
                 .toArray(BotCommand[]::new);
 
         BaseResponse response = bot.execute(new SetMyCommands(commands));
-        log.info("set commands response:{}", response);
+        if (response.isOk()) {
+            log.info("set commands success");
+        } else {
+            log.error("set commands error:{}", response);
+        }
     }
 
 }
