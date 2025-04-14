@@ -16,7 +16,7 @@
     </parent>
 
     <properties>
-        <java.version>23</java.version>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>3.4.4</spring-boot.version>
@@ -158,23 +158,21 @@
 
     </dependencies>
 
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <!-- <configuration>
-                     <excludes>
-                         <exclude>
-                             <groupId>org.projectlombok</groupId>
-                             <artifactId>lombok</artifactId>
-                         </exclude>
-                     </excludes>
-                 </configuration>-->
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
-
 
 </project>
