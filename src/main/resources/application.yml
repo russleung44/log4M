@@ -21,6 +21,7 @@ mybatis-plus:
   global-config:
     db-config:
       logic-delete-field: deleted
+      id-type: auto
     banner: false
   configuration:
     map-underscore-to-camel-case: true

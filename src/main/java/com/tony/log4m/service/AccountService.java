@@ -21,7 +21,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> {
 
     public void update(Account account) {
         // 检查账户名是否重复
-        if (this.lambdaQuery().eq(Account::getName, account.getName()).ne(Account::getId, account.getId()).exists()) {
+        if (this.lambdaQuery().eq(Account::getAccountName, account.getAccountName()).ne(Account::getAccountId, account.getAccountId()).exists()) {
             throw new RuntimeException("账户名重复");
         }
         account.updateById();
@@ -36,7 +36,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> {
     @Transactional(rollbackFor = Exception.class)
     public void setDefault(Serializable id) {
         this.getOptById(id).orElseThrow().setIsDefault(true).updateById();
-        this.lambdaUpdate().ne(Account::getId, id).eq(Account::getIsDefault, true).set(Account::getIsDefault, false).update();
+        this.lambdaUpdate().ne(Account::getAccountId, id).eq(Account::getIsDefault, true).set(Account::getIsDefault, false).update();
     }
 
 
@@ -50,7 +50,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> {
         if (defaultAccount == null) {
             defaultAccount = new Account()
                     .setIsDefault(true)
-                    .setName("默认账户");
+                    .setAccountName("默认账户");
             defaultAccount.insert();
         }
 

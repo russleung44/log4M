@@ -7,12 +7,15 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.commands.CommandStrategy;
 import com.tony.log4m.bots.enums.Command;
+import com.tony.log4m.convert.CategoryConvert;
 import com.tony.log4m.convert.RuleConvert;
 import com.tony.log4m.enums.TransactionType;
 import com.tony.log4m.pojo.entity.Account;
 import com.tony.log4m.pojo.entity.Bill;
+import com.tony.log4m.pojo.entity.Category;
 import com.tony.log4m.pojo.entity.Rule;
 import com.tony.log4m.service.AccountService;
+import com.tony.log4m.service.CategoryService;
 import com.tony.log4m.service.RuleService;
 import com.tony.log4m.utils.CommonUtil;
 import com.tony.log4m.utils.MoneyUtil;
@@ -21,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +42,7 @@ public class CommandHandler {
 
     private final RuleService ruleService;
     private final AccountService accountService;
+    private final CategoryService categoryService;
 
 
     public SendMessage handleCommand(String text, Long chatId) {
@@ -59,7 +64,6 @@ public class CommandHandler {
      */
     public SendMessage handleQuickRecord(String text, Long chatId) {
         Bill bill = saveBill(text);
-        if (bill == null) return null;
 
         BigDecimal amount = bill.getAmount();
         String amountPrefix = bill.getTransactionType().getPrefix();
@@ -67,21 +71,25 @@ public class CommandHandler {
         // 返回模板
         String template = """
                 记账成功
-                ------------
+                ---------
                 金额:        {}
+                日期:        {}
                 备注:        {}
+                分类:        {}
                 """;
 
         String replyText = StrUtil.format(
                 template,
                 amountPrefix + amount,
-                bill.getNote()
+                bill.getBillDate(),
+                bill.getNote(),
+                bill.getCategoryName()
         );
 
         SendMessage sendMessage = new SendMessage(chatId, replyText);
 
         // 增加删除按钮的回调数据
-        String callbackData = "record::" + bill.getId();
+        String callbackData = "record::" + bill.getBillId();
         InlineKeyboardButton delButton = new InlineKeyboardButton();
         delButton.setText("删除");
         delButton.callbackData(callbackData);
@@ -93,10 +101,6 @@ public class CommandHandler {
     private Bill saveBill(String text) {
         LocalDateTime now = LocalDateTime.now();
         Bill bill = Bill.builder()
-                .title(text)
-                .billDate(now)
-                .billDay(now.toLocalDate())
-                .billMonth(LocalDateTimeUtil.format(now, "yyyyMM"))
                 .transactionType(TransactionType.EXPENSE)
                 .build();
 
@@ -109,24 +113,39 @@ public class CommandHandler {
             if (CommonUtil.isZero(bill.getAccountId())) {
                 // 获取默认账户
                 Account account = accountService.getOrCreateDefaultAccount();
-                bill.setAccountId(account.getId());
+                bill.setAccountId(account.getAccountId());
             }
-            bill.setNote("关键词匹配");
+            bill.setNote(rule.getRuleName());
         } else {
+            // 提取时间
+            MoneyUtil.Result result = MoneyUtil.getDate(text);
+            LocalDate billDate = result.date();
+            text = result.text();
+            bill
+                    .setBillDate(billDate)
+                    .setBillMonth(LocalDateTimeUtil.format(now, "yyyyMM"));
+
             // 提取消息中的金额
             String amount = MoneyUtil.getAmount(text);
-            if (amount == null) {
-                return null;
-            }
+            bill.setAmount(new BigDecimal(amount));
 
             // 获取除amount外的text
-            bill
-                    .setAmount(new BigDecimal(amount))
-                    .setNote(text.replace(amount, ""));
+            String note = text.replace(amount, "");
+            bill.setNote(note);
+
+            // 是否匹配分类
+            if (StrUtil.isNotBlank(note)) {
+                categoryService.lambdaQuery().eq(Category::getCategoryName, note)
+                        .oneOpt()
+                        .ifPresent(category -> {
+                            CategoryConvert.INSTANCE.updateBill(bill, category);
+                            bill.setNote("");
+                        });
+            }
 
             // 获取默认账户
             Account account = accountService.getOrCreateDefaultAccount();
-            bill.setAccountId(account.getId());
+            bill.setAccountId(account.getAccountId());
         }
 
         bill.insert();

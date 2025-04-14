@@ -1,5 +1,6 @@
 package com.tony.log4m.pojo.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
 import com.tony.log4m.enums.TransactionType;
@@ -23,7 +24,10 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 public class Rule extends BaseEntity<Rule> {
 
-    private String name;
+    @TableId
+    private Long ruleId;
+
+    private String ruleName;
 
     private Long accountId;
 
@@ -40,7 +44,7 @@ public class Rule extends BaseEntity<Rule> {
     private Integer sort;
 
     public Rule(String keyword, BigDecimal amount, TransactionType transactionType) {
-        this.name = keyword;
+        this.ruleName = keyword;
         this.keywords = keyword;
         this.amount = amount;
         this.transactionType = transactionType;

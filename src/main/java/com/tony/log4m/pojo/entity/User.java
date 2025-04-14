@@ -1,6 +1,7 @@
 package com.tony.log4m.pojo.entity;
 
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
 import lombok.Data;
@@ -18,6 +19,9 @@ import lombok.experimental.Accessors;
 @TableName(value = "sys_user", autoResultMap = true)
 @EqualsAndHashCode(callSuper = true)
 public class User extends BaseEntity<User> {
+
+    @TableId
+    private Long userId;
 
     private Long tgUserId;
 

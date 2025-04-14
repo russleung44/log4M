@@ -1,8 +1,6 @@
 package com.tony.log4m.base;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,9 +23,6 @@ import java.time.LocalDateTime;
 public class BaseEntity<T> extends Model<BaseEntity<T>> {
     @Serial
     private static final long serialVersionUID = 1L;
-
-    @TableId(type = IdType.AUTO)
-    private Long id;
 
     private LocalDateTime crTime;
 

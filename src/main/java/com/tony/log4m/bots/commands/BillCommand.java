@@ -28,18 +28,18 @@ public class BillCommand implements CommandStrategy {
         List<Bill> bills = new ArrayList<>();
         switch (command) {
             case TODAY -> {
-                bills = billService.lambdaQuery().eq(Bill::getBillDay, DateUtil.today()).list();
+                bills = billService.lambdaQuery().eq(Bill::getBillDate, DateUtil.today()).orderByDesc(Bill::getBillDate).list();
             }
             case YESTERDAY -> {
-                bills = billService.lambdaQuery().eq(Bill::getBillDay, DateUtil.yesterday().toDateStr()).list();
+                bills = billService.lambdaQuery().eq(Bill::getBillDate, DateUtil.yesterday().toDateStr()).orderByDesc(Bill::getBillDate).list();
             }
             case LAST_MONTH -> {
                 String lastMonth = DateUtil.format(DateUtil.lastMonth(), "yyyyMM");
-                bills = billService.lambdaQuery().eq(Bill::getBillMonth, lastMonth).list();
+                bills = billService.lambdaQuery().eq(Bill::getBillMonth, lastMonth).orderByDesc(Bill::getBillDate).list();
             }
             case THIS_MONTH -> {
                 String currentMonth = DateUtil.format(DateUtil.date(), "yyyyMM");
-                bills = billService.lambdaQuery().eq(Bill::getBillMonth, currentMonth).list();
+                bills = billService.lambdaQuery().eq(Bill::getBillMonth, currentMonth).orderByDesc(Bill::getBillDate).list();
             }
         }
 
@@ -48,11 +48,12 @@ public class BillCommand implements CommandStrategy {
 
         // 返回模板
         String billDetails = bills.stream()
-                .map(bill -> String.format("%s，%s，%s, %s",
-                        bill.getBillDay(),
+                .map(bill -> String.format("%s %s %s %s",
+                        bill.getBillDate(),
                         bill.getTransactionType().getPrefix() + bill.getAmount(),
-                        bill.getCategoryName(),
-                        bill.getNote()))
+                        bill.getNote(),
+                        bill.getCategoryName()
+                ))
                 .collect(Collectors.joining("\n"));
 
         String template = """

@@ -1,5 +1,6 @@
 package com.tony.log4m.pojo.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
 import com.tony.log4m.enums.TransactionType;
@@ -8,7 +9,6 @@ import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * 记录
@@ -25,13 +25,12 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class Bill extends BaseEntity<Bill> {
 
+    @TableId
+    private Long billId;
+
     private Long accountId;
 
-    private String title;
-
-    private LocalDateTime billDate;
-
-    private LocalDate billDay;
+    private LocalDate billDate;
 
     private String billMonth;
 
@@ -43,9 +42,9 @@ public class Bill extends BaseEntity<Bill> {
 
     private String categoryName;
 
-    private Long subCategoryId;
+    private Long parentCategoryId;
 
-    private String subCategoryName;
+    private String parentCategoryName;
 
     private Long tagId;
 

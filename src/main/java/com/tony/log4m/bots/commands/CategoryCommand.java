@@ -44,8 +44,8 @@ public class CategoryCommand implements CommandStrategy {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         categoryService.lambdaQuery().list().forEach(category -> {
             InlineKeyboardButton button = new InlineKeyboardButton();
-            button.setText(category.getName());
-            button.setCallbackData("category::" + category.getId());
+            button.setText(category.getCategoryName());
+            button.setCallbackData("category::" + category.getCategoryId());
             inlineKeyboardMarkup.addRow(button);
         });
         message.replyMarkup(inlineKeyboardMarkup);
@@ -58,16 +58,16 @@ public class CategoryCommand implements CommandStrategy {
 
         String categoryName = params[0];
 
-        Category category = new Category().setName(categoryName);
+        Category category = new Category().setCategoryName(categoryName);
         if (params.length > 1) {
             String parentName = params[1];
-            Category parentCategory = categoryService.lambdaQuery().eq(Category::getName, parentName).one();
+            Category parentCategory = categoryService.lambdaQuery().eq(Category::getCategoryName, parentName).one();
             if (parentCategory == null) {
                 parentCategory = new Category();
-                parentCategory.setName(parentName);
+                parentCategory.setCategoryName(parentName);
                 parentCategory.insert();
 
-                category.setParentId(parentCategory.getId());
+                category.setParentCategoryId(parentCategory.getCategoryId());
             }
         }
 

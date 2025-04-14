@@ -17,7 +17,7 @@ public enum Command {
     THIS_MONTH("this_month", "本月消费", "bill"),
     LAST_MONTH("last_month", "上月消费", "bill"),
     RULES("rules", "规则列表", "rule"),
-    RULE_ADD("rule:add", "添加规则", "rule"),
+    RULE_ADD("rule_add", "添加规则", "rule"),
     CATEGORIES("categories", "分类列表", "category"),
     CATEGORY_ADD("category_add", "添加分类", "category"),
     HELP("help", "帮助", "system"),
