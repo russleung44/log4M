@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
@@ -99,8 +98,8 @@ public class CommandHandler {
     }
 
     private Bill saveBill(String text) {
-        LocalDateTime now = LocalDateTime.now();
         Bill bill = Bill.builder()
+                .billDate(LocalDate.now())
                 .transactionType(TransactionType.EXPENSE)
                 .build();
 
@@ -120,12 +119,10 @@ public class CommandHandler {
             // 提取时间
             MoneyUtil.Result result = MoneyUtil.getDate(text);
             LocalDate billDate = result.date();
-            text = result.text();
-            bill
-                    .setBillDate(billDate)
-                    .setBillMonth(LocalDateTimeUtil.format(now, "yyyyMM"));
+            bill.setBillDate(billDate);
 
             // 提取消息中的金额
+            text = result.text();
             String amount = MoneyUtil.getAmount(text);
             bill.setAmount(new BigDecimal(amount));
 
@@ -148,6 +145,8 @@ public class CommandHandler {
             bill.setAccountId(account.getAccountId());
         }
 
+
+        bill.setBillMonth(LocalDateTimeUtil.format(bill.getBillDate(), "yyyyMM"));
         bill.insert();
         return bill;
     }
