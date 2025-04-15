@@ -59,7 +59,7 @@ public class BillCommand implements CommandStrategy {
         String template = """
                 %s
                 ---------
-                当前%s总计：%.2f元
+                %s总计：%.2f元
                 """.formatted(
                 billDetails.isEmpty() ? "暂无账单记录" : billDetails,
                 command.getDesc(),
