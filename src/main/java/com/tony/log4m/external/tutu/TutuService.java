@@ -1,7 +1,6 @@
 package com.tony.log4m.external.tutu;
 
 
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.idev.excel.FastExcel;
 import cn.idev.excel.context.AnalysisContext;
@@ -16,6 +15,7 @@ import com.tony.log4m.service.BillService;
 import com.tony.log4m.service.CategoryService;
 import com.tony.log4m.service.LedgerService;
 import com.tony.log4m.service.TagService;
+import com.tony.log4m.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -161,7 +161,7 @@ public class TutuService {
                             .note(data.getNote())
                             .tagName(data.getTags())
                             .billDate(billDate)
-                            .billMonth(LocalDateTimeUtil.format(billDate, "yyyyMM"))
+                            .billMonth(MoneyUtil.getMonth(billDate))
                             .transactionType(transactionType)
                             .amount(data.getAmount())
                             .build();

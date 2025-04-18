@@ -1,11 +1,10 @@
 package com.tony.log4m.bots;
 
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.commands.CommandStrategy;
+import com.tony.log4m.bots.core.BotUtil;
 import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.convert.CategoryConvert;
 import com.tony.log4m.convert.RuleConvert;
@@ -45,6 +44,8 @@ public class CommandHandler {
 
 
     public SendMessage handleCommand(String text, Long chatId) {
+        // 去掉空格
+        text = StrUtil.trim(text);
         // 使用 split 分割，最多分割3次（保证参数部分保留）
         String[] parts = text.split("/", 3);
 
@@ -64,36 +65,14 @@ public class CommandHandler {
     public SendMessage handleQuickRecord(String text, Long chatId) {
         Bill bill = saveBill(text);
 
-        BigDecimal amount = bill.getAmount();
-        String amountPrefix = bill.getTransactionType().getPrefix();
-
         // 返回模板
-        String template = """
-                记账成功
-                ---------
-                金额:        {}
-                日期:        {}
-                备注:        {}
-                分类:        {}
-                """;
-
-        String replyText = StrUtil.format(
-                template,
-                amountPrefix + amount,
-                bill.getBillDate(),
-                bill.getNote(),
-                bill.getCategoryName()
-        );
+        String replyText = BotUtil.getBillFormatted(bill);
 
         SendMessage sendMessage = new SendMessage(chatId, replyText);
 
         // 增加删除按钮的回调数据
-        String callbackData = "record::" + bill.getBillId();
-        InlineKeyboardButton delButton = new InlineKeyboardButton();
-        delButton.setText("删除");
-        delButton.callbackData(callbackData);
-        sendMessage.replyMarkup(new InlineKeyboardMarkup(delButton));
-
+        InlineKeyboardMarkup deleteButton = BotUtil.createButton("删除", "bill_del", bill.getBillId());
+        sendMessage.replyMarkup(deleteButton);
         return sendMessage;
     }
 
@@ -127,7 +106,7 @@ public class CommandHandler {
             bill.setAmount(new BigDecimal(amount));
 
             // 获取除amount外的text
-            String note = text.replace(amount, "");
+            String note = StrUtil.trim(text.replace(amount, ""));
             bill.setNote(note);
 
             // 是否匹配分类
@@ -145,8 +124,8 @@ public class CommandHandler {
             bill.setAccountId(account.getAccountId());
         }
 
-
-        bill.setBillMonth(LocalDateTimeUtil.format(bill.getBillDate(), "yyyyMM"));
+        String billMonth = MoneyUtil.getMonth(bill.getBillDate());
+        bill.setBillMonth(billMonth);
         bill.insert();
         return bill;
     }
