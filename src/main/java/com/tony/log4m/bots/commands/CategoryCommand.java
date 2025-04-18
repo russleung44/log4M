@@ -37,7 +37,7 @@ public class CategoryCommand implements CommandStrategy {
     }
 
     /**
-     * 获取规则列表消息（带 inline 按钮）
+     * 获取分类列表消息（带 inline 按钮）
      */
     private SendMessage getCategories(Long chatId) {
         SendMessage message = new SendMessage(chatId, "分类列表");
@@ -53,9 +53,10 @@ public class CategoryCommand implements CommandStrategy {
     }
 
 
+    /**
+     * 添加分类
+     */
     public SendMessage addCategory(String[] params, Long chatId) {
-        // 处理 CATEGORY 命令逻辑
-
         String categoryName = params[0];
 
         Category category = new Category().setCategoryName(categoryName);

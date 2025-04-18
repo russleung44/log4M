@@ -8,6 +8,7 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.tony.log4m.bots.core.BotUtil;
 import com.tony.log4m.pojo.entity.*;
 import com.tony.log4m.service.*;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +45,7 @@ public class CallbackProcessor {
         Integer messageId = message.messageId();
 
         try {
-            String responseText = processCallbackData(data, chatId);
+            String responseText = processCallbackData(data);
             InlineKeyboardMarkup markup = buildKeyboardMarkup(data);
 
             EditMessageText editRequest = new EditMessageText(chatId, messageId, responseText)
@@ -60,21 +61,11 @@ public class CallbackProcessor {
         }
     }
 
-    private String processCallbackData(String data, Long chatId) {
-        String[] parts = data.split("::");
-        String action = parts[0];
-        String targetId = parts[1];
 
-        return switch (action) {
-            case "rule" -> buildRuleDetails(targetId);
-            case "category" -> buildCategoryDetails(targetId);
-            case "record" -> handleRecordAction(targetId, chatId);
-            case "rule_del" -> deleteRule(targetId);
-            case "rule_category" -> deleteCategory(targetId);
-            default -> throw new IllegalArgumentException("未知操作类型: " + action);
-        };
+    private String buildBillDetails(String targetId) {
+        Bill bill = billService.getOptById(targetId).orElseThrow();
+        return BotUtil.getBillFormatted(bill);
     }
-
 
 
     private String buildCategoryDetails(String categoryId) {
@@ -113,18 +104,6 @@ public class CallbackProcessor {
                 rule.getAmount());
     }
 
-    private String handleRecordAction(String recordId, Long chatId) {
-        Bill bill = billService.getOptById(recordId).orElseThrow();
-
-        Account account = accountService.getOptById(bill.getAccountId()).orElseThrow();
-
-        reverseAccountChanges(account, bill);
-        bill.deleteById();
-
-        return "✅ 记录删除成功\n"
-                + "账户: " + account.getAccountName() + "\n"
-                + "余额: " + account.getBalance();
-    }
 
     private void reverseAccountChanges(Account account, Bill bill) {
         BigDecimal amount = bill.getAmount();
@@ -150,20 +129,69 @@ public class CallbackProcessor {
         return "✅ 分类已删除";
     }
 
+    private String deleteBill(String recordId) {
+        Bill bill = billService.getOptById(recordId).orElseThrow();
+
+        Account account = accountService.getOptById(bill.getAccountId()).orElseThrow();
+        reverseAccountChanges(account, bill);
+        bill.deleteById();
+
+        return "✅ 记录删除成功\n"
+                + "账户: " + account.getAccountName() + "\n"
+                + "余额: " + account.getBalance();
+    }
+
+
+    private String processCallbackData(String data) {
+        String[] parts = data.split("::");
+        String prefix = parts[0];
+        String targetId = parts[1];
+
+        return switch (prefix) {
+            case "bill" -> buildBillDetails(targetId);
+            case "rule" -> buildRuleDetails(targetId);
+            case "category" -> buildCategoryDetails(targetId);
+            case "bill_del" -> deleteBill(targetId);
+            case "rule_del" -> deleteRule(targetId);
+            case "category_del" -> deleteCategory(targetId);
+            default -> throw new IllegalArgumentException("未知操作类型: " + prefix);
+        };
+    }
+
     private InlineKeyboardMarkup buildKeyboardMarkup(String data) {
+        // 输入校验
+        if (data == null || !data.contains("::")) {
+            throw new IllegalArgumentException("Invalid input format: expected 'prefix::targetId'");
+        }
+
+        String[] parts = data.split("::", 2); // 确保只分割两次，避免过多部分
+        String prefix = parts[0];
+        String targetId = parts.length > 1 ? parts[1] : "";
+
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        if (data.startsWith("rule::")) {
-            InlineKeyboardButton deleteBtn = new InlineKeyboardButton("❌ 删除规则")
-                    .callbackData("rule_del::" + data.split("::")[1]);
-            inlineKeyboardMarkup.addRow(deleteBtn);
+
+        // 使用 switch 表达式（Java 12+）简化逻辑
+        InlineKeyboardButton button = switch (prefix) {
+            case "rule" -> createButton("❌ 删除规则", "rule_del", targetId);
+            case "category" -> createButton("❌ 删除分类", "category_del", targetId);
+            case "bill" -> createButton("❌ 删除记录", "bill_del", targetId);
+            default -> {
+                System.out.println("Unknown prefix: " + prefix);
+                yield null; // 返回 null 表示未知前缀
+            }
+        };
+
+        if (button != null) {
+            inlineKeyboardMarkup.addRow(button);
         }
-        if (data.startsWith("category::")) {
-            InlineKeyboardButton deleteBtn = new InlineKeyboardButton("❌ 删除分类")
-                    .callbackData("rule_category::" + data.split("::")[1]);
-            inlineKeyboardMarkup.addRow(deleteBtn);
-        }
+
         return inlineKeyboardMarkup;
     }
+
+    private InlineKeyboardButton createButton(String text, String callbackPrefix, String targetId) {
+        return new InlineKeyboardButton(text).callbackData(callbackPrefix + "::" + targetId);
+    }
+
 
     private String getCategoryName(Long categoryId) {
         return categoryService.getOptById(categoryId)

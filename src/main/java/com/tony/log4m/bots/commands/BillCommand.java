@@ -1,17 +1,20 @@
 package com.tony.log4m.bots.commands;
 
 import cn.hutool.core.date.DateUtil;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.pojo.entity.Bill;
 import com.tony.log4m.service.BillService;
+import com.tony.log4m.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Tony
@@ -34,11 +37,11 @@ public class BillCommand implements CommandStrategy {
                 bills = billService.lambdaQuery().eq(Bill::getBillDate, DateUtil.yesterday().toDateStr()).orderByDesc(Bill::getBillDate).list();
             }
             case LAST_MONTH -> {
-                String lastMonth = DateUtil.format(DateUtil.lastMonth(), "yyyyMM");
+                String lastMonth = MoneyUtil.getMonth(DateUtil.lastMonth().toLocalDateTime().toLocalDate());
                 bills = billService.lambdaQuery().eq(Bill::getBillMonth, lastMonth).orderByDesc(Bill::getBillDate).list();
             }
             case THIS_MONTH -> {
-                String currentMonth = DateUtil.format(DateUtil.date(), "yyyyMM");
+                String currentMonth = MoneyUtil.getMonth(LocalDate.now());
                 bills = billService.lambdaQuery().eq(Bill::getBillMonth, currentMonth).orderByDesc(Bill::getBillDate).list();
             }
         }
@@ -46,27 +49,30 @@ public class BillCommand implements CommandStrategy {
         // 计算总金额
         BigDecimal amount = bills.stream().map(Bill::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 返回模板
-        String billDetails = bills.stream()
-                .map(bill -> String.format("%s %s %s %s",
-                        bill.getBillDate(),
-                        bill.getTransactionType().getPrefix() + bill.getAmount(),
-                        bill.getNote(),
-                        bill.getCategoryName()
-                ))
-                .collect(Collectors.joining("\n"));
-
         String template = """
-                %s
                 ---------
                 %s总计：%.2f元
                 """.formatted(
-                billDetails.isEmpty() ? "暂无账单记录" : billDetails,
                 command.getDesc(),
                 amount.doubleValue()
         );
 
-        return new SendMessage(chatId, template);
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        bills.forEach(bill -> {
+            String billFormatted = String.format("%s %s %s %s",
+                    bill.getBillDate(),
+                    bill.getTransactionType().getPrefix() + bill.getAmount(),
+                    bill.getNote(),
+                    bill.getCategoryName());
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            button.setText(billFormatted);
+            button.setCallbackData("bill::" + bill.getBillId());
+            inlineKeyboardMarkup.addRow(button);
+        });
+
+        SendMessage sendMessage = new SendMessage(chatId, template);
+        sendMessage.replyMarkup(inlineKeyboardMarkup);
+        return sendMessage;
     }
 
 

@@ -1,5 +1,6 @@
 package com.tony.log4m.utils;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tony.log4m.enums.DateKeyword;
 
@@ -75,6 +76,10 @@ public class MoneyUtil {
 
         // 如果没有找到匹配的日期，返回当前日期
         return new Result(input, billDate);
+    }
+
+    public static String getMonth(LocalDate billDate) {
+        return LocalDateTimeUtil.format(billDate, "yyyyMM");
     }
 
 
