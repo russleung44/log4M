@@ -7,6 +7,8 @@ import com.tony.log4m.pojo.entity.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 /**
  * @author Tony
  * @since 2022-09-23 15:31:38
@@ -15,5 +17,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CategoryService extends ServiceImpl<CategoryMapper, Category> {
 
+    public Optional<Category> getByName(String categoryName) {
+        return getOneOpt(lambdaQuery().eq(Category::getCategoryName, categoryName));
+    }
 
 }

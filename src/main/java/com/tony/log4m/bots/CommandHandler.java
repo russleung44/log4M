@@ -14,6 +14,7 @@ import com.tony.log4m.pojo.entity.Bill;
 import com.tony.log4m.pojo.entity.Category;
 import com.tony.log4m.pojo.entity.Rule;
 import com.tony.log4m.service.AccountService;
+import com.tony.log4m.service.BillService;
 import com.tony.log4m.service.CategoryService;
 import com.tony.log4m.service.RuleService;
 import com.tony.log4m.utils.CommonUtil;
@@ -21,114 +22,128 @@ import com.tony.log4m.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * @author Tony
- * @since 4/10/2025
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class CommandHandler {
 
-    private final Map<String, CommandStrategy> systemStrategies;
+    private static final String DELETE_CALLBACK = "bill_del";
+    private static final String HASH_TAG = "#";
 
+    private final Map<String, CommandStrategy> systemStrategies;
     private final RuleService ruleService;
     private final AccountService accountService;
     private final CategoryService categoryService;
-
+    private final BillService billService;
 
     public SendMessage handleCommand(String text, Long chatId) {
-        // 去掉空格
-        text = StrUtil.trim(text);
-        // 使用 split 分割，最多分割3次（保证参数部分保留）
-        String[] parts = text.split("/", 3);
+        if (StrUtil.isBlank(text)) {
+            return new SendMessage(chatId, "请输入有效命令");
+        }
+        String[] parts = text.trim().split("/", 3);
+        Command cmd = Command.getByCommand(parts.length > 1 ? parts[1] : "");
+        String key = cmd.getStrategy() + "Command";
 
-        // 提取命令和参数
-        String command = parts.length > 1 ? parts[1] : "";
-        String param = parts.length > 2 ? parts[2] : "";
-
-        Command menuCmd = Command.getByCommand(command);
-        String strategy = menuCmd.getStrategy() + "Command";
-        return systemStrategies.get(strategy).execute(menuCmd, param, chatId);
+        CommandStrategy strategy = systemStrategies.get(key);
+        if (strategy == null) {
+            return new SendMessage(chatId, "未识别的命令：" + cmd.getCommand());
+        }
+        return strategy.execute(cmd, parts.length > 2 ? parts[2] : "", chatId);
     }
 
-
-    /**
-     * 快速记账处理，支持规则匹配和金额提取
-     */
+    @Transactional
     public SendMessage handleQuickRecord(String text, Long chatId) {
         Bill bill = saveBill(text);
-
-        // 返回模板
-        String replyText = BotUtil.getBillFormatted(bill);
-
-        SendMessage sendMessage = new SendMessage(chatId, replyText);
-
-        // 增加删除按钮的回调数据
-        InlineKeyboardMarkup deleteButton = BotUtil.createButton("删除", "bill_del", bill.getBillId());
-        sendMessage.replyMarkup(deleteButton);
-        return sendMessage;
+        String reply = BotUtil.getBillFormatted(bill);
+        return new SendMessage(chatId, reply).replyMarkup(createDeleteMarkup(bill.getBillId()));
     }
 
-    private Bill saveBill(String text) {
-        Bill bill = Bill.builder()
+    private InlineKeyboardMarkup createDeleteMarkup(Long billId) {
+        return BotUtil.createButton("删除", DELETE_CALLBACK, billId);
+    }
+
+    protected Bill saveBill(String rawText) {
+        String text = StrUtil.trim(rawText);
+        Bill bill = createDefaultBill();
+
+        Account acct = accountService.getOrCreateDefaultAccount();
+        bill.setAccountId(acct.getAccountId());
+
+        // 1. 规则匹配优先
+        Optional<Rule> ruleOpt = ruleService.findByKeyword(text);
+        if (ruleOpt.isPresent()) {
+            applyRule(bill, ruleOpt.get());
+        } else {
+            // 2. 自由文本解析
+            parseFreeText(bill, text);
+        }
+
+        // 3. 公共字段
+        bill.setBillMonth(MoneyUtil.getMonth(bill.getBillDate()));
+        // 4. 持久化
+        billService.save(bill);
+        return bill;
+    }
+
+    private Bill createDefaultBill() {
+        return Bill.builder()
                 .billDate(LocalDate.now())
                 .transactionType(TransactionType.EXPENSE)
                 .build();
+    }
 
-        // 关键词查找规则
-        Optional<Rule> ruleOpt = ruleService.findByKeyword(text);
-        if (ruleOpt.isPresent()) {
-            Rule rule = ruleOpt.get();
-            log.info("rule: {}", rule);
-            RuleConvert.INSTANCE.updateBill(bill, rule);
-            if (CommonUtil.isZero(bill.getAccountId())) {
-                // 获取默认账户
-                Account account = accountService.getOrCreateDefaultAccount();
-                bill.setAccountId(account.getAccountId());
-            }
-            bill.setNote(rule.getRuleName());
-        } else {
-            // 提取时间
-            MoneyUtil.Result result = MoneyUtil.getDate(text);
-            LocalDate billDate = result.date();
-            bill.setBillDate(billDate);
+    private void applyRule(Bill bill, Rule rule) {
+        log.debug("应用规则：{}", rule.getRuleName());
+        RuleConvert.INSTANCE.updateBill(bill, rule);
+        if (CommonUtil.isZero(bill.getAccountId())) {
+            bill.setAccountId(accountService.getOrCreateDefaultAccount().getAccountId());
+        }
+        bill.setNote(StrUtil.nullToEmpty(rule.getRuleName()));
+    }
 
-            // 提取消息中的金额
-            text = result.text();
-            String amount = MoneyUtil.getAmount(text);
-            bill.setAmount(new BigDecimal(amount));
+    private void parseFreeText(Bill bill, String text) {
+        // 1. 提取日期
+        MoneyUtil.Result dateRes = MoneyUtil.getDate(text);
+        bill.setBillDate(dateRes.date());
+        text = dateRes.text().trim();
 
-            // 获取除amount外的text
-            String note = StrUtil.trim(text.replace(amount, ""));
-            bill.setNote(note);
+        // 2. 提取金额
+        String amt = MoneyUtil.getAmount(text);
+        if (StrUtil.isBlank(amt)) {
+            throw new IllegalArgumentException("金额无效或未找到");
+        }
+        bill.setAmount(new BigDecimal(amt));
+        text = StrUtil.trim(text.replace(amt, ""));
 
-            // 是否匹配分类
-            if (StrUtil.isNotBlank(note)) {
-                categoryService.lambdaQuery().eq(Category::getCategoryName, note)
-                        .oneOpt()
+        if (StrUtil.isNotBlank(text)) {
+            // 3. 分类与备注
+            if (text.contains(HASH_TAG)) {
+                String catName = StrUtil.subAfter(text, HASH_TAG, false).trim();
+                Optional<Category> catOpt = categoryService.getByName(catName);
+                Category cat = catOpt.orElseGet(() -> createAndSaveCategory(catName));
+                CategoryConvert.INSTANCE.updateBill(bill, cat);
+            } else {
+                bill.setNote(text);
+                categoryService.getByName(text)
                         .ifPresent(category -> {
                             CategoryConvert.INSTANCE.updateBill(bill, category);
                             bill.setNote("");
                         });
             }
-
-            // 获取默认账户
-            Account account = accountService.getOrCreateDefaultAccount();
-            bill.setAccountId(account.getAccountId());
         }
-
-        String billMonth = MoneyUtil.getMonth(bill.getBillDate());
-        bill.setBillMonth(billMonth);
-        bill.insert();
-        return bill;
     }
 
-
+    private Category createAndSaveCategory(String name) {
+        Category category = new Category();
+        category.setCategoryName(name);
+        category.insert();
+        return category;
+    }
 }
