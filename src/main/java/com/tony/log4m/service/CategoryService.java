@@ -18,7 +18,7 @@ import java.util.Optional;
 public class CategoryService extends ServiceImpl<CategoryMapper, Category> {
 
     public Optional<Category> getByName(String categoryName) {
-        return getOneOpt(lambdaQuery().eq(Category::getCategoryName, categoryName));
+        return this.lambdaQuery().eq(Category::getCategoryName, categoryName).oneOpt();
     }
 
 }
