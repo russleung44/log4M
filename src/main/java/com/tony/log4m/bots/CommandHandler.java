@@ -129,6 +129,8 @@ public class CommandHandler {
                 Optional<Category> catOpt = categoryService.getByName(catName);
                 Category cat = catOpt.orElseGet(() -> createAndSaveCategory(catName));
                 CategoryConvert.INSTANCE.updateBill(bill, cat);
+                // 获取分类以外的备注
+                bill.setNote(StrUtil.subBefore(text, HASH_TAG, false).trim());
             } else {
                 bill.setNote(text);
                 categoryService.getByName(text)
