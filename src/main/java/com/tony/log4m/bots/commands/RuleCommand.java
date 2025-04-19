@@ -13,8 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
+ * 规则命令
  * @author Tony
  * @since 4/11/2025
  */
@@ -41,12 +43,73 @@ public class RuleCommand implements CommandStrategy {
     }
 
     /**
+     * 添加规则
+     */
+    public SendMessage addRule(String[] params, Long chatId) {
+        if (params.length < 3 || params.length > 4) {
+            return new SendMessage(chatId, "参数错误");
+        }
+
+        // 检查参数是否为空
+        for (String param : params) {
+            if (param == null || param.trim().isEmpty()) {
+                return new SendMessage(chatId, "参数包含空值");
+            }
+        }
+
+        String keyword = params[0];
+        String amountStr = params[1];
+        String transactionTypeStr = params[2];
+
+        // 验证交易类型
+        if (!"0".equals(transactionTypeStr) && !"1".equals(transactionTypeStr)) {
+            return new SendMessage(chatId, "交易类型参数无效");
+        }
+
+        // 解析金额并处理异常
+        BigDecimal amount;
+        try {
+            amount = new BigDecimal(amountStr);
+        } catch (NumberFormatException e) {
+            return new SendMessage(chatId, "金额参数无效");
+        }
+
+        TransactionType transactionType = "1".equals(transactionTypeStr)
+                ? TransactionType.EXPENSE
+                : TransactionType.INCOME;
+
+        Rule rule = new Rule(keyword, amount, transactionType);
+
+        // 处理标签
+        if (params.length == 4) {
+            String tagName = params[3];
+            Tag tag = tagService.lambdaQuery().eq(Tag::getTagName, tagName).one();
+            if (tag == null) {
+                try {
+                    tag = new Tag();
+                    tag.setTagName(tagName).insert();
+                } catch (Exception e) {
+                    // 假设数据库层有唯一约束，捕获异常后重试查询
+                    tag = tagService.lambdaQuery().eq(Tag::getTagName, tagName).one();
+                }
+            }
+            rule.setTagId(tag.getTagId());
+        }
+
+        rule.insert();
+        return new SendMessage(chatId, "规则添加成功");
+    }
+
+    /**
      * 获取规则列表消息（带 inline 按钮）
      */
     private SendMessage getRuleMessage(Long chatId) {
         SendMessage message = new SendMessage(chatId, "规则列表");
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        ruleService.lambdaQuery().list().forEach(rule -> {
+
+        // 限制最多显示100条规则
+        List<Rule> rules = ruleService.lambdaQuery().last("LIMIT 100").list();
+        rules.forEach(rule -> {
             InlineKeyboardButton button = new InlineKeyboardButton();
             button.setText(rule.getRuleName());
             button.setCallbackData("rule::" + rule.getRuleId());
@@ -54,37 +117,5 @@ public class RuleCommand implements CommandStrategy {
         });
         message.replyMarkup(inlineKeyboardMarkup);
         return message;
-    }
-
-
-
-    /**
-     * 添加规则
-     */
-    public SendMessage addRule(String[] params, Long chatId) {
-        // 处理 RULE 命令逻辑
-        if (params.length < 3) {
-            return new SendMessage(chatId, "参数错误");
-        }
-
-        String keyword = params[0];
-        BigDecimal amount = new BigDecimal(params[1]);
-        TransactionType transactionType = params[2].equals("1") ? TransactionType.EXPENSE : TransactionType.INCOME;
-
-        Rule rule = new Rule(keyword, amount, transactionType);
-        if (params.length > 3) {
-            String tagName = params[3];
-            Tag tag = tagService.lambdaQuery().eq(Tag::getTagName, tagName).one();
-            if (tag == null) {
-                tag = new Tag();
-                tag.setTagName(tagName).insert();
-            }
-
-            rule.setTagId(tag.getTagId());
-        }
-
-        rule.insert();
-        String replyText = "规则添加成功";
-        return new SendMessage(chatId, replyText);
     }
 }
