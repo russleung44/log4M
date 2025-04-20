@@ -126,26 +126,15 @@ public class CommandHandler {
             // 3. 分类与备注
             if (text.contains(HASH_TAG)) {
                 String catName = StrUtil.subAfter(text, HASH_TAG, false).trim();
-                Optional<Category> catOpt = categoryService.getByName(catName);
-                Category cat = catOpt.orElseGet(() -> createAndSaveCategory(catName));
-                CategoryConvert.INSTANCE.updateBill(bill, cat);
+                Category category = categoryService.getOrCreate(catName);
+                CategoryConvert.INSTANCE.updateBill(bill, category);
                 // 获取分类以外的备注
                 bill.setNote(StrUtil.subBefore(text, HASH_TAG, false).trim());
             } else {
                 bill.setNote(text);
-                categoryService.getByName(text)
-                        .ifPresent(category -> {
-                            CategoryConvert.INSTANCE.updateBill(bill, category);
-                            bill.setNote("");
-                        });
             }
         }
     }
 
-    private Category createAndSaveCategory(String name) {
-        Category category = new Category();
-        category.setCategoryName(name);
-        category.insert();
-        return category;
-    }
+
 }
