@@ -3,10 +3,12 @@ package com.tony.log4m.bots.commands;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.tony.log4m.bots.core.BotUtil;
 import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.enums.TransactionType;
+import com.tony.log4m.pojo.entity.Category;
 import com.tony.log4m.pojo.entity.Rule;
-import com.tony.log4m.pojo.entity.Tag;
+import com.tony.log4m.service.CategoryService;
 import com.tony.log4m.service.RuleService;
 import com.tony.log4m.service.TagService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 规则命令
@@ -24,8 +27,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RuleCommand implements CommandStrategy {
 
-    private final TagService tagService;
     private final RuleService ruleService;
+    private final CategoryService categoryService;
 
     @Override
     public SendMessage execute(Command command, String param, Long chatId) {
@@ -44,6 +47,7 @@ public class RuleCommand implements CommandStrategy {
 
     /**
      * 添加规则
+     * 关键字-金额-交易类型-分类
      */
     public SendMessage addRule(String[] params, Long chatId) {
         if (params.length < 3 || params.length > 4) {
@@ -80,24 +84,21 @@ public class RuleCommand implements CommandStrategy {
 
         Rule rule = new Rule(keyword, amount, transactionType);
 
-        // 处理标签
+        // 处理分类
         if (params.length == 4) {
-            String tagName = params[3];
-            Tag tag = tagService.lambdaQuery().eq(Tag::getTagName, tagName).one();
-            if (tag == null) {
-                try {
-                    tag = new Tag();
-                    tag.setTagName(tagName).insert();
-                } catch (Exception e) {
-                    // 假设数据库层有唯一约束，捕获异常后重试查询
-                    tag = tagService.lambdaQuery().eq(Tag::getTagName, tagName).one();
-                }
-            }
-            rule.setTagId(tag.getTagId());
+            String categoryName = params[3];
+            Category category = categoryService.getOrCreate(categoryName);
+            rule.setTagId(category.getCategoryId());
         }
 
         rule.insert();
-        return new SendMessage(chatId, "规则添加成功");
+
+        String ruleDetails = ruleService.buildRuleDetails(rule);
+        InlineKeyboardMarkup inlineKeyboardMarkup = BotUtil.buildKeyboardMarkup("rule::" + rule.getRuleId());
+        SendMessage sendMessage = new SendMessage(chatId, ruleDetails);
+        sendMessage.replyMarkup(inlineKeyboardMarkup);
+
+        return sendMessage;
     }
 
     /**
