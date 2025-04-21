@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -86,6 +87,15 @@ public class GlobalExceptionHandler {
         );
         log.warn("TypeMismatchException: [{}] {}", request.getRequestURL(), errorMessage);
         return ResponseEntity.badRequest().body(errorMessage);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<String> handleNoResourceFoundException(NoResourceFoundException ex) {
+        if (ex.getMessage().contains("favicon.ico")) {
+            // 忽略 favicon.ico 请求
+            return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
 
