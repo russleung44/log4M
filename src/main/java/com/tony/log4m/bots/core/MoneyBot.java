@@ -10,6 +10,7 @@ import com.pengrad.telegrambot.response.BaseResponse;
 import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.service.UserService;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +30,10 @@ public class MoneyBot {
 
     private final UserService userService;
     private final CommonFunction commonFunction;
-    private TelegramBot bot;
+
+    @Getter
+    public static TelegramBot bot;
+
     @Value("${botToken}")
     private String botToken;
 
@@ -51,14 +55,7 @@ public class MoneyBot {
             });
             return UpdatesListener.CONFIRMED_UPDATES_ALL;
         }, e -> {
-            if (e.response() != null) {
-                // got bad response from telegram
-                e.response().errorCode();
-                e.response().description();
-            } else {
-                // probably network error
-                log.error("init bot error", e);
-            }
+            log.error("init bot error", e);
         });
     }
 
