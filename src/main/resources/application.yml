@@ -8,7 +8,7 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
-    url: jdbc:h2:file:./data/log4m;MODE=MySQL
+    url: jdbc:h2:file:./data/log4m;MODE=MySQL;AUTO_SERVER=true
   h2:
     console:
       enabled: true

@@ -10,16 +10,15 @@ import com.tony.log4m.pojo.entity.Category;
 import com.tony.log4m.pojo.entity.Rule;
 import com.tony.log4m.service.CategoryService;
 import com.tony.log4m.service.RuleService;
-import com.tony.log4m.service.TagService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 规则命令
+ *
  * @author Tony
  * @since 4/11/2025
  */
