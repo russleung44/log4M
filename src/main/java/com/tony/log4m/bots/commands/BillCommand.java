@@ -28,52 +28,104 @@ public class BillCommand implements CommandStrategy {
 
     @Override
     public SendMessage execute(Command command, String param, Long chatId) {
-        List<Bill> bills = new ArrayList<>();
-        switch (command) {
-            case TODAY -> {
-                bills = billService.lambdaQuery().eq(Bill::getBillDate, DateUtil.today()).orderByDesc(Bill::getBillDate).list();
-            }
-            case YESTERDAY -> {
-                bills = billService.lambdaQuery().eq(Bill::getBillDate, DateUtil.yesterday().toDateStr()).orderByDesc(Bill::getBillDate).list();
-            }
-            case LAST_MONTH -> {
-                String lastMonth = MoneyUtil.getMonth(DateUtil.lastMonth().toLocalDateTime().toLocalDate());
-                bills = billService.lambdaQuery().eq(Bill::getBillMonth, lastMonth).orderByDesc(Bill::getBillDate).list();
-            }
-            case THIS_MONTH -> {
-                String currentMonth = MoneyUtil.getMonth(LocalDate.now());
-                bills = billService.lambdaQuery().eq(Bill::getBillMonth, currentMonth).orderByDesc(Bill::getBillDate).list();
-            }
-        }
+        List<Bill> bills = fetchBillsByCommand(command);
 
         // 计算总金额
-        BigDecimal amount = bills.stream().map(Bill::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal amount = calculateTotalAmount(bills);
 
-        String template = """
-                ---------
+        // 生成消息模板
+        String template = generateTemplate(command, amount);
+
+        // 生成键盘按钮
+        InlineKeyboardMarkup inlineKeyboardMarkup = createKeyboardMarkup(bills);
+
+        // 构建发送消息对象
+        SendMessage sendMessage = new SendMessage(chatId, template);
+        sendMessage.replyMarkup(inlineKeyboardMarkup);
+        return sendMessage;
+    }
+
+    /**
+     * 根据命令查询账单列表
+     */
+    private List<Bill> fetchBillsByCommand(Command command) {
+        try {
+            return switch (command) {
+                case TODAY -> billService.lambdaQuery()
+                        .eq(Bill::getBillDate, DateUtil.today())
+                        .orderByDesc(Bill::getBillDate)
+                        .orderByDesc(Bill::getBillId)
+                        .list();
+                case YESTERDAY -> billService.lambdaQuery()
+                        .eq(Bill::getBillDate, DateUtil.yesterday().toDateStr())
+                        .orderByDesc(Bill::getBillDate)
+                        .orderByDesc(Bill::getBillId)
+                        .list();
+                case LAST_MONTH -> {
+                    String lastMonth = MoneyUtil.getMonth(DateUtil.lastMonth().toLocalDateTime().toLocalDate());
+                    yield billService.lambdaQuery()
+                            .eq(Bill::getBillMonth, lastMonth)
+                            .orderByDesc(Bill::getBillDate)
+                            .orderByDesc(Bill::getBillId)
+                            .list();
+                }
+                case THIS_MONTH -> {
+                    String currentMonth = MoneyUtil.getMonth(LocalDate.now());
+                    yield billService.lambdaQuery()
+                            .eq(Bill::getBillMonth, currentMonth)
+                            .orderByDesc(Bill::getBillDate)
+                            .orderByDesc(Bill::getBillId)
+                            .list();
+                }
+                default -> new ArrayList<>();
+            };
+        } catch (Exception e) {
+            // 异常处理：记录日志并返回空列表
+            System.err.println("Error fetching bills: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 计算账单总金额
+     */
+    private BigDecimal calculateTotalAmount(List<Bill> bills) {
+        return bills.stream()
+                .map(Bill::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * 生成消息模板
+     */
+    private String generateTemplate(Command command, BigDecimal amount) {
+        String description = command.getDesc();
+        if (amount.compareTo(BigDecimal.ZERO) == 0) {
+            description = "无账单记录";
+        }
+        return """
                 %s总计：%.2f元
-                """.formatted(
-                command.getDesc(),
-                amount.doubleValue()
-        );
+                ---------
+                """.formatted(description, amount);
+    }
 
+    /**
+     * 创建键盘按钮
+     */
+    private InlineKeyboardMarkup createKeyboardMarkup(List<Bill> bills) {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        bills.forEach(bill -> {
-            String billFormatted = String.format("%s %s %s %s",
+        for (Bill bill : bills) {
+            String billFormatted = String.format("%s ¥%s %s %s",
                     bill.getBillDate(),
-                    bill.getTransactionType().getPrefix() + bill.getAmount(),
+                    bill.getAmount().stripTrailingZeros().toPlainString(),
                     bill.getNote(),
                     bill.getCategoryName());
             InlineKeyboardButton button = new InlineKeyboardButton();
             button.setText(billFormatted);
             button.setCallbackData("bill::" + bill.getBillId());
             inlineKeyboardMarkup.addRow(button);
-        });
-
-        SendMessage sendMessage = new SendMessage(chatId, template);
-        sendMessage.replyMarkup(inlineKeyboardMarkup);
-        return sendMessage;
+        }
+        return inlineKeyboardMarkup;
     }
-
-
 }
+

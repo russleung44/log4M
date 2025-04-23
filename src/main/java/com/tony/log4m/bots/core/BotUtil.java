@@ -7,7 +7,6 @@ import com.tony.log4m.pojo.entity.Bill;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 
 /**
  * @author Tony
@@ -31,12 +30,9 @@ public class BotUtil {
                 分类:        {}
                 """;
 
-        BigDecimal amount = bill.getAmount();
-        String amountPrefix = bill.getTransactionType().getPrefix();
-
         return StrUtil.format(
                 template,
-                amountPrefix + amount,
+                bill.getAmount().stripTrailingZeros().toPlainString(),
                 bill.getBillDate(),
                 bill.getNote(),
                 bill.getCategoryName()
