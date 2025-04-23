@@ -88,7 +88,7 @@ public class CommandHandler {
         // 3. 公共字段
         bill.setBillMonth(MoneyUtil.getMonth(bill.getBillDate()));
         // 4. 持久化
-        billService.save(bill);
+        bill.insert();
         return bill;
     }
 
@@ -105,6 +105,14 @@ public class CommandHandler {
         if (CommonUtil.isZero(bill.getAccountId())) {
             bill.setAccountId(accountService.getOrCreateDefaultAccount().getAccountId());
         }
+        // 查询分类
+        Long categoryId = rule.getCategoryId();
+        if (CommonUtil.isNotZero(categoryId)) {
+            categoryService.getOptById(categoryId).ifPresent(c -> {
+                CategoryConvert.INSTANCE.updateBill(bill, c);
+            });
+        }
+
         bill.setNote(StrUtil.nullToEmpty(rule.getRuleName()));
     }
 

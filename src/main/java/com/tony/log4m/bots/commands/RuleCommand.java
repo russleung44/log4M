@@ -87,7 +87,7 @@ public class RuleCommand implements CommandStrategy {
         if (params.length == 4) {
             String categoryName = params[3];
             Category category = categoryService.getOrCreate(categoryName);
-            rule.setTagId(category.getCategoryId());
+            rule.setCategoryId(category.getCategoryId());
         }
 
         rule.insert();
