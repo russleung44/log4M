@@ -8,6 +8,7 @@ import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.handlers.CallbackProcessor;
 import com.tony.log4m.bots.handlers.FileHandler;
 import com.tony.log4m.bots.handlers.MessageProcessor;
+import com.tony.log4m.exception.Log4mException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -30,9 +31,9 @@ public class CommonFunction {
     public void mainFunc(TelegramBot bot, Update update) {
         try {
             processUpdate(bot, update);
-        } catch (RuntimeException e) {
+        } catch (Log4mException e) {
             log.error("RuntimeException: {}", e.getMessage(), e);
-            bot.execute(new SendMessage(getChatId(update), "系统错误"));
+            bot.execute(new SendMessage(getChatId(update), e.getMessage()));
         } catch (Exception e) {
             log.error("未处理异常: {}", e.getMessage(), e);
             bot.execute(new SendMessage(getChatId(update), "系统错误"));

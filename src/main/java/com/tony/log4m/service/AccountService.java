@@ -2,6 +2,7 @@ package com.tony.log4m.service;
 
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tony.log4m.exception.Log4mException;
 import com.tony.log4m.mapper.AccountMapper;
 import com.tony.log4m.pojo.entity.Account;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> {
     public void update(Account account) {
         // 检查账户名是否重复
         if (this.lambdaQuery().eq(Account::getAccountName, account.getAccountName()).ne(Account::getAccountId, account.getAccountId()).exists()) {
-            throw new RuntimeException("账户名重复");
+            throw new Log4mException("账户名重复");
         }
         account.updateById();
     }

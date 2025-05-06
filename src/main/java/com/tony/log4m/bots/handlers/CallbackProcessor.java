@@ -3,13 +3,19 @@ package com.tony.log4m.bots.handlers;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.message.MaybeInaccessibleMessage;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.core.BotUtil;
-import com.tony.log4m.pojo.entity.*;
-import com.tony.log4m.service.*;
+import com.tony.log4m.exception.Log4mException;
+import com.tony.log4m.pojo.entity.Account;
+import com.tony.log4m.pojo.entity.Bill;
+import com.tony.log4m.pojo.entity.Category;
+import com.tony.log4m.pojo.entity.Rule;
+import com.tony.log4m.service.AccountService;
+import com.tony.log4m.service.BillService;
+import com.tony.log4m.service.CategoryService;
+import com.tony.log4m.service.RuleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -115,7 +121,7 @@ public class CallbackProcessor {
             case "bill_del" -> deleteBill(targetId);
             case "rule_del" -> deleteRule(targetId);
             case "category_del" -> deleteCategory(targetId);
-            default -> throw new IllegalArgumentException("未知操作类型: " + prefix);
+            default -> throw new Log4mException("未知操作类型: " + prefix);
         };
     }
 

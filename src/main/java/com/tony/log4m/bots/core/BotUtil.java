@@ -3,6 +3,7 @@ package com.tony.log4m.bots.core;
 import cn.hutool.core.util.StrUtil;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.tony.log4m.exception.Log4mException;
 import com.tony.log4m.pojo.entity.Bill;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,7 +43,7 @@ public class BotUtil {
     public static InlineKeyboardMarkup buildKeyboardMarkup(String data) {
         // 输入校验
         if (data == null || !data.contains("::")) {
-            throw new IllegalArgumentException("Invalid input format: expected 'prefix::targetId'");
+            throw new Log4mException("Invalid input format: expected 'prefix::targetId'");
         }
 
         String[] parts = data.split("::", 2); // 确保只分割两次，避免过多部分

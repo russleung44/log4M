@@ -1,6 +1,7 @@
 package com.tony.log4m.bots.enums;
 
 import cn.hutool.core.util.StrUtil;
+import com.tony.log4m.exception.Log4mException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -34,7 +35,7 @@ public enum Command {
 
     public static Command getByCommand(String command) {
         if (StrUtil.isBlank(command)) {
-            throw new RuntimeException("指令不能为空");
+            throw new Log4mException("指令不能为空");
         }
 
         for (Command value : Command.values()) {
@@ -42,6 +43,6 @@ public enum Command {
                 return value;
             }
         }
-        throw new RuntimeException("不支持的指令");
+        throw new Log4mException("不支持的指令");
     }
 }
