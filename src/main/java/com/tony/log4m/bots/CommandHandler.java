@@ -124,9 +124,6 @@ public class CommandHandler {
 
         // 2. 提取金额
         String amt = MoneyUtil.getAmount(text);
-        if (StrUtil.isBlank(amt)) {
-            throw new IllegalArgumentException("金额无效或未找到");
-        }
         bill.setAmount(new BigDecimal(amt));
         text = StrUtil.trim(text.replace(amt, ""));
 

@@ -3,6 +3,7 @@ package com.tony.log4m.utils;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tony.log4m.enums.DateKeyword;
+import com.tony.log4m.exception.Log4mException;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -32,7 +33,7 @@ public class MoneyUtil {
             text = StrUtil.replace(text, matcher.group(), "");
             return matcher.group();
         }
-        throw new RuntimeException("金额解析失败");
+        throw new Log4mException("金额解析失败");
     }
 
 
