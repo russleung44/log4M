@@ -15,16 +15,18 @@ public enum Command {
 
     TODAY("today", "今日消费", "bill"),
     YESTERDAY("yesterday", "昨日消费", "bill"),
-    THIS_MONTH("this_month", "本月消费", "bill"),
-    LAST_MONTH("last_month", "上月消费", "bill"),
+    THIS_MONTH_SUMMARY("this_month_summary", "本月总结", "bill"),
+    LAST_MONTH_SUMMARY("last_month_summary", "上月总结", "bill"),
+    THIS_MONTH("this_month", "本月记录", "bill"),
+    LAST_MONTH("last_month", "上月记录", "bill"),
     RULES("rules", "规则列表", "rule"),
-    RULE_ADD("rule_add", "添加规则", "rule"),
+    RULE_ADD("rule_add", "添加规则", "rule", false),
     CATEGORIES("categories", "分类列表", "category"),
-    CATEGORY_ADD("category_add", "添加分类", "category"),
+    CATEGORY_ADD("category_add", "添加分类", "category", false),
+    CATEGORY_DEFAULT("category_default", "设置默认分类", "category"),
     HELP("help", "帮助", "system"),
     RESET("reset", "重置", "system"),
     EXPORT("export", "导出", "system"),
-
 
     ;
 
@@ -32,6 +34,14 @@ public enum Command {
     private final String command;
     private final String desc;
     private final String strategy;
+    private final boolean show;
+
+    Command(String command, String desc, String strategy) {
+        this.command = command;
+        this.desc = desc;
+        this.strategy = strategy;
+        this.show = true;
+    }
 
     public static Command getByCommand(String command) {
         if (StrUtil.isBlank(command)) {

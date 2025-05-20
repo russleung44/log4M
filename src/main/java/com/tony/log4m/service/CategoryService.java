@@ -49,4 +49,8 @@ public class CategoryService extends ServiceImpl<CategoryMapper, Category> {
                 getCategoryName(category.getParentCategoryId())
         );
     }
+
+    public Category getDefaultCategory() {
+        return this.lambdaQuery().eq(Category::getIsDefault, true).one();
+    }
 }

@@ -30,6 +30,12 @@ public class CategoryCommand implements CommandStrategy {
                 return addCategory(param.split("-"), chatId);
             }
 
+            case CATEGORY_DEFAULT -> {
+                Category category = categoryService.getOrCreate(param);
+                category.setIsDefault(true).insertOrUpdate();
+                return new SendMessage(chatId, "设置成功");
+            }
+
             default -> {
                 return new SendMessage(chatId, "未识别的命令");
             }
