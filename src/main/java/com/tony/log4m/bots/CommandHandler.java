@@ -139,6 +139,14 @@ public class CommandHandler {
                 bill.setNote(text);
             }
         }
+
+        // 4. 获取默认分类
+        if (StrUtil.isBlank(bill.getCategoryName())) {
+            Category category = categoryService.getDefaultCategory();
+            if (category != null) {
+                CategoryConvert.INSTANCE.updateBill(bill, category);
+            }
+        }
     }
 
 

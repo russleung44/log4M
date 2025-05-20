@@ -64,6 +64,7 @@ public class MoneyBot {
      */
     private void setMyCommands() {
         BotCommand[] commands = Arrays.stream(Command.values())
+                .filter(Command::isShow)
                 .map(ct -> new BotCommand(ct.getCommand(), ct.getDesc()))
                 .toArray(BotCommand[]::new);
 

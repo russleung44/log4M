@@ -30,4 +30,6 @@ public class Category extends BaseEntity<Category> {
     private String parentCategoryName;
 
     private Integer sort;
+
+    private Boolean isDefault;
 }
