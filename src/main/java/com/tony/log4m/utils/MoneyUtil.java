@@ -6,7 +6,6 @@ import com.tony.log4m.enums.DateKeyword;
 import com.tony.log4m.exception.Log4mException;
 
 import java.time.LocalDate;
-import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.regex.Matcher;
@@ -19,6 +18,22 @@ import java.util.regex.Pattern;
 public class MoneyUtil {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+    private static final String[] DATE_PATTERNS = {
+            "\\d{4}-\\d{2}-\\d{2}",     // yyyy-MM-dd
+            "\\d{4}/\\d{2}/\\d{2}",     // yyyy/MM/dd
+            "\\d{2}-\\d{2}-\\d{4}",     // dd-MM-yyyy
+            "\\d{2}/\\d{2}/\\d{4}",     // dd/MM/yyyy
+            "\\d{8}"                    // yyyyMMdd
+    };
+
+    private static final DateTimeFormatter[] FORMATTERS = {
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd"),
+            DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+            DateTimeFormatter.ofPattern("yyyyMMdd")   // 新增格式
+    };
 
     /**
      * 获取第一个金额
@@ -35,7 +50,6 @@ public class MoneyUtil {
         }
         throw new Log4mException("金额解析失败");
     }
-
 
     public static Result getDate(String input) {
         LocalDate billDate = LocalDate.now();
@@ -54,23 +68,16 @@ public class MoneyUtil {
             }
         }
 
-        // 处理分割后的日期片段
-        String[] parts = input.split("\\D+");
-        for (String part : parts) {
-            if (part.length() == 8) {
+        for (int i = 0; i < DATE_PATTERNS.length; i++) {
+            Pattern pattern = Pattern.compile(DATE_PATTERNS[i]);
+            Matcher matcher = pattern.matcher(input);
+            if (matcher.find()) {
+                String dateStr = matcher.group();
                 try {
-                    billDate = LocalDate.parse(part, DATE_FORMATTER);
-                    input = StrUtil.replace(input, part, "");
+                    billDate = LocalDate.parse(dateStr, FORMATTERS[i]);
+                    input = StrUtil.replace(input, dateStr, "");
                 } catch (DateTimeParseException e) {
-                    // 忽略无效格式，继续循环
-                }
-            } else if (part.length() == 4) {
-                String fullDateStr = Year.now().getValue() + part;
-                try {
-                    billDate = LocalDate.parse(fullDateStr, DATE_FORMATTER);
-                    input = StrUtil.replace(input, part, "");
-                } catch (DateTimeParseException e) {
-                    // 忽略无效格式，继续循环
+                    // 格式匹配但解析失败时忽略
                 }
             }
         }
@@ -78,6 +85,7 @@ public class MoneyUtil {
         // 如果没有找到匹配的日期，返回当前日期
         return new Result(input, billDate);
     }
+
 
     public static String getMonth(LocalDate billDate) {
         return LocalDateTimeUtil.format(billDate, "yyyyMM");
