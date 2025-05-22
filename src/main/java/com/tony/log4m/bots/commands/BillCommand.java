@@ -68,16 +68,16 @@ public class BillCommand implements CommandStrategy {
                     String lastMonth = MoneyUtil.getMonth(DateUtil.lastMonth().toLocalDateTime().toLocalDate());
                     yield billService.lambdaQuery()
                             .eq(Bill::getBillMonth, lastMonth)
-                            .orderByDesc(Bill::getBillDate)
-                            .orderByDesc(Bill::getBillId)
+                            .orderByAsc(Bill::getBillDate)
+                            .orderByAsc(Bill::getBillId)
                             .list();
                 }
                 case THIS_MONTH, THIS_MONTH_SUMMARY -> {
                     String currentMonth = MoneyUtil.getMonth(LocalDate.now());
                     yield billService.lambdaQuery()
                             .eq(Bill::getBillMonth, currentMonth)
-                            .orderByDesc(Bill::getBillDate)
-                            .orderByDesc(Bill::getBillId)
+                            .orderByAsc(Bill::getBillDate)
+                            .orderByAsc(Bill::getBillId)
                             .list();
                 }
                 default -> new ArrayList<>();
