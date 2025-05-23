@@ -34,10 +34,10 @@ public class BillCommand implements CommandStrategy {
 
     @Override
     public SendMessage execute(Command command, String param, Long chatId) {
-        List<Bill> bills = fetchBillsByCommand(command);
+        List<Bill> bills = fetchBillsByCommand(command, param);
 
         // 生成消息模板
-        String template = generateTemplate(command, bills);
+        String template = generateTemplate(command, param, bills);
 
         // 生成键盘按钮
         InlineKeyboardMarkup inlineKeyboardMarkup = createKeyboardMarkup(command, bills);
@@ -51,7 +51,7 @@ public class BillCommand implements CommandStrategy {
     /**
      * 根据命令查询账单列表
      */
-    private List<Bill> fetchBillsByCommand(Command command) {
+    private List<Bill> fetchBillsByCommand(Command command, String param) {
         try {
             return switch (command) {
                 case TODAY -> billService.lambdaQuery()
@@ -80,6 +80,16 @@ public class BillCommand implements CommandStrategy {
                             .orderByAsc(Bill::getBillId)
                             .list();
                 }
+                case MONTH_QUERY -> billService.lambdaQuery()
+                        .eq(Bill::getBillMonth, param)
+                        .orderByAsc(Bill::getBillDate)
+                        .orderByAsc(Bill::getBillId)
+                        .list();
+                case DATE_QUERY -> billService.lambdaQuery()
+                        .eq(Bill::getBillDate, param)
+                        .orderByAsc(Bill::getBillDate)
+                        .orderByAsc(Bill::getBillId)
+                        .list();
                 default -> new ArrayList<>();
             };
         } catch (Exception e) {
@@ -104,12 +114,16 @@ public class BillCommand implements CommandStrategy {
     /**
      * 生成消息模板
      */
-    private String generateTemplate(Command command, List<Bill> bills) {
+    private String generateTemplate(Command command, String param, List<Bill> bills) {
         // 计算总金额
         BigDecimal amount = calculateTotalAmount(bills);
         String description = command.getDesc();
         if (amount.compareTo(BigDecimal.ZERO) == 0) {
             description = "无账单记录";
+        }
+
+        switch (command) {
+            case MONTH_QUERY, DATE_QUERY -> description = "【%s】账单记录".formatted(param);
         }
 
         StringBuilder template = new StringBuilder();
