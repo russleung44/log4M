@@ -126,7 +126,7 @@ public class BillCommand implements CommandStrategy {
         template.append(String.format("%s总计：%.2f元%n---------\n", description, amount));
 
         switch (command) {
-            case LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY -> {
+            case MONTH_SUMMARY_QUERY, LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY -> {
                 // 按账单分类统计金额
                 Map<String, Double> categoryMap = bills.stream()
                         .collect(Collectors.groupingBy(
