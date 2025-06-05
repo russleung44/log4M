@@ -185,7 +185,7 @@ public class BillCommand implements CommandStrategy {
      */
     private InlineKeyboardMarkup createKeyboardMarkup(Command command, List<Bill> bills) {
         switch (command) {
-            case LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY -> {
+            case MONTH_SUMMARY_QUERY, LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY -> {
                 return new InlineKeyboardMarkup();
             }
         }
