@@ -80,7 +80,7 @@ public class BillCommand implements CommandStrategy {
                             .orderByAsc(Bill::getBillId)
                             .list();
                 }
-                case MONTH_QUERY -> billService.lambdaQuery()
+                case MONTH_SUMMARY_QUERY, MONTH_DETAIL_QUERY -> billService.lambdaQuery()
                         .eq(Bill::getBillMonth, param)
                         .orderByAsc(Bill::getBillDate)
                         .orderByAsc(Bill::getBillId)
@@ -120,10 +120,6 @@ public class BillCommand implements CommandStrategy {
         String description = command.getDesc();
         if (amount.compareTo(BigDecimal.ZERO) == 0) {
             description = "无账单记录";
-        }
-
-        switch (command) {
-            case MONTH_QUERY, DATE_QUERY -> description = "【%s】账单记录".formatted(param);
         }
 
         StringBuilder template = new StringBuilder();
