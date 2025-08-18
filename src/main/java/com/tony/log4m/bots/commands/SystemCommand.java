@@ -46,6 +46,7 @@ public class SystemCommand implements CommandStrategy {
                         新建规则: /rule_add/{规则名称}-{金额}-{1:支付，0:收入}-{分类}
                         规则示例: /rule_add/鸭肶-18-1-吔
                         默认分类: /category_default/吔
+                        设预算: /budget/2000
                         查询月份总结: /month/yyyyMM
                         查询月份详情: /month_detail/yyyyMM
                         查询日期详情: /month/yyyyMMdd

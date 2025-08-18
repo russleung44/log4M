@@ -68,7 +68,9 @@ public class CallbackProcessor {
 
     private String buildBillDetails(String targetId) {
         Bill bill = billService.getOptById(targetId).orElseThrow();
-        return BotUtil.getBillFormatted(bill);
+        BigDecimal budget = accountService.getBudget();
+        BigDecimal monthAmount = billService.getAmountByMonth(bill.getBillDate().toString());
+        return BotUtil.getBillFormatted(bill, budget, monthAmount);
     }
 
 
@@ -103,9 +105,8 @@ public class CallbackProcessor {
         reverseAccountChanges(account, bill);
         bill.deleteById();
 
-        return "✅ 记录删除成功\n"
-                + "账户: " + account.getAccountName() + "\n"
-                + "余额: " + account.getBalance();
+        return "✅ 账单删除成功\n"
+                + "预算: " + account.getBalance();
     }
 
 

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * @author Tony
@@ -56,5 +57,9 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> {
         }
 
         return defaultAccount;
+    }
+
+    public BigDecimal getBudget() {
+        return this.getOrCreateDefaultAccount().getBudget();
     }
 }
