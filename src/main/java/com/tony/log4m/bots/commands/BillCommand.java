@@ -7,6 +7,7 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.pojo.entity.Bill;
+import com.tony.log4m.service.AccountService;
 import com.tony.log4m.service.BillService;
 import com.tony.log4m.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +32,14 @@ import java.util.stream.Collectors;
 public class BillCommand implements CommandStrategy {
 
     private final BillService billService;
+    private final AccountService accountService;
 
     @Override
     public SendMessage execute(Command command, String param, Long chatId) {
+        if (Command.BUDGET == command) {
+            accountService.getOrCreateDefaultAccount().setBudget(new BigDecimal(param));
+            return new SendMessage(chatId, "预算设置成功");
+        }
         List<Bill> bills = fetchBillsByCommand(command, param);
 
         // 生成消息模板

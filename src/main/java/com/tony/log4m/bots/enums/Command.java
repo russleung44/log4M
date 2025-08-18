@@ -30,6 +30,7 @@ public enum Command {
     HELP("help", "帮助", "system"),
     RESET("reset", "重置", "system"),
     EXPORT("export", "导出", "system"),
+    BUDGET("budget", "预算", "bill")
 
     ;
 

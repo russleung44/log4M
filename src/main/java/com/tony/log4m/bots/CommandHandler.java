@@ -60,8 +60,14 @@ public class CommandHandler {
 
     @Transactional
     public SendMessage handleQuickRecord(String text, Long chatId) {
+        // 保存账单
         Bill bill = saveBill(text);
-        String reply = BotUtil.getBillFormatted(bill);
+        // 本月支出
+        String currentMonth = MoneyUtil.getMonth(LocalDate.now());
+        BigDecimal monthAmount = billService.getAmountByMonth(currentMonth);
+        // 获取预算
+        BigDecimal budget = accountService.getBudget();
+        String reply = BotUtil.getBillFormatted(bill, budget, monthAmount);
         return new SendMessage(chatId, reply).replyMarkup(createDeleteMarkup(bill.getBillId()));
     }
 

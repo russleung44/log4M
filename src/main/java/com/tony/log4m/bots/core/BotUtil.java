@@ -8,6 +8,7 @@ import com.tony.log4m.pojo.entity.Bill;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * @author Tony
@@ -21,7 +22,7 @@ public class BotUtil {
         return new InlineKeyboardMarkup(inlineKeyboardButton);
     }
 
-    public static String getBillFormatted(Bill bill) {
+    public static String getBillFormatted(Bill bill, BigDecimal budget, BigDecimal monthAmount) {
         String template = """
                 账单详情
                 ---------
@@ -29,6 +30,7 @@ public class BotUtil {
                 日期:        {}
                 备注:        {}
                 分类:        {}
+                预算:        {}
                 """;
 
         return StrUtil.format(
@@ -36,7 +38,8 @@ public class BotUtil {
                 bill.getAmount().stripTrailingZeros().toPlainString(),
                 bill.getBillDate(),
                 bill.getNote(),
-                bill.getCategoryName()
+                bill.getCategoryName(),
+                monthAmount + "/" + budget
         );
     }
 

@@ -28,6 +28,11 @@ public class Account extends BaseEntity<Account> {
 
     private BigDecimal balance;
 
+    /**
+     * 预算
+     */
+    private BigDecimal budget;
+
     private BigDecimal consume;
 
     private BigDecimal income;
@@ -39,6 +44,5 @@ public class Account extends BaseEntity<Account> {
     private Integer status;
 
     private Boolean isDefault;
-
 
 }
