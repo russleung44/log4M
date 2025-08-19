@@ -13,6 +13,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum Command {
 
+    //================bill===================
     TODAY("today", "今日消费", "bill"),
     YESTERDAY("yesterday", "昨日消费", "bill"),
     THIS_MONTH_SUMMARY("this_month_summary", "本月总结", "bill"),
@@ -22,15 +23,21 @@ public enum Command {
     MONTH_DETAIL_QUERY("month_detail", "查询指定月份", "bill", false),
     MONTH_SUMMARY_QUERY("month", "查询指定月份总结", "bill", false),
     DATE_QUERY("date", "查询指定日期", "bill", false),
+    BUDGET("budget", "预算", "bill"),
+
+    // ==============rule===================
     RULES("rules", "规则列表", "rule"),
     RULE_ADD("rule_add", "添加规则", "rule", false),
+
+    // ==============category===================
     CATEGORIES("categories", "分类列表", "category"),
     CATEGORY_ADD("category_add", "添加分类", "category", false),
     CATEGORY_DEFAULT("category_default", "设置默认分类", "category"),
+
+    // ==============system===================
     HELP("help", "帮助", "system"),
     RESET("reset", "重置", "system"),
     EXPORT("export", "导出", "system"),
-    BUDGET("budget", "预算", "bill")
 
     ;
 
