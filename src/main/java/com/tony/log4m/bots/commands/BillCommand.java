@@ -37,7 +37,7 @@ public class BillCommand implements CommandStrategy {
     @Override
     public SendMessage execute(Command command, String param, Long chatId) {
         if (Command.BUDGET == command) {
-            accountService.getOrCreateDefaultAccount().setBudget(new BigDecimal(param));
+            accountService.getOrCreateDefaultAccount().setBudget(new BigDecimal(param)).updateById();
             return new SendMessage(chatId, "预算设置成功");
         }
         List<Bill> bills = fetchBillsByCommand(command, param);
@@ -123,9 +123,11 @@ public class BillCommand implements CommandStrategy {
     private String generateTemplate(Command command, String param, List<Bill> bills) {
         // 计算总金额
         BigDecimal amount = calculateTotalAmount(bills);
-        String description = command.getDesc();
-        if (amount.compareTo(BigDecimal.ZERO) == 0) {
-            description = "无账单记录";
+        String description;
+
+        switch (command) {
+            case MONTH_SUMMARY_QUERY, MONTH_DETAIL_QUERY, DATE_QUERY -> description = param;
+            default -> description = command.getDesc();
         }
 
         StringBuilder template = new StringBuilder();

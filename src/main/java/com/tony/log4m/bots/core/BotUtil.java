@@ -30,18 +30,27 @@ public class BotUtil {
                 日期:        {}
                 备注:        {}
                 分类:        {}
+                本月:        {}
                 预算:        {}
+                可用:        {}
                 """;
 
         return StrUtil.format(
                 template,
-                bill.getAmount().stripTrailingZeros().toPlainString(),
+                formatBigDecimal(bill.getAmount()),
                 bill.getBillDate(),
                 bill.getNote(),
                 bill.getCategoryName(),
-                monthAmount + "/" + budget
+                formatBigDecimal(monthAmount),
+                formatBigDecimal(budget),
+                formatBigDecimal(budget.subtract(monthAmount))
         );
     }
+
+    public static String formatBigDecimal(BigDecimal money) {
+        return money.stripTrailingZeros().toPlainString();
+    }
+
 
     public static InlineKeyboardMarkup buildKeyboardMarkup(String data) {
         // 输入校验
