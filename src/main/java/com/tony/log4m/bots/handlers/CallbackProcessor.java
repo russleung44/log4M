@@ -1,5 +1,6 @@
 package com.tony.log4m.bots.handlers;
 
+import cn.hutool.core.util.StrUtil;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.message.MaybeInaccessibleMessage;
@@ -16,11 +17,13 @@ import com.tony.log4m.service.AccountService;
 import com.tony.log4m.service.BillService;
 import com.tony.log4m.service.CategoryService;
 import com.tony.log4m.service.RuleService;
+import com.tony.log4m.utils.MoneyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.NoSuchElementException;
 
 import static com.tony.log4m.enums.TransactionType.EXPENSE;
@@ -105,8 +108,26 @@ public class CallbackProcessor {
         reverseAccountChanges(account, bill);
         bill.deleteById();
 
-        return "✅ 账单删除成功\n"
-                + "预算: " + account.getBalance();
+        String currentMonth = MoneyUtil.getMonth(LocalDate.now());
+        BigDecimal monthAmount = billService.getAmountByMonth(currentMonth);
+
+        BigDecimal budget = account.getBudget();
+
+
+        String template = """
+                ✅ 账单删除成功
+                ---------
+                本月:        {}
+                预算:        {}
+                可用:        {}
+                """;
+
+        return StrUtil.format(
+                template,
+                MoneyUtil.formatBigDecimal(monthAmount),
+                MoneyUtil.formatBigDecimal(budget),
+                MoneyUtil.formatBigDecimal(budget.subtract(monthAmount))
+        );
     }
 
 

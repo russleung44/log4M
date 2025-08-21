@@ -5,6 +5,7 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.tony.log4m.exception.Log4mException;
 import com.tony.log4m.pojo.entity.Bill;
+import com.tony.log4m.utils.MoneyUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
@@ -37,18 +38,14 @@ public class BotUtil {
 
         return StrUtil.format(
                 template,
-                formatBigDecimal(bill.getAmount()),
+                MoneyUtil.formatBigDecimal(bill.getAmount()),
                 bill.getBillDate(),
                 bill.getNote(),
                 bill.getCategoryName(),
-                formatBigDecimal(monthAmount),
-                formatBigDecimal(budget),
-                formatBigDecimal(budget.subtract(monthAmount))
+                MoneyUtil.formatBigDecimal(monthAmount),
+                MoneyUtil.formatBigDecimal(budget),
+                MoneyUtil.formatBigDecimal(budget.subtract(monthAmount))
         );
-    }
-
-    public static String formatBigDecimal(BigDecimal money) {
-        return money.stripTrailingZeros().toPlainString();
     }
 
 

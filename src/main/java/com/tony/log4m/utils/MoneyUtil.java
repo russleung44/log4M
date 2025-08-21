@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.tony.log4m.enums.DateKeyword;
 import com.tony.log4m.exception.Log4mException;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -16,8 +17,6 @@ import java.util.regex.Pattern;
  * @since 2022/10/12
  */
 public class MoneyUtil {
-
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private static final String[] DATE_PATTERNS = {
             "\\d{4}-\\d{2}-\\d{2}",     // yyyy-MM-dd
@@ -89,6 +88,10 @@ public class MoneyUtil {
 
     public static String getMonth(LocalDate billDate) {
         return LocalDateTimeUtil.format(billDate, "yyyyMM");
+    }
+
+    public static String formatBigDecimal(BigDecimal money) {
+        return money.stripTrailingZeros().toPlainString();
     }
 
 
