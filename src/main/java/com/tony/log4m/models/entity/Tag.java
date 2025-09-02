@@ -1,4 +1,4 @@
-package com.tony.log4m.pojo.entity;
+package com.tony.log4m.models.entity;
 
 
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -9,27 +9,22 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * 记录分类
+ * 标签
  *
  * @author Tony
  * @since 2022-09-23 16:00:42
  */
 @Data
 @Accessors(chain = true)
-@TableName(value = "category", autoResultMap = true)
+@TableName(value = "tag", autoResultMap = true)
 @EqualsAndHashCode(callSuper = true)
-public class Category extends BaseEntity<Category> {
+public class Tag extends BaseEntity<Tag> {
 
     @TableId
-    private Long categoryId;
+    private Long tagId;
 
-    private String categoryName;
-
-    private Long parentCategoryId;
-
-    private String parentCategoryName;
+    private String tagName;
 
     private Integer sort;
 
-    private Boolean isDefault;
 }

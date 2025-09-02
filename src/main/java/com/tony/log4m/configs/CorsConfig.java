@@ -1,4 +1,4 @@
-package com.tony.log4m.config;
+package com.tony.log4m.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

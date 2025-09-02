@@ -1,4 +1,4 @@
-package com.tony.log4m.pojo.entity;
+package com.tony.log4m.models.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.tony.log4m.base.BaseEntity;

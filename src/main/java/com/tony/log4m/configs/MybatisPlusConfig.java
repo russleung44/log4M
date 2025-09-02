@@ -1,4 +1,4 @@
-package com.tony.log4m.config;
+package com.tony.log4m.configs;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;

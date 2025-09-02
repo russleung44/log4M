@@ -1,4 +1,4 @@
-package com.tony.log4m.pojo.dto;
+package com.tony.log4m.models.dto;
 
 import com.tony.log4m.enums.TransactionType;
 import jakarta.validation.constraints.NotBlank;
@@ -9,12 +9,12 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 /**
- * 创建规则DTO
+ * 更新规则DTO
  * 
  * @author Tony
  */
 @Data
-public class CreateRuleDto {
+public class UpdateRuleDto {
     
     @NotBlank(message = "规则名称不能为空")
     private String ruleName;

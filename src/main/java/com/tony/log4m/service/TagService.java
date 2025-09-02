@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tony.log4m.bots.handlers.CallbackProcessor;
 import com.tony.log4m.exception.Log4mException;
 import com.tony.log4m.mapper.TagMapper;
-import com.tony.log4m.pojo.entity.Tag;
+import com.tony.log4m.models.entity.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

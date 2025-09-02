@@ -1,4 +1,4 @@
-package com.tony.log4m.pojo.vo;
+package com.tony.log4m.models.vo;
 
 import lombok.Data;
 

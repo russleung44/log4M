@@ -1,4 +1,4 @@
-package com.tony.log4m.pojo.dto;
+package com.tony.log4m.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tony.log4m.enums.TransactionType;

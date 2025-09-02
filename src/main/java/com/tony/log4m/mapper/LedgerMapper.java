@@ -1,7 +1,7 @@
 package com.tony.log4m.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tony.log4m.pojo.entity.Ledger;
+import com.tony.log4m.models.entity.Ledger;
 
 /**
  * @author Tony

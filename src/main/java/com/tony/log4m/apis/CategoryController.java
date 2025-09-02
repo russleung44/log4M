@@ -1,11 +1,11 @@
-package com.tony.log4m.controller;
+package com.tony.log4m.apis;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tony.log4m.pojo.dto.CreateCategoryDto;
-import com.tony.log4m.pojo.dto.UpdateCategoryDto;
-import com.tony.log4m.pojo.entity.Category;
-import com.tony.log4m.pojo.vo.ResultVO;
+import com.tony.log4m.models.dto.CreateCategoryDto;
+import com.tony.log4m.models.dto.UpdateCategoryDto;
+import com.tony.log4m.models.entity.Category;
+import com.tony.log4m.models.vo.ResultVO;
 import com.tony.log4m.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

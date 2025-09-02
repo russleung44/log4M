@@ -1,9 +1,9 @@
-package com.tony.log4m.controller;
+package com.tony.log4m.apis;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tony.log4m.pojo.entity.User;
-import com.tony.log4m.pojo.vo.ResultVO;
+import com.tony.log4m.models.entity.User;
+import com.tony.log4m.models.vo.ResultVO;
 import com.tony.log4m.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -37,9 +37,7 @@ public class UserController {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<User>()
                 .like(keyword != null && !keyword.trim().isEmpty(), User::getUsername, keyword)
                 .or()
-                .like(keyword != null && !keyword.trim().isEmpty(), User::getFirstName, keyword)
-                .or()
-                .like(keyword != null && !keyword.trim().isEmpty(), User::getLastName, keyword)
+                .like(keyword != null && !keyword.trim().isEmpty(), User::getEmail, keyword)
                 .orderByDesc(User::getUserId);
         
         Page<User> result = userService.page(page, queryWrapper);

@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.tony.log4m.exception.Log4mException;
-import com.tony.log4m.pojo.entity.Bill;
+import com.tony.log4m.models.entity.Bill;
 import com.tony.log4m.utils.MoneyUtil;
 import lombok.extern.slf4j.Slf4j;
 

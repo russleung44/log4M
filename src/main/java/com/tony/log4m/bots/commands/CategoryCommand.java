@@ -4,7 +4,7 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.enums.Command;
-import com.tony.log4m.pojo.entity.Category;
+import com.tony.log4m.models.entity.Category;
 import com.tony.log4m.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

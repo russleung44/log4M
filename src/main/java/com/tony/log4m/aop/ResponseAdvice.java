@@ -1,6 +1,6 @@
 package com.tony.log4m.aop;
 
-import com.tony.log4m.pojo.vo.ResultVO;
+import com.tony.log4m.models.vo.ResultVO;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;

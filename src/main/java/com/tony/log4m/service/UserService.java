@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tony.log4m.exception.Log4mException;
 import com.tony.log4m.mapper.UserMapper;
-import com.tony.log4m.pojo.entity.User;
+import com.tony.log4m.models.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

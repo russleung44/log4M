@@ -1,8 +1,8 @@
 package com.tony.log4m.convert;
 
 import com.tony.log4m.annotation.IgnoreMetadata;
-import com.tony.log4m.pojo.entity.Bill;
-import com.tony.log4m.pojo.entity.Category;
+import com.tony.log4m.models.entity.Bill;
+import com.tony.log4m.models.entity.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;

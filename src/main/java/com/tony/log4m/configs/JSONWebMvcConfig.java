@@ -1,4 +1,4 @@
-package com.tony.log4m.config;
+package com.tony.log4m.configs;
 
 import com.alibaba.fastjson2.JSONReader;
 import com.alibaba.fastjson2.JSONWriter;

@@ -6,7 +6,7 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.enums.Command;
-import com.tony.log4m.pojo.entity.Bill;
+import com.tony.log4m.models.entity.Bill;
 import com.tony.log4m.service.AccountService;
 import com.tony.log4m.service.BillService;
 import com.tony.log4m.utils.MoneyUtil;

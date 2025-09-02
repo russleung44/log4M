@@ -3,7 +3,7 @@ package com.tony.log4m.service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tony.log4m.mapper.BillMapper;
-import com.tony.log4m.pojo.entity.Bill;
+import com.tony.log4m.models.entity.Bill;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

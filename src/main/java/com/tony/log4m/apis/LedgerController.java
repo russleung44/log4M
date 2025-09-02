@@ -1,8 +1,8 @@
-package com.tony.log4m.controller;
+package com.tony.log4m.apis;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.tony.log4m.pojo.entity.Ledger;
-import com.tony.log4m.pojo.vo.ResultVO;
+import com.tony.log4m.models.entity.Ledger;
+import com.tony.log4m.models.vo.ResultVO;
 import com.tony.log4m.service.LedgerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

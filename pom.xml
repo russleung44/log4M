@@ -161,6 +161,12 @@
             <version>${fastexcel.version}</version>
         </dependency>
 
+        <!-- Jackson for JsonFormat annotation -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
