@@ -1,35 +1,68 @@
 package com.tony.log4m.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tony.log4m.pojo.dto.CreateCategoryDto;
+import com.tony.log4m.pojo.dto.UpdateCategoryDto;
 import com.tony.log4m.pojo.entity.Category;
 import com.tony.log4m.pojo.vo.ResultVO;
 import com.tony.log4m.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
 
 /**
- * 分类控制器
- *
+ * 分类管理Controller
+ * 
  * @author Tony
- * @since 2025-09-02
  */
 @RestController
-@RequestMapping("/category")
+@RequestMapping("/api/categories")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
     /**
-     * 创建分类
+     * 获取分页分类列表
      */
-    @PostMapping
-    public ResultVO<Category> create(@RequestBody @Valid Category category) {
-        Category result = categoryService.create(category);
-        return ResultVO.ok(result);
+    @GetMapping
+    public ResultVO<Page<Category>> pageQuery(
+            @RequestParam(defaultValue = "1") int current,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword
+    ) {
+        Page<Category> page = new Page<>(current, size);
+        
+        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<Category>()
+                .like(keyword != null && !keyword.trim().isEmpty(), Category::getCategoryName, keyword)
+                .orderByAsc(Category::getParentCategoryId)
+                .orderByAsc(Category::getCategoryId);
+        
+        Page<Category> result = categoryService.page(page, queryWrapper);
+        return ResultVO.success(result);
+    }
+
+    /**
+     * 获取分类树
+     */
+    @GetMapping("/tree")
+    public ResultVO<List<Category>> getCategoryTree() {
+        List<Category> categories = categoryService.list();
+        // TODO: 构建树形结构，这里暂时返回所有分类
+        return ResultVO.success(categories);
+    }
+
+    /**
+     * 获取所有分类
+     */
+    @GetMapping("/all")
+    public ResultVO<List<Category>> getAllCategories() {
+        List<Category> categories = categoryService.list();
+        return ResultVO.success(categories);
     }
 
     /**
@@ -37,89 +70,54 @@ public class CategoryController {
      */
     @GetMapping("/{id}")
     public ResultVO<Category> getById(@PathVariable Long id) {
-        Category result = categoryService.getById(id);
-        return ResultVO.ok(result);
+        Category category = categoryService.getById(id);
+        if (category == null) {
+            return ResultVO.error("分类不存在");
+        }
+        return ResultVO.success(category);
     }
 
     /**
-     * 根据ID更新分类
+     * 创建分类
+     */
+    @PostMapping
+    public ResultVO<Category> create(@Valid @RequestBody CreateCategoryDto dto) {
+        Category category = new Category();
+        category.setCategoryName(dto.getCategoryName());
+        category.setParentCategoryId(dto.getParentCategoryId());
+        
+        boolean saved = categoryService.save(category);
+        if (saved) {
+            return ResultVO.success(category);
+        } else {
+            return ResultVO.error("创建分类失败");
+        }
+    }
+
+    /**
+     * 更新分类
      */
     @PutMapping("/{id}")
-    public ResultVO<Boolean> updateById(@PathVariable Long id, @RequestBody @Valid Category category) {
-        category.setCategoryId(id);
-        Boolean result = categoryService.updateByIdWithValidation(category);
-        return ResultVO.ok(result);
+    public ResultVO<Boolean> update(@PathVariable Long id, @Valid @RequestBody UpdateCategoryDto dto) {
+        Category category = categoryService.getById(id);
+        if (category == null) {
+            return ResultVO.error("分类不存在");
+        }
+        
+        category.setCategoryName(dto.getCategoryName());
+        category.setParentCategoryId(dto.getParentCategoryId());
+        
+        boolean updated = categoryService.updateById(category);
+        return ResultVO.success(updated);
     }
 
     /**
-     * 根据ID删除分类
+     * 删除分类
      */
     @DeleteMapping("/{id}")
-    public ResultVO<Boolean> deleteById(@PathVariable Long id) {
-        Boolean result = categoryService.deleteById(id);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 获取所有分类
-     */
-    @GetMapping("/list")
-    public ResultVO<List<Category>> list() {
-        List<Category> result = categoryService.listAll();
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 分页获取分类
-     */
-    @GetMapping("/page/{current}/{size}")
-    public ResultVO<Page<Category>> page(@PathVariable int current, @PathVariable int size) {
-        Page<Category> result = categoryService.pageQuery(current, size);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 获取根分类列表
-     */
-    @GetMapping("/roots")
-    public ResultVO<List<Category>> getRootCategories() {
-        List<Category> result = categoryService.getRootCategories();
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 获取指定分类的子分类
-     */
-    @GetMapping("/{parentId}/children")
-    public ResultVO<List<Category>> getByParentId(@PathVariable Long parentId) {
-        List<Category> result = categoryService.getByParentId(parentId);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 获取分类详情
-     */
-    @GetMapping("/{id}/details")
-    public ResultVO<String> getCategoryDetails(@PathVariable String id) {
-        String result = categoryService.buildCategoryDetails(id);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 创建或获取分类
-     */
-    @PostMapping("/get-or-create")
-    public ResultVO<Category> getOrCreate(@RequestParam String categoryName) {
-        Category result = categoryService.getOrCreate(categoryName);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 获取默认分类
-     */
-    @GetMapping("/default")
-    public ResultVO<Category> getDefaultCategory() {
-        Category result = categoryService.getDefaultCategory();
-        return ResultVO.ok(result);
+    public ResultVO<Boolean> delete(@PathVariable Long id) {
+        // TODO: 检查是否有账单使用该分类
+        boolean deleted = categoryService.removeById(id);
+        return ResultVO.success(deleted);
     }
 }

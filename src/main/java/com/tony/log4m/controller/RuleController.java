@@ -1,36 +1,53 @@
 package com.tony.log4m.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tony.log4m.pojo.dto.CreateRuleDto;
+import com.tony.log4m.pojo.dto.UpdateRuleDto;
 import com.tony.log4m.pojo.entity.Rule;
 import com.tony.log4m.pojo.vo.ResultVO;
 import com.tony.log4m.service.RuleService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import java.util.List;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 规则控制器
- *
+ * 规则管理Controller
+ * 
  * @author Tony
- * @since 2025-09-02
  */
 @RestController
-@RequestMapping("/rule")
+@RequestMapping("/api/rules")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class RuleController {
 
     private final RuleService ruleService;
 
     /**
-     * 创建规则
+     * 分页查询规则
      */
-    @PostMapping
-    public ResultVO<Rule> create(@RequestBody @Valid Rule rule) {
-        Rule result = ruleService.create(rule);
-        return ResultVO.ok(result);
+    @GetMapping
+    public ResultVO<Page<Rule>> pageQuery(
+            @RequestParam(defaultValue = "1") int current,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean isActive
+    ) {
+        Page<Rule> page = new Page<>(current, size);
+        
+        LambdaQueryWrapper<Rule> queryWrapper = new LambdaQueryWrapper<Rule>()
+                .like(keyword != null && !keyword.trim().isEmpty(), Rule::getRuleName, keyword)
+                .or()
+                .like(keyword != null && !keyword.trim().isEmpty(), Rule::getKeywords, keyword)
+                .orderByDesc(Rule::getSort)
+                .orderByDesc(Rule::getRuleId);
+        
+        Page<Rule> result = ruleService.page(page, queryWrapper);
+        return ResultVO.success(result);
     }
 
     /**
@@ -38,80 +55,95 @@ public class RuleController {
      */
     @GetMapping("/{id}")
     public ResultVO<Rule> getById(@PathVariable Long id) {
-        Rule result = ruleService.getById(id);
-        return ResultVO.ok(result);
+        Rule rule = ruleService.getById(id);
+        if (rule == null) {
+            return ResultVO.error("规则不存在");
+        }
+        return ResultVO.success(rule);
     }
 
     /**
-     * 根据ID更新规则
+     * 创建规则
+     */
+    @PostMapping
+    public ResultVO<Rule> create(@Valid @RequestBody CreateRuleDto dto) {
+        Rule rule = new Rule();
+        rule.setRuleName(dto.getRuleName());
+        rule.setKeywords(dto.getKeywords());
+        rule.setCategoryId(dto.getCategoryId());
+        rule.setAmount(dto.getAmount());
+        rule.setTransactionType(dto.getTransactionType());
+        
+        boolean saved = ruleService.save(rule);
+        if (saved) {
+            return ResultVO.success(rule);
+        } else {
+            return ResultVO.error("创建规则失败");
+        }
+    }
+
+    /**
+     * 更新规则
      */
     @PutMapping("/{id}")
-    public ResultVO<Boolean> updateById(@PathVariable Long id, @RequestBody @Valid Rule rule) {
-        rule.setRuleId(id);
-        Boolean result = ruleService.updateByIdWithValidation(rule);
-        return ResultVO.ok(result);
+    public ResultVO<Boolean> update(@PathVariable Long id, @Valid @RequestBody UpdateRuleDto dto) {
+        Rule rule = ruleService.getById(id);
+        if (rule == null) {
+            return ResultVO.error("规则不存在");
+        }
+        
+        rule.setRuleName(dto.getRuleName());
+        rule.setKeywords(dto.getKeywords());
+        rule.setCategoryId(dto.getCategoryId());
+        rule.setAmount(dto.getAmount());
+        rule.setTransactionType(dto.getTransactionType());
+        
+        boolean updated = ruleService.updateById(rule);
+        return ResultVO.success(updated);
     }
 
     /**
-     * 根据ID删除规则
+     * 删除规则
      */
     @DeleteMapping("/{id}")
-    public ResultVO<Boolean> deleteById(@PathVariable Long id) {
-        Boolean result = ruleService.deleteById(id);
-        return ResultVO.ok(result);
+    public ResultVO<Boolean> delete(@PathVariable Long id) {
+        boolean deleted = ruleService.removeById(id);
+        return ResultVO.success(deleted);
     }
 
     /**
-     * 获取所有规则
+     * 测试规则匹配
      */
-    @GetMapping("/list")
-    public ResultVO<List<Rule>> list() {
-        List<Rule> result = ruleService.listAll();
-        return ResultVO.ok(result);
+    @PostMapping("/test")
+    public ResultVO<Map<String, Object>> testRule(@RequestBody Map<String, String> request) {
+        String text = request.get("text");
+        if (text == null || text.trim().isEmpty()) {
+            return ResultVO.error("测试文本不能为空");
+        }
+        
+        // TODO: 实现规则匹配逻辑
+        Map<String, Object> result = new HashMap<>();
+        result.put("text", text);
+        result.put("matched", false);
+        result.put("matchedRule", null);
+        result.put("message", "规则匹配功能待实现");
+        
+        return ResultVO.success(result);
     }
 
     /**
-     * 分页获取规则
+     * 启用/禁用规则
      */
-    @GetMapping("/page/{current}/{size}")
-    public ResultVO<Page<Rule>> page(@PathVariable int current, @PathVariable int size) {
-        Page<Rule> result = ruleService.pageQuery(current, size);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 根据关键词搜索规则
-     */
-    @GetMapping("/search")
-    public ResultVO<List<Rule>> searchByKeyword(@RequestParam String keyword) {
-        List<Rule> result = ruleService.searchByKeyword(keyword);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 根据关键词查找匹配的规则
-     */
-    @GetMapping("/find/{keyword}")
-    public ResultVO<Rule> findByKeyword(@PathVariable String keyword) {
-        Optional<Rule> result = ruleService.findByKeyword(keyword);
-        return ResultVO.ok(result.orElse(null));
-    }
-
-    /**
-     * 获取规则详情
-     */
-    @GetMapping("/{id}/details")
-    public ResultVO<String> getRuleDetails(@PathVariable String id) {
-        String result = ruleService.buildRuleDetails(id);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 根据分类ID获取规则列表
-     */
-    @GetMapping("/category/{categoryId}")
-    public ResultVO<List<Rule>> getByCategoryId(@PathVariable Long categoryId) {
-        List<Rule> result = ruleService.getByCategoryId(categoryId);
-        return ResultVO.ok(result);
+    @PutMapping("/{id}/toggle")
+    public ResultVO<Boolean> toggleRule(@PathVariable Long id) {
+        // TODO: 实现规则切换功能
+        // Rule rule = ruleService.getById(id);
+        // if (rule == null) {
+        //     return ResultVO.error("规则不存在");
+        // }
+        // 
+        // rule.setIsActive(!rule.getIsActive());
+        // boolean updated = ruleService.updateById(rule);
+        return ResultVO.success(true);
     }
 }

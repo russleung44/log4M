@@ -1,5 +1,6 @@
 package com.tony.log4m.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tony.log4m.pojo.entity.User;
 import com.tony.log4m.pojo.vo.ResultVO;
@@ -7,29 +8,51 @@ import com.tony.log4m.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
 
 /**
- * 用户控制器
- *
+ * 用户管理Controller
+ * 
  * @author Tony
- * @since 2025-09-02
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class UserController {
 
     private final UserService userService;
 
     /**
-     * 创建用户
+     * 分页查询用户
      */
-    @PostMapping
-    public ResultVO<User> create(@RequestBody @Valid User user) {
-        User result = userService.create(user);
-        return ResultVO.ok(result);
+    @GetMapping
+    public ResultVO<Page<User>> pageQuery(
+            @RequestParam(defaultValue = "1") int current,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword
+    ) {
+        Page<User> page = new Page<>(current, size);
+        
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<User>()
+                .like(keyword != null && !keyword.trim().isEmpty(), User::getUsername, keyword)
+                .or()
+                .like(keyword != null && !keyword.trim().isEmpty(), User::getFirstName, keyword)
+                .or()
+                .like(keyword != null && !keyword.trim().isEmpty(), User::getLastName, keyword)
+                .orderByDesc(User::getUserId);
+        
+        Page<User> result = userService.page(page, queryWrapper);
+        return ResultVO.success(result);
+    }
+
+    /**
+     * 获取所有用户
+     */
+    @GetMapping("/all")
+    public ResultVO<List<User>> getAllUsers() {
+        List<User> users = userService.list();
+        return ResultVO.success(users);
     }
 
     /**
@@ -37,62 +60,10 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResultVO<User> getById(@PathVariable Long id) {
-        User result = userService.getById(id);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 根据ID更新用户
-     */
-    @PutMapping("/{id}")
-    public ResultVO<Boolean> updateById(@PathVariable Long id, @RequestBody @Valid User user) {
-        user.setUserId(id);
-        Boolean result = userService.updateByIdWithValidation(user);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 根据ID删除用户
-     */
-    @DeleteMapping("/{id}")
-    public ResultVO<Boolean> deleteById(@PathVariable Long id) {
-        Boolean result = userService.deleteById(id);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 获取所有用户
-     */
-    @GetMapping("/list")
-    public ResultVO<List<User>> list() {
-        List<User> result = userService.listAll();
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 分页获取用户
-     */
-    @GetMapping("/page/{current}/{size}")
-    public ResultVO<Page<User>> page(@PathVariable int current, @PathVariable int size) {
-        Page<User> result = userService.pageQuery(current, size);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 根据Telegram用户ID查询用户
-     */
-    @GetMapping("/telegram/{tgUserId}")
-    public ResultVO<User> getByTgUserId(@PathVariable Long tgUserId) {
-        User result = userService.getByTgUserId(tgUserId);
-        return ResultVO.ok(result);
-    }
-
-    /**
-     * 保存或更新Telegram用户信息
-     */
-    @PostMapping("/telegram")
-    public ResultVO<Boolean> saveTgUser(@RequestParam Long tgUserId, @RequestParam String username) {
-        userService.saveTgUser(tgUserId, username);
-        return ResultVO.ok(true);
+        User user = userService.getById(id);
+        if (user == null) {
+            return ResultVO.error("用户不存在");
+        }
+        return ResultVO.success(user);
     }
 }
