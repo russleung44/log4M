@@ -30,22 +30,40 @@ log4M 是一个功能完整的个人记账解决方案，包含：
 
 ```
 log4M/
-├── src/main/java/               # Spring Boot 后端
-│   └── com/tony/log4m/
-│       ├── bots/                # Telegram Bot 逻辑
-│       ├── controller/          # REST API 控制器
-│       ├── service/             # 业务逻辑层
-│       ├── mapper/              # 数据访问层
-│       └── pojo/                # 数据传输对象
+├── backend/                     # Spring Boot 后端
+│   ├── src/main/java/com/tony/log4m/
+│   │   ├── annotation/          # 自定义注解
+│   │   ├── aop/                 # AOP切面处理
+│   │   ├── base/                # 基础类
+│   │   ├── bots/                # Telegram Bot 逻辑
+│   │   ├── configs/             # 配置类
+│   │   ├── controller/          # REST API 控制器
+│   │   ├── convert/             # 对象转换器（MapStruct）
+│   │   ├── enums/               # 枚举类
+│   │   ├── exception/           # 异常处理
+│   │   ├── external/            # 外部服务集成
+│   │   ├── mapper/              # 数据访问层（MyBatis-Plus）
+│   │   ├── models/              # 数据模型（entity/dto/vo）
+│   │   ├── service/             # 业务逻辑层
+│   │   ├── utils/               # 工具类
+│   │   └── Log4MApplication.java # 应用启动类
+│   └── src/main/resources/      # 配置文件和资源
 ├── frontend-admin/              # Vue 3 前端管理后台
 │   ├── src/
 │   │   ├── api/                 # API 接口封装
+│   │   ├── components/          # 公共组件
+│   │   ├── router/              # 路由配置
 │   │   ├── stores/              # Pinia 状态管理
+│   │   ├── types/               # TypeScript 类型定义
+│   │   ├── utils/               # 工具函数
 │   │   ├── views/               # 页面组件
-│   │   └── components/          # 公共组件
-│   └── package.json
-├── deploy-frontend.sh           # 前端部署脚本
+│   │   ├── App.vue              # 根组件
+│   │   └── main.ts              # 入口文件
+│   ├── package.json             # 项目依赖配置
+│   └── vite.config.ts           # 构建配置
 ├── docker-compose.yml           # Docker 编排
+├── run-local.bat                # Windows本地运行脚本
+├── run-local.ps1                # PowerShell本地运行脚本
 └── README.md
 ```
 
@@ -53,18 +71,21 @@ log4M/
 
 ### 后端
 - **框架**: Spring Boot 3.4.4
-- **数据库**: H2/MySQL
-- **ORM**: MyBatis-Plus
-- **Bot API**: Telegram Bot API
-- **工具库**: Hutool, MapStruct
+- **语言**: Java 21
+- **数据库**: H2 (默认) / MySQL
+- **ORM**: MyBatis-Plus 3.5.11
+- **Bot API**: java-telegram-bot-api 8.3.0
+- **工具库**: Hutool 5.8.36, MapStruct 1.6.3, Lombok
+- **构建工具**: Maven 3.6+
 
 ### 前端
 - **框架**: Vue 3 + TypeScript
-- **构建工具**: Vite
-- **UI库**: Ant Design Vue
-- **状态管理**: Pinia
-- **图表**: ECharts
-- **HTTP客户端**: Axios
+- **构建工具**: Vite 4.4.0
+- **UI库**: Ant Design Vue 4.0.0
+- **状态管理**: Pinia 2.1.0
+- **图表**: ECharts 5.4.0
+- **HTTP客户端**: Axios 1.5.0
+- **路由**: Vue Router 4.2.0
 
 ## 快速开始
 
@@ -81,12 +102,19 @@ log4M/
 git clone https://github.com/your-username/log4M.git
 cd log4M
 
-# 构建并运行
+# 方法一：使用脚本启动（推荐）
+# Windows:
+run-local.bat
+# 或PowerShell:
+./run-local.ps1
+
+# 方法二：手动启动
+cd backend
 mvn clean package
-java -jar target/log4M-0.0.1-SNAPSHOT.jar
+java -jar target/log4M.jar
 ```
 
-后端服务将在 http://localhost:8080 启动
+后端服务将在 http://localhost:9001 启动
 
 ### 2. 启动前端管理后台
 
@@ -101,7 +129,7 @@ npm install
 npm run dev
 ```
 
-前端服务将在 http://localhost:3000 启动
+前端服务将在 http://localhost:5173 启动
 
 ### 3. 使用 Docker Compose（推荐）
 
@@ -110,26 +138,27 @@ npm run dev
 docker-compose up --build
 ```
 
-- 后端API: http://localhost:8080
+- 后端API: http://localhost:9001
 - 前端管理后台: http://localhost:80
 
 ## 配置说明
 
 ### 后端配置
 
-编辑 `src/main/resources/application.yml`：
+编辑 `backend/src/main/resources/application.yml`：
 
 ```yaml
+server:
+  port: 9001  # 后端服务端口
+
 spring:
   datasource:
     # 数据库配置
-    url: jdbc:h2:file:./data/log4m
+    url: jdbc:h2:file:../data/log4m;MODE=MySQL;AUTO_SERVER=true
     username: sa
     password: 
 
-bot:
-  # Telegram Bot Token
-  token: "YOUR_BOT_TOKEN"
+botToken: ${BOT_TOKEN:YOUR_BOT_TOKEN}  # Telegram Bot Token
 ```
 
 ### 前端配置
@@ -137,7 +166,7 @@ bot:
 编辑 `frontend-admin/.env.development`：
 
 ```env
-VITE_API_BASE_URL=http://localhost:8080/api
+VITE_API_BASE_URL=http://localhost:9001/api
 VITE_APP_TITLE=log4M 管理后台
 ```
 
@@ -154,10 +183,21 @@ VITE_APP_TITLE=log4M 管理后台
 - **分类管理**: `/api/categories`
   - GET `/api/categories/tree` - 获取分类树
   - POST `/api/categories` - 创建分类
+  - PUT `/api/categories/{id}` - 更新分类
+  - DELETE `/api/categories/{id}` - 删除分类
 
 - **规则管理**: `/api/rules`
   - GET `/api/rules` - 分页查询规则
   - POST `/api/rules/test` - 测试规则匹配
+  - POST `/api/rules` - 创建规则
+  - PUT `/api/rules/{id}` - 更新规则
+  - DELETE `/api/rules/{id}` - 删除规则
+
+- **账户管理**: `/api/accounts`
+  - GET `/api/accounts` - 查询账户列表
+  - POST `/api/accounts` - 创建账户
+  - PUT `/api/accounts/{id}` - 更新账户
+  - DELETE `/api/accounts/{id}` - 删除账户
 
 更多API详情请查看源代码中的Controller类。
 
@@ -167,8 +207,9 @@ VITE_APP_TITLE=log4M 管理后台
 
 1. **后端部署**:
    ```bash
-   mvn clean package -Pprod
-   java -jar target/log4M-0.0.1-SNAPSHOT.jar
+   cd backend
+   mvn clean package
+   java -jar target/log4M.jar
    ```
 
 2. **前端部署**:
@@ -178,24 +219,11 @@ VITE_APP_TITLE=log4M 管理后台
    # 将 dist/ 目录内容部署到 Web 服务器
    ```
 
-3. **使用部署脚本**:
-   ```bash
-   # Linux/Mac
-   ./deploy-frontend.sh
-   
-   # Windows
-   deploy-frontend.bat
-   ```
-
 ### Docker 部署
 
 ```bash
-# 构建镜像
-docker build -t log4m-backend .
-docker build -f Dockerfile.frontend -t log4m-frontend .
-
-# 运行容器
-docker-compose up -d
+# 构建并启动所有服务
+docker-compose up --build -d
 ```
 
 ## 开发指南
@@ -203,15 +231,16 @@ docker-compose up -d
 ### 后端开发
 
 1. 添加新的业务实体时，需要创建对应的：
-   - Entity类（`pojo.entity`）
-   - DTO类（`pojo.dto`）
+   - Entity类（`models.entity`）
+   - DTO类（`models.dto`）
    - Mapper接口（`mapper`）
    - Service类（`service`）
    - Controller类（`controller`）
+   - Convert转换器（`convert`）
 
 2. 所有API接口都应该：
    - 使用`/api`前缀
-   - 返回统一的`ResultVO`格式
+   - 返回统一的响应格式
    - 支持CORS跨域请求
 
 ### 前端开发
