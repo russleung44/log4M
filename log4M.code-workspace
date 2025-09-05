@@ -1,0 +1,28 @@
+{
+    "folders": [
+        {
+            "name": "log4M (Root)",
+            "path": "."
+        },
+        {
+            "name": "Backend",
+            "path": "./backend"
+        },
+        {
+            "name": "Frontend Admin",
+            "path": "./frontend-admin"
+        }
+    ],
+    "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.import.maven.enabled": true,
+        "java.maven.downloadSources": true
+    },
+    "extensions": {
+        "recommendations": [
+            "vscjava.vscode-java-pack",
+            "vscjava.vscode-spring-boot-dashboard",
+            "pivotal.vscode-spring-boot"
+        ]
+    }
+}

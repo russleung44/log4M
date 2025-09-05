@@ -2,13 +2,16 @@ server:
   port: 9001
 
 spring:
+  profiles:
+    active:
+    - local
   application:
     name: log4M
   datasource:
     driver-class-name: org.h2.Driver
     username: sa
     password:
-    url: jdbc:h2:file:./data/log4m;MODE=MySQL;AUTO_SERVER=true
+    url: jdbc:h2:file:../data/log4m;MODE=MySQL;AUTO_SERVER=true
   h2:
     console:
       enabled: true
@@ -30,4 +33,4 @@ mybatis-plus:
 logging:
   config: classpath:logback.xml
 
-botToken: "botToken"
+botToken: ${BOT_TOKEN:YOUR_BOT_TOKEN}

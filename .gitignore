@@ -32,3 +32,14 @@ build/
 /.mvn/
 /src/test/
 /data/
+/.qoder/
+
+# Environment Variables
+.env.local
+.env.*.local
+application-local.yml
+application-dev.yml
+
+# Local run scripts with actual tokens
+run-local-with-token.bat
+run-local-with-token.ps1

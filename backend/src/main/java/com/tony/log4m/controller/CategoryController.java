@@ -1,4 +1,4 @@
-package com.tony.log4m.apis;
+package com.tony.log4m.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -31,17 +31,16 @@ public class CategoryController {
      */
     @GetMapping
     public ResultVO<Page<Category>> pageQuery(
-            @RequestParam(defaultValue = "1") int current,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) String keyword
-    ) {
+            @RequestParam(name = "current", defaultValue = "1") int current,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "keyword", required = false) String keyword) {
         Page<Category> page = new Page<>(current, size);
-        
+
         LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<Category>()
                 .like(keyword != null && !keyword.trim().isEmpty(), Category::getCategoryName, keyword)
                 .orderByAsc(Category::getParentCategoryId)
                 .orderByAsc(Category::getCategoryId);
-        
+
         Page<Category> result = categoryService.page(page, queryWrapper);
         return ResultVO.success(result);
     }
@@ -85,7 +84,7 @@ public class CategoryController {
         Category category = new Category();
         category.setCategoryName(dto.getCategoryName());
         category.setParentCategoryId(dto.getParentCategoryId());
-        
+
         boolean saved = categoryService.save(category);
         if (saved) {
             return ResultVO.success(category);
@@ -103,10 +102,10 @@ public class CategoryController {
         if (category == null) {
             return ResultVO.error("分类不存在");
         }
-        
+
         category.setCategoryName(dto.getCategoryName());
         category.setParentCategoryId(dto.getParentCategoryId());
-        
+
         boolean updated = categoryService.updateById(category);
         return ResultVO.success(updated);
     }

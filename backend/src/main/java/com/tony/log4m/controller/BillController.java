@@ -38,23 +38,22 @@ public class BillController {
         Page<Bill> page = new Page<>(current, size);
         return billService.lambdaQuery().orderByDesc(Bill::getBillDate).orderByDesc(Bill::getBillId).page(page);
     }
-    
+
     /**
      * 分页查询账单（新增前端API）
      */
     @GetMapping
     public ResultVO<Page<Bill>> pageQuery(
-            @RequestParam(defaultValue = "1") int current,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Long accountId,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
-            @RequestParam(required = false) TransactionType transactionType,
-            @RequestParam(required = false) String keyword
-    ) {
+            @RequestParam(name = "current", defaultValue = "1") int current,
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            @RequestParam(name = "categoryId", required = false) Long categoryId,
+            @RequestParam(name = "accountId", required = false) Long accountId,
+            @RequestParam(name = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam(name = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @RequestParam(name = "transactionType", required = false) TransactionType transactionType,
+            @RequestParam(name = "keyword", required = false) String keyword) {
         Page<Bill> page = new Page<>(current, size);
-        
+
         LambdaQueryWrapper<Bill> queryWrapper = new LambdaQueryWrapper<Bill>()
                 .eq(categoryId != null, Bill::getCategoryId, categoryId)
                 .eq(accountId != null, Bill::getAccountId, accountId)
@@ -64,11 +63,11 @@ public class BillController {
                 .like(keyword != null && !keyword.trim().isEmpty(), Bill::getNote, keyword)
                 .orderByDesc(Bill::getBillDate)
                 .orderByDesc(Bill::getBillId);
-        
+
         Page<Bill> result = billService.page(page, queryWrapper);
         return ResultVO.success(result);
     }
-    
+
     /**
      * 创建账单
      */
@@ -82,7 +81,7 @@ public class BillController {
         bill.setAccountId(dto.getAccountId());
         bill.setTagId(dto.getTagId());
         bill.setTransactionType(dto.getTransactionType());
-        
+
         boolean saved = billService.save(bill);
         if (saved) {
             return ResultVO.success(bill);
@@ -90,7 +89,7 @@ public class BillController {
             return ResultVO.error("创建账单失败");
         }
     }
-    
+
     /**
      * 更新账单
      */
@@ -100,7 +99,7 @@ public class BillController {
         if (bill == null) {
             return ResultVO.error("账单不存在");
         }
-        
+
         bill.setBillDate(dto.getBillDate());
         bill.setAmount(dto.getAmount());
         bill.setNote(dto.getNote());
@@ -108,11 +107,11 @@ public class BillController {
         bill.setAccountId(dto.getAccountId());
         bill.setTagId(dto.getTagId());
         bill.setTransactionType(dto.getTransactionType());
-        
+
         boolean updated = billService.updateById(bill);
         return ResultVO.success(updated);
     }
-    
+
     /**
      * 删除账单
      */
@@ -121,7 +120,7 @@ public class BillController {
         boolean deleted = billService.removeById(id);
         return ResultVO.success(deleted);
     }
-    
+
     /**
      * 批量删除账单
      */
@@ -130,16 +129,15 @@ public class BillController {
         boolean deleted = billService.removeByIds(dto.getIds());
         return ResultVO.success(deleted);
     }
-    
+
     /**
      * 获取日统计
      */
     @GetMapping("/statistics/daily")
     public ResultVO<Map<String, Object>> getDailyStatistics(
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date
-    ) {
+            @RequestParam(name = "date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
         Map<String, Object> result = new HashMap<>();
-        
+
         // 当日收入
         BigDecimal income = billService.lambdaQuery()
                 .eq(Bill::getBillDate, date)
@@ -148,7 +146,7 @@ public class BillController {
                 .stream()
                 .map(Bill::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
+
         // 当日支出
         BigDecimal expense = billService.lambdaQuery()
                 .eq(Bill::getBillDate, date)
@@ -157,33 +155,33 @@ public class BillController {
                 .stream()
                 .map(Bill::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
+
         // 当日交易笔数
         Long count = billService.lambdaQuery()
                 .eq(Bill::getBillDate, date)
                 .count();
-        
+
         result.put("date", date);
         result.put("income", income);
         result.put("expense", expense);
         result.put("balance", income.subtract(expense));
         result.put("count", count);
-        
+
         return ResultVO.success(result);
     }
-    
+
     /**
      * 获取月统计
      */
     @GetMapping("/statistics/monthly")
     public ResultVO<Map<String, Object>> getMonthlyStatistics(
-            @RequestParam String month // 格式: yyyy-MM
+            @RequestParam(name = "month") String month // 格式: yyyy-MM
     ) {
         LocalDate startDate = LocalDate.parse(month + "-01");
         LocalDate endDate = startDate.plusMonths(1).minusDays(1);
-        
+
         Map<String, Object> result = new HashMap<>();
-        
+
         // 月收入
         BigDecimal income = billService.lambdaQuery()
                 .ge(Bill::getBillDate, startDate)
@@ -193,7 +191,7 @@ public class BillController {
                 .stream()
                 .map(Bill::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
+
         // 月支出
         BigDecimal expense = billService.lambdaQuery()
                 .ge(Bill::getBillDate, startDate)
@@ -203,38 +201,37 @@ public class BillController {
                 .stream()
                 .map(Bill::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
+
         // 月交易笔数
         Long count = billService.lambdaQuery()
                 .ge(Bill::getBillDate, startDate)
                 .le(Bill::getBillDate, endDate)
                 .count();
-        
+
         result.put("month", month);
         result.put("income", income);
         result.put("expense", expense);
         result.put("balance", income.subtract(expense));
         result.put("count", count);
-        
+
         return ResultVO.success(result);
     }
-    
+
     /**
      * 获取分类统计
      */
     @GetMapping("/statistics/category")
     public ResultVO<List<Map<String, Object>>> getCategoryStatistics(
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
-            @RequestParam(required = false) TransactionType transactionType
-    ) {
+            @RequestParam(name = "startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam(name = "endDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @RequestParam(name = "transactionType", required = false) TransactionType transactionType) {
         // 这里需要通过SQL查询分类统计，暂时返回空结果
         // 实际实现需要在Service中添加相应方法
         Map<String, Object> placeholder = new HashMap<>();
         placeholder.put("categoryName", "示例分类");
         placeholder.put("amount", BigDecimal.ZERO);
         placeholder.put("count", 0);
-        
+
         return ResultVO.success(List.of(placeholder));
     }
 
