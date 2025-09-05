@@ -9,6 +9,7 @@ import type {
   DailyStatistics,
   MonthlyStatistics,
   CategoryStatistics,
+  TrendStatistics,
   TransactionType
 } from '@/types'
 
@@ -106,6 +107,16 @@ export class BillApi {
   static async getCategoryStatistics(startDate: string, endDate: string, transactionType?: TransactionType) {
     const response = await http.get<ApiResponse<CategoryStatistics[]>>('/bills/statistics/category', {
       params: { startDate, endDate, transactionType }
+    })
+    return response.data
+  }
+  
+  /**
+   * 获取趋势统计数据
+   */
+  static async getTrendStatistics(days: number = 7) {
+    const response = await http.get<ApiResponse<{date: string, income: number, expense: number}[]>>('/bills/statistics/trend', {
+      params: { days }
     })
     return response.data
   }

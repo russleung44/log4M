@@ -225,14 +225,17 @@ public class BillController {
             @RequestParam(name = "startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam(name = "endDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
             @RequestParam(name = "transactionType", required = false) TransactionType transactionType) {
-        // 这里需要通过SQL查询分类统计，暂时返回空结果
-        // 实际实现需要在Service中添加相应方法
-        Map<String, Object> placeholder = new HashMap<>();
-        placeholder.put("categoryName", "示例分类");
-        placeholder.put("amount", BigDecimal.ZERO);
-        placeholder.put("count", 0);
-
-        return ResultVO.success(List.of(placeholder));
+        List<Map<String, Object>> result = billService.getCategoryStatistics(startDate, endDate, transactionType);
+        return ResultVO.success(result);
     }
 
+    /**
+     * 获取最近N天的趋势数据
+     */
+    @GetMapping("/statistics/trend")
+    public ResultVO<List<Map<String, Object>>> getTrendStatistics(
+            @RequestParam(name = "days", defaultValue = "7") int days) {
+        List<Map<String, Object>> result = billService.getTrendStatistics(days);
+        return ResultVO.success(result);
+    }
 }

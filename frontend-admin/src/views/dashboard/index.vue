@@ -185,7 +185,9 @@ import type { EChartsOption } from 'echarts'
 import EChart from '@/components/Chart/EChart.vue'
 import StatisticCard from '@/components/StatisticCard/index.vue'
 import { useBillStore, useCategoryStore } from '@/stores'
-import type { Bill } from '@/types'
+import { BillApi } from '@/api'
+import type { Bill, TrendStatistics } from '@/types'
+import { TransactionType } from '@/types'
 
 const router = useRouter()
 const billStore = useBillStore()
@@ -203,7 +205,7 @@ const incomeTrend = ref(0)
 const expenseTrend = ref(0)
 
 const recentBills = ref<Bill[]>([])
-const trendData = ref<{ date: string; income: number; expense: number }[]>([])
+const trendData = ref<TrendStatistics[]>([])
 const categoryData = ref<{ name: string; value: number }[]>([])
 
 // 计算属性
@@ -306,14 +308,21 @@ const loadTodayStats = async () => {
     statsLoading.value = true
     const today = dayjs().format('YYYY-MM-DD')
     
-    // 模拟数据，实际应该调用API
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // 调用真实API获取今日统计
+    const response = await BillApi.getDailyStatistics(today)
     
-    todayIncome.value = 1500.50
-    todayExpense.value = 280.30
-    todayCount.value = 8
-    incomeTrend.value = 12.5
-    expenseTrend.value = -5.2
+    if (response.code === 200 || response.code === 0) {
+      const data = response.data
+      todayIncome.value = data.income
+      todayExpense.value = data.expense
+      todayCount.value = data.count
+      
+      // 计算趋势数据（这里简化处理，实际应该查询昨日数据进行比较）
+      incomeTrend.value = 0
+      expenseTrend.value = 0
+    } else {
+      message.error(response.message || '获取统计数据失败')
+    }
   } catch (error) {
     console.error('加载今日统计失败：', error)
     message.error('加载统计数据失败')
@@ -326,27 +335,46 @@ const loadChartData = async () => {
   try {
     chartsLoading.value = true
     
-    // 模拟数据，实际应该调用API
-    await new Promise(resolve => setTimeout(resolve, 1200))
+    // 获取最近7天趋势数据
+    const trendResponse = await BillApi.getTrendStatistics(7)
     
-    // 生成最近7天的模拟数据
-    trendData.value = Array.from({ length: 7 }, (_, i) => {
-      const date = dayjs().subtract(6 - i, 'day').format('YYYY-MM-DD')
-      return {
-        date,
-        income: Math.random() * 2000 + 500,
-        expense: Math.random() * 1000 + 200
-      }
-    })
+    // 获取最近7天的分类统计（支出）
+    const endDate = dayjs().format('YYYY-MM-DD')
+    const startDate = dayjs().subtract(6, 'day').format('YYYY-MM-DD')
+    const categoryResponse = await BillApi.getCategoryStatistics(startDate, endDate, TransactionType.EXPENSE)
     
-    // 模拟分类数据
-    categoryData.value = [
-      { name: '餐饮', value: 850 },
-      { name: '交通', value: 320 },
-      { name: '购物', value: 680 },
-      { name: '娱乐', value: 420 },
-      { name: '其他', value: 180 }
-    ]
+    if (trendResponse.code === 200 || trendResponse.code === 0) {
+      // 处理趋势数据
+      const trendResult = trendResponse.data
+      // 确保有7天的数据，缺失的日期用0填充
+      const trendMap = new Map<string, { income: number; expense: number }>()
+      trendResult.forEach(item => {
+        trendMap.set(item.date, { income: item.income, expense: item.expense })
+      })
+      
+      // 生成完整的7天数据
+      trendData.value = Array.from({ length: 7 }, (_, i) => {
+        const date = dayjs().subtract(6 - i, 'day').format('YYYY-MM-DD')
+        const data = trendMap.get(date) || { income: 0, expense: 0 }
+        return {
+          date,
+          income: data.income,
+          expense: data.expense
+        }
+      })
+    } else {
+      message.error(trendResponse.message || '获取趋势数据失败')
+    }
+    
+    if (categoryResponse.code === 200 || categoryResponse.code === 0) {
+      // 处理分类数据
+      categoryData.value = categoryResponse.data.map(item => ({
+        name: item.categoryName,
+        value: item.amount
+      }))
+    } else {
+      message.error(categoryResponse.message || '获取分类数据失败')
+    }
   } catch (error) {
     console.error('加载图表数据失败：', error)
     message.error('加载图表数据失败')
@@ -359,47 +387,14 @@ const loadRecentBills = async () => {
   try {
     billsLoading.value = true
     
-    // 模拟数据，实际应该调用billStore.fetchBills()
-    await new Promise(resolve => setTimeout(resolve, 800))
+    // 调用真实API获取最近账单
+    const response = await BillApi.list()
     
-    recentBills.value = [
-      {
-        billId: 1,
-        billDate: '2024-01-20',
-        amount: 25.5,
-        note: '午餐',
-        categoryId: 1,
-        categoryName: '餐饮',
-        accountId: 1,
-        transactionType: 'EXPENSE',
-        crTime: '2024-01-20 12:30:00',
-        upTime: '2024-01-20 12:30:00'
-      },
-      {
-        billId: 2,
-        billDate: '2024-01-20',
-        amount: 3000,
-        note: '工资',
-        categoryId: 2,
-        categoryName: '工资',
-        accountId: 1,
-        transactionType: 'INCOME',
-        crTime: '2024-01-20 09:00:00',
-        upTime: '2024-01-20 09:00:00'
-      },
-      {
-        billId: 3,
-        billDate: '2024-01-19',
-        amount: 15.8,
-        note: '地铁',
-        categoryId: 3,
-        categoryName: '交通',
-        accountId: 1,
-        transactionType: 'EXPENSE',
-        crTime: '2024-01-19 18:45:00',
-        upTime: '2024-01-19 18:45:00'
-      }
-    ] as Bill[]
+    if (response.code === 200 || response.code === 0) {
+      recentBills.value = response.data as Bill[]
+    } else {
+      message.error(response.message || '获取最近账单失败')
+    }
   } catch (error) {
     console.error('加载最近账单失败：', error)
     message.error('加载最近账单失败')

@@ -187,6 +187,12 @@ export interface CategoryStatistics {
   count: number
 }
 
+export interface TrendStatistics {
+  date: string
+  income: number
+  expense: number
+}
+
 // 批量删除DTO
 export interface BatchDeleteDto {
   ids: number[]
