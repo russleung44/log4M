@@ -37,15 +37,6 @@ replay_pid*
 *.ipr
 out/
 
-# NetBeans
-nbproject/private/
-build/
-nbbuild/
-dist/
-nbdist/
-bin/
-doc/
-lib/
 
 # Maven
 target/
@@ -93,3 +84,6 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+application-local.yml
+application-dev.yml
