@@ -120,92 +120,6 @@
         </a-card>
       </a-col>
     </a-row>
-    
-    <!-- 最近账单 -->
-    <a-row :gutter="[16, 16]" class="recent-bills-row">
-      <a-col :span="24">
-        <a-card title="最近账单" :loading="billsLoading" class="recent-bills-card">
-          <template #extra>
-            <a-button type="link" @click="navigateTo('/bills')">
-              查看全部
-            </a-button>
-          </template>
-          
-          <a-list
-            :data-source="recentBills"
-            :loading="billsLoading"
-            item-layout="horizontal"
-            class="bills-list"
-          >
-            <template #renderItem="{ item }">
-              <a-list-item class="bill-item">
-                <a-list-item-meta>
-                  <template #avatar>
-                    <div class="bill-avatar" :class="item.transactionType === 'INCOME' ? 'income' : 'expense'">
-                      <ArrowUpOutlined v-if="item.transactionType === 'INCOME'" />
-                      <ArrowDownOutlined v-else />
-                    </div>
-                  </template>
-                  <template #title>
-                    <div class="bill-content">
-                      <div class="bill-main-info">
-                        <div class="bill-description">{{ item.note || '无备注' }}</div>
-                        <div class="bill-details-row">
-                          <span class="bill-amount" :class="item.transactionType === 'INCOME' ? 'income' : 'expense'">
-                            {{ item.transactionType === 'INCOME' ? '+' : '-' }}¥{{ formatAmount(item.amount) }}
-                          </span>
-                          <a-tag 
-                            class="bill-type-tag"
-                            :color="item.transactionType === 'INCOME' ? 'green' : 'red'"
-                          >
-                            {{ item.transactionType === 'INCOME' ? '收入' : '支出' }}
-                          </a-tag>
-                        </div>
-                        <div class="bill-meta-info">
-                          <span class="bill-category-small">{{ item.categoryName || '未分类' }}</span>
-                          <span class="separator">•</span>
-                          <span class="bill-date-small">{{ formatDate(item.billDate) }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                </a-list-item-meta>
-              </a-list-item>
-            </template>
-          </a-list>
-        </a-card>
-      </a-col>
-    </a-row>
-    
-    <!-- 快捷操作 -->
-    <a-card title="快捷操作" class="quick-actions">
-      <a-row :gutter="[16, 16]">
-        <a-col :xs="12" :sm="6">
-          <a-button type="primary" block size="large" @click="navigateTo('/bills/create')">
-            <PlusOutlined />
-            添加账单
-          </a-button>
-        </a-col>
-        <a-col :xs="12" :sm="6">
-          <a-button block size="large" @click="navigateTo('/bills')">
-            <UnorderedListOutlined />
-            账单管理
-          </a-button>
-        </a-col>
-        <a-col :xs="12" :sm="6">
-          <a-button block size="large" @click="navigateTo('/categories')">
-            <AppstoreOutlined />
-            分类管理
-          </a-button>
-        </a-col>
-        <a-col :xs="12" :sm="6">
-          <a-button block size="large" @click="navigateTo('/rules')">
-            <SettingOutlined />
-            规则管理
-          </a-button>
-        </a-col>
-      </a-row>
-    </a-card>
   </div>
 </template>
 
@@ -218,10 +132,6 @@ import {
   ArrowDownOutlined,
   WalletOutlined,
   TransactionOutlined,
-  PlusOutlined,
-  UnorderedListOutlined,
-  AppstoreOutlined,
-  SettingOutlined,
   CalendarOutlined
 } from '@ant-design/icons-vue'
 import dayjs, { Dayjs } from 'dayjs'
@@ -241,7 +151,6 @@ const categoryStore = useCategoryStore()
 // 响应式数据
 const statsLoading = ref(false)
 const chartsLoading = ref(false)
-const billsLoading = ref(false)
 const categoryChartLoading = ref(false) // 专门用于分类图表的加载状态
 const trendChartKey = ref(0) // 用于强制重新渲染趋势图表
 const categoryChartKey = ref(0) // 用于强制重新渲染分类图表
@@ -252,7 +161,6 @@ const yesterdayExpense = ref(0)
 const monthExpense = ref(0)
 const yearExpense = ref(0)
 
-const recentBills = ref<Bill[]>([])
 const trendData = ref<TrendStatistics[]>([])
 const categoryData = ref<{ name: string; value: number }[]>([])
 
@@ -585,36 +493,12 @@ const loadCategoryData = async () => {
   }
 }
 
-const loadRecentBills = async () => {
-  try {
-    billsLoading.value = true
-    
-    // 调用真实API获取最近账单
-    const response = await BillApi.list()
-    
-    if (response.code === 200 || response.code === 1 || response.code === 0) {
-      recentBills.value = response.data as Bill[]
-    } else {
-      console.error('获取最近账单失败:', response.message)
-      message.error(response.message || '获取最近账单失败')
-    }
-  } catch (error: any) {
-    console.error('加载最近账单失败：', error)
-    // 提供更详细的错误信息
-    const errorMessage = error.response?.data?.message || error.message || '加载最近账单失败'
-    message.error(`加载最近账单失败: ${errorMessage}`)
-  } finally {
-    billsLoading.value = false
-  }
-}
-
 onMounted(async () => {
   console.log('开始加载仪表板数据...') // 调试信息
   // 并发加载数据
   await Promise.all([
     loadExpenseStats(),
-    loadChartData(),
-    loadRecentBills()
+    loadChartData()
   ])
   console.log('仪表板数据加载完成') // 调试信息
 })
@@ -625,7 +509,6 @@ onMounted(async () => {
   padding: 24px;
   background: #f0f2f5;
   min-height: 100vh;
-  padding-left: 80px; /* 为左上角的home图标留出空间 */
 }
 
 .stats-row {
@@ -775,10 +658,6 @@ onMounted(async () => {
   font-size: 12px;
 }
 
-.quick-actions {
-  margin-top: 24px;
-}
-
 /* 分类数据容器样式 */
 .category-data-container {
   height: 300px;
@@ -837,7 +716,6 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .dashboard {
     padding: 16px;
-    padding-left: 60px; /* 移动端为home图标留出空间 */
   }
   
   .bill-amount {
