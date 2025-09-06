@@ -4,7 +4,7 @@ import type { ApiResponse } from '@/types'
 
 // 创建axios实例
 const http: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:9001/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -33,7 +33,7 @@ http.interceptors.response.use(
     }
     
     // 处理业务错误
-    if (data.code !== 200 && data.code !== 0) {
+    if (data.code !== 200 && data.code !== 1 && data.code !== 0) {
       message.error(data.message || '请求失败')
       return Promise.reject(new Error(data.message || '请求失败'))
     }
@@ -60,12 +60,17 @@ http.interceptors.response.use(
           message.error('服务器内部错误')
           break
         default:
-          message.error(response.data?.message || `请求失败 ${response.status}`)
+          // 检查响应数据中是否有错误信息
+          if (response.data && typeof response.data === 'object' && 'message' in response.data) {
+            message.error(response.data.message || `请求失败 ${response.status}`)
+          } else {
+            message.error(`请求失败 ${response.status}`)
+          }
       }
     } else if (error.request) {
       message.error('网络错误，请检查网络连接')
     } else {
-      message.error('请求失败')
+      message.error('请求失败: ' + (error.message || '未知错误'))
     }
     
     return Promise.reject(error)

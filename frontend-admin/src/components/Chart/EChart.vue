@@ -1,5 +1,9 @@
 <template>
-  <div ref="chartRef" :style="{ width: '100%', height }" class="chart-container"></div>
+  <div 
+    ref="chartRef" 
+    :style="{ height: height }" 
+    class="echart-container"
+  ></div>
 </template>
 
 <script setup lang="ts">
@@ -36,9 +40,14 @@ const initChart = () => {
   })
 }
 
-const updateChart = () => {
+const updateChart = async () => {
   if (chartInstance) {
     chartInstance.setOption(props.option, true)
+    // 强制刷新图表
+    chartInstance.resize()
+    // 等待下一个tick确保DOM更新完成
+    await nextTick()
+    chartInstance.resize()
   }
 }
 
@@ -68,8 +77,8 @@ const hideLoading = () => {
 
 watch(
   () => props.option,
-  () => {
-    updateChart()
+  async (newOption) => {
+    await updateChart()
   },
   { deep: true }
 )
@@ -95,6 +104,13 @@ onMounted(async () => {
   
   // 监听窗口大小变化
   window.addEventListener('resize', resizeChart)
+  
+  // 添加一个延迟确保图表正确初始化
+  setTimeout(() => {
+    if (chartInstance) {
+      chartInstance.resize()
+    }
+  }, 100)
 })
 
 onUnmounted(() => {
@@ -110,12 +126,7 @@ defineExpose({
   getChart: () => chartInstance,
   resize: resizeChart,
   showLoading,
-  hideLoading
+  hideLoading,
+  updateChart
 })
 </script>
-
-<style scoped>
-.chart-container {
-  position: relative;
-}
-</style>

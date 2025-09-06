@@ -9,38 +9,22 @@
     <a-row :gutter="[16, 16]" class="stats-row">
       <a-col :xs="24" :sm="12" :lg="6">
         <StatisticCard
-          title="今日收入"
-          :value="todayIncome"
-          :icon="ArrowUpOutlined"
-          color="#52c41a"
-          suffix="元"
-          :precision="2"
-          :trend="incomeTrend"
-          trend-label="较昨日"
-          :loading="statsLoading"
-        />
-      </a-col>
-      
-      <a-col :xs="24" :sm="12" :lg="6">
-        <StatisticCard
           title="今日支出"
           :value="todayExpense"
-          :icon="ArrowDownOutlined"
+          :icon="CalendarOutlined"
           color="#ff4d4f"
           suffix="元"
           :precision="2"
-          :trend="expenseTrend"
-          trend-label="较昨日"
           :loading="statsLoading"
         />
       </a-col>
       
       <a-col :xs="24" :sm="12" :lg="6">
         <StatisticCard
-          title="今日净收入"
-          :value="todayBalance"
-          :icon="WalletOutlined"
-          :color="todayBalance >= 0 ? '#52c41a' : '#ff4d4f'"
+          title="昨日支出"
+          :value="yesterdayExpense"
+          :icon="CalendarOutlined"
+          color="#ff4d4f"
           suffix="元"
           :precision="2"
           :loading="statsLoading"
@@ -49,11 +33,24 @@
       
       <a-col :xs="24" :sm="12" :lg="6">
         <StatisticCard
-          title="今日交易"
-          :value="todayCount"
-          :icon="TransactionOutlined"
-          color="#1890ff"
-          suffix="笔"
+          title="本月支出"
+          :value="monthExpense"
+          :icon="CalendarOutlined"
+          color="#ff4d4f"
+          suffix="元"
+          :precision="2"
+          :loading="statsLoading"
+        />
+      </a-col>
+      
+      <a-col :xs="24" :sm="12" :lg="6">
+        <StatisticCard
+          title="本年支出"
+          :value="yearExpense"
+          :icon="CalendarOutlined"
+          color="#ff4d4f"
+          suffix="元"
+          :precision="2"
           :loading="statsLoading"
         />
       </a-col>
@@ -64,21 +61,39 @@
       <a-col :xs="24" :lg="12">
         <a-card title="最近7天收支趋势" :loading="chartsLoading">
           <EChart
+            ref="trendChartRef"
             :option="trendChartOption"
             height="300px"
             :loading="chartsLoading"
             @chart-click="handleTrendClick"
+            :key="`trend-chart-${chartKey}`"
           />
         </a-card>
       </a-col>
       
       <a-col :xs="24" :lg="12">
-        <a-card title="本月支出分类" :loading="chartsLoading">
+        <a-card :loading="chartsLoading">
+          <template #title>
+            <div class="chart-title">
+              <span>支出分类</span>
+              <a-date-picker
+                v-model:value="selectedMonth"
+                picker="month"
+                size="small"
+                :allowClear="false"
+                :disabled="chartsLoading"
+                @change="handleMonthChange"
+                class="month-picker"
+              />
+            </div>
+          </template>
           <EChart
+            ref="categoryChartRef"
             :option="categoryChartOption"
             height="300px"
             :loading="chartsLoading"
             @chart-click="handleCategoryClick"
+            :key="`category-chart-${chartKey}`"
           />
         </a-card>
       </a-col>
@@ -87,7 +102,7 @@
     <!-- 最近账单 -->
     <a-row :gutter="[16, 16]" class="recent-bills-row">
       <a-col :span="24">
-        <a-card title="最近账单" :loading="billsLoading">
+        <a-card title="最近账单" :loading="billsLoading" class="recent-bills-card">
           <template #extra>
             <a-button type="link" @click="navigateTo('/bills')">
               查看全部
@@ -97,35 +112,42 @@
           <a-list
             :data-source="recentBills"
             :loading="billsLoading"
+            item-layout="horizontal"
+            class="bills-list"
           >
             <template #renderItem="{ item }">
-              <a-list-item>
+              <a-list-item class="bill-item">
                 <a-list-item-meta>
-                  <template #title>
-                    <div class="bill-title">
-                      <span class="bill-description">{{ item.note || '无备注' }}</span>
-                      <a-tag :color="item.transactionType === 'INCOME' ? 'green' : 'red'">
-                        {{ item.transactionType === 'INCOME' ? '收入' : '支出' }}
-                      </a-tag>
+                  <template #avatar>
+                    <div class="bill-avatar" :class="item.transactionType === 'INCOME' ? 'income' : 'expense'">
+                      <ArrowUpOutlined v-if="item.transactionType === 'INCOME'" />
+                      <ArrowDownOutlined v-else />
                     </div>
                   </template>
-                  <template #description>
-                    <div class="bill-meta">
-                      <span>{{ item.categoryName || '未分类' }}</span>
-                      <span>{{ formatDate(item.billDate) }}</span>
+                  <template #title>
+                    <div class="bill-content">
+                      <div class="bill-main-info">
+                        <div class="bill-description">{{ item.note || '无备注' }}</div>
+                        <div class="bill-details-row">
+                          <span class="bill-amount" :class="item.transactionType === 'INCOME' ? 'income' : 'expense'">
+                            {{ item.transactionType === 'INCOME' ? '+' : '-' }}¥{{ formatAmount(item.amount) }}
+                          </span>
+                          <a-tag 
+                            class="bill-type-tag"
+                            :color="item.transactionType === 'INCOME' ? 'green' : 'red'"
+                          >
+                            {{ item.transactionType === 'INCOME' ? '收入' : '支出' }}
+                          </a-tag>
+                        </div>
+                        <div class="bill-meta-info">
+                          <span class="bill-category-small">{{ item.categoryName || '未分类' }}</span>
+                          <span class="separator">•</span>
+                          <span class="bill-date-small">{{ formatDate(item.billDate) }}</span>
+                        </div>
+                      </div>
                     </div>
                   </template>
                 </a-list-item-meta>
-                <div class="bill-amount">
-                  <span 
-                    :class="[
-                      'amount-text',
-                      item.transactionType === 'INCOME' ? 'income' : 'expense'
-                    ]"
-                  >
-                    {{ item.transactionType === 'INCOME' ? '+' : '-' }}¥{{ item.amount }}
-                  </span>
-                </div>
               </a-list-item>
             </template>
           </a-list>
@@ -166,7 +188,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
@@ -177,16 +199,17 @@ import {
   PlusOutlined,
   UnorderedListOutlined,
   AppstoreOutlined,
-  SettingOutlined
+  SettingOutlined,
+  CalendarOutlined
 } from '@ant-design/icons-vue'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import type { EChartsOption } from 'echarts'
 
 import EChart from '@/components/Chart/EChart.vue'
 import StatisticCard from '@/components/StatisticCard/index.vue'
 import { useBillStore, useCategoryStore } from '@/stores'
 import { BillApi } from '@/api'
-import type { Bill, TrendStatistics } from '@/types'
+import type { Bill, TrendStatistics, CategoryStatistics } from '@/types'
 import { TransactionType } from '@/types'
 
 const router = useRouter()
@@ -197,85 +220,96 @@ const categoryStore = useCategoryStore()
 const statsLoading = ref(false)
 const chartsLoading = ref(false)
 const billsLoading = ref(false)
+const chartKey = ref(0) // 用于强制重新渲染图表
 
-const todayIncome = ref(0)
+// 新的支出统计数据
 const todayExpense = ref(0)
-const todayCount = ref(0)
-const incomeTrend = ref(0)
-const expenseTrend = ref(0)
+const yesterdayExpense = ref(0)
+const monthExpense = ref(0)
+const yearExpense = ref(0)
 
 const recentBills = ref<Bill[]>([])
 const trendData = ref<TrendStatistics[]>([])
 const categoryData = ref<{ name: string; value: number }[]>([])
 
-// 计算属性
-const todayBalance = computed(() => todayIncome.value - todayExpense.value)
+// 月份选择器数据
+const selectedMonth = ref<Dayjs>(dayjs())
+
+// 图表引用
+const trendChartRef = ref()
+const categoryChartRef = ref()
 
 // 图表配置
-const trendChartOption = computed<EChartsOption>(() => ({
-  tooltip: {
-    trigger: 'axis',
-    axisPointer: {
-      type: 'cross',
-      label: {
-        backgroundColor: '#6a7985'
-      }
-    }
-  },
-  legend: {
-    data: ['收入', '支出']
-  },
-  xAxis: {
-    type: 'category',
-    boundaryGap: false,
-    data: trendData.value.map(item => dayjs(item.date).format('MM-DD'))
-  },
-  yAxis: {
-    type: 'value'
-  },
-  series: [
-    {
-      name: '收入',
-      type: 'line',
-      stack: 'Total',
-      data: trendData.value.map(item => item.income),
-      itemStyle: { color: '#52c41a' }
-    },
-    {
-      name: '支出',
-      type: 'line',
-      stack: 'Total',
-      data: trendData.value.map(item => item.expense),
-      itemStyle: { color: '#ff4d4f' }
-    }
-  ]
-}))
-
-const categoryChartOption = computed<EChartsOption>(() => ({
-  tooltip: {
-    trigger: 'item',
-    formatter: '{a} <br/>{b}: {c} ({d}%)'
-  },
-  legend: {
-    orient: 'vertical',
-    left: 'left'
-  },
-  series: [
-    {
-      name: '支出分类',
-      type: 'pie',
-      radius: '50%',
-      data: categoryData.value,
-      emphasis: {
-        itemStyle: {
-          shadowBlur: 10,
-          shadowOffsetX: 0,
-          shadowColor: 'rgba(0, 0, 0, 0.5)'
+const trendChartOption = computed<EChartsOption>(() => {
+  // console.log('趋势图表数据更新:', trendData.value) // 调试信息
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+        label: {
+          backgroundColor: '#6a7985'
         }
       }
-    }
-  ]
-}))
+    },
+    legend: {
+      data: ['收入', '支出']
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: trendData.value.map(item => dayjs(item.date).format('MM-DD'))
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        name: '收入',
+        type: 'line',
+        stack: 'Total',
+        data: trendData.value.map(item => item.income),
+        itemStyle: { color: '#52c41a' }
+      },
+      {
+        name: '支出',
+        type: 'line',
+        stack: 'Total',
+        data: trendData.value.map(item => item.expense),
+        itemStyle: { color: '#ff4d4f' }
+      }
+    ]
+  }
+})
+
+const categoryChartOption = computed<EChartsOption>(() => {
+  // console.log('分类图表数据更新:', categoryData.value) // 调试信息
+  return {
+    tooltip: {
+      trigger: 'item',
+      formatter: '{a} <br/>{b}: {c} ({d}%)'
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left'
+    },
+    series: [
+      {
+        name: '支出分类',
+        type: 'pie',
+        radius: '50%',
+        data: categoryData.value,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  }
+})
 
 // 方法
 const navigateTo = (path: string) => {
@@ -303,29 +337,80 @@ const formatDate = (date: string) => {
   return dayjs(date).format('YYYY-MM-DD')
 }
 
-const loadTodayStats = async () => {
+const formatAmount = (amount: number) => {
+  return amount.toFixed(2);
+};
+
+// 月份改变处理函数
+const handleMonthChange = async () => {
+  console.log('月份切换到:', selectedMonth.value.format('YYYY-MM')) // 调试信息
+  await loadCategoryData()
+  // 增加chartKey强制重新渲染图表
+  chartKey.value++
+  console.log('月份切换后更新chartKey:', chartKey.value) // 调试信息
+  
+  // 手动触发图表更新
+  await nextTick()
+  if (categoryChartRef.value) {
+    console.log('手动更新分类图表')
+    categoryChartRef.value.updateChart()
+  }
+}
+
+// 更新加载统计的方法名称
+const loadExpenseStats = async () => {
   try {
     statsLoading.value = true
+    
+    // 获取今天的日期格式
     const today = dayjs().format('YYYY-MM-DD')
+    const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD')
+    const currentMonth = dayjs().format('YYYY-MM')
+    const currentYear = dayjs().format('YYYY')
     
-    // 调用真实API获取今日统计
-    const response = await BillApi.getDailyStatistics(today)
+    // 并行获取所有统计数据
+    const [todayResponse, yesterdayResponse, monthResponse, yearResponse] = await Promise.all([
+      BillApi.getDailyStatistics(today),
+      BillApi.getDailyStatistics(yesterday),
+      BillApi.getMonthlyStatistics(currentMonth),
+      // 使用新的年支出统计API
+      BillApi.getYearlyExpenseStatistics(currentYear)
+    ])
     
-    if (response.code === 200 || response.code === 0) {
-      const data = response.data
-      todayIncome.value = data.income
-      todayExpense.value = data.expense
-      todayCount.value = data.count
-      
-      // 计算趋势数据（这里简化处理，实际应该查询昨日数据进行比较）
-      incomeTrend.value = 0
-      expenseTrend.value = 0
+    // 处理今日支出
+    if (todayResponse.code === 200 || todayResponse.code === 0) {
+      // 修复：从data中提取expense值
+      todayExpense.value = todayResponse.data.expense || 0
     } else {
-      message.error(response.message || '获取统计数据失败')
+      message.error(todayResponse.message || '获取今日支出数据失败')
+    }
+    
+    // 处理昨日支出
+    if (yesterdayResponse.code === 200 || yesterdayResponse.code === 0) {
+      // 修复：从data中提取expense值
+      yesterdayExpense.value = yesterdayResponse.data.expense || 0
+    } else {
+      message.error(yesterdayResponse.message || '获取昨日支出数据失败')
+    }
+    
+    // 处理本月支出
+    if (monthResponse.code === 200 || monthResponse.code === 0) {
+      // 修复：从data中提取expense值
+      monthExpense.value = monthResponse.data.expense || 0
+    } else {
+      message.error(monthResponse.message || '获取本月支出数据失败')
+    }
+    
+    // 处理本年支出
+    if (yearResponse.code === 200 || yearResponse.code === 0) {
+      // 修复：从data中提取expense值
+      yearExpense.value = yearResponse.data.expense || 0
+    } else {
+      message.error(yearResponse.message || '获取本年支出数据失败')
     }
   } catch (error) {
-    console.error('加载今日统计失败：', error)
-    message.error('加载统计数据失败')
+    console.error('加载支出统计数据失败：', error)
+    message.error('加载支出统计数据失败')
   } finally {
     statsLoading.value = false
   }
@@ -337,19 +422,31 @@ const loadChartData = async () => {
     
     // 获取最近7天趋势数据
     const trendResponse = await BillApi.getTrendStatistics(7)
+    console.log('趋势数据响应:', trendResponse) // 调试信息
     
-    // 获取最近7天的分类统计（支出）
+    // 获取最近7天的分类统计（支出）- 与趋势图保持一致的时间范围
     const endDate = dayjs().format('YYYY-MM-DD')
     const startDate = dayjs().subtract(6, 'day').format('YYYY-MM-DD')
+    console.log('分类统计时间范围:', startDate, '到', endDate) // 调试信息
     const categoryResponse = await BillApi.getCategoryStatistics(startDate, endDate, TransactionType.EXPENSE)
+    console.log('分类数据响应:', categoryResponse) // 调试信息
     
     if (trendResponse.code === 200 || trendResponse.code === 0) {
-      // 处理趋势数据
-      const trendResult = trendResponse.data
+      // 处理趋势数据 - 确保数据格式正确，兼容大小写字段名
+      console.log('原始趋势数据:', trendResponse.data) // 调试信息
+      const trendResult = (trendResponse.data || []).map((item: any) => ({
+        date: item.date || item.DATE || item.billDate || item.BILLDATE || '',
+        income: parseFloat(item.income || item.INCOME || 0),
+        expense: parseFloat(item.expense || item.EXPENSE || 0)
+      }))
+      console.log('处理后的趋势数据:', trendResult) // 调试信息
+      
       // 确保有7天的数据，缺失的日期用0填充
       const trendMap = new Map<string, { income: number; expense: number }>()
       trendResult.forEach(item => {
-        trendMap.set(item.date, { income: item.income, expense: item.expense })
+        // 格式化日期为 YYYY-MM-DD 格式
+        const formattedDate = dayjs(item.date).format('YYYY-MM-DD')
+        trendMap.set(formattedDate, { income: item.income, expense: item.expense })
       })
       
       // 生成完整的7天数据
@@ -362,22 +459,102 @@ const loadChartData = async () => {
           expense: data.expense
         }
       })
+      console.log('最终趋势数据:', trendData.value) // 调试信息
+      
+      // 数据更新后，确保图表重新渲染
+      await nextTick()
     } else {
       message.error(trendResponse.message || '获取趋势数据失败')
     }
     
     if (categoryResponse.code === 200 || categoryResponse.code === 0) {
-      // 处理分类数据
-      categoryData.value = categoryResponse.data.map(item => ({
-        name: item.categoryName,
-        value: item.amount
+      // 处理分类数据 - 确保数据格式正确，兼容大小写字段名
+      console.log('原始分类数据:', categoryResponse.data) // 调试信息
+      const categoryResult = (categoryResponse.data || []).map((item: any) => ({
+        categoryName: item.categoryName || item.CATEGORYNAME || item.name || '未分类',
+        amount: parseFloat(item.amount || item.AMOUNT || 0),
+        count: parseInt(item.count || item.COUNT || 0)
       }))
+      console.log('处理后的分类数据:', categoryResult) // 调试信息
+      
+      categoryData.value = categoryResult
+        .filter(item => item.amount > 0) // 只显示有金额的分类
+        .map(item => ({
+          name: item.categoryName,
+          value: item.amount
+        }))
+      console.log('最终分类数据:', categoryData.value) // 调试信息
+      
+      // 数据更新后，确保图表重新渲染
+      await nextTick()
     } else {
       message.error(categoryResponse.message || '获取分类数据失败')
+    }
+    
+    // 增加chartKey强制重新渲染图表
+    chartKey.value++
+    console.log('更新chartKey:', chartKey.value) // 调试信息
+    
+    // 手动触发图表更新
+    await nextTick()
+    if (trendChartRef.value) {
+      console.log('手动更新趋势图表')
+      trendChartRef.value.updateChart()
+    }
+    if (categoryChartRef.value) {
+      console.log('手动更新分类图表')
+      categoryChartRef.value.updateChart()
     }
   } catch (error) {
     console.error('加载图表数据失败：', error)
     message.error('加载图表数据失败')
+  } finally {
+    chartsLoading.value = false
+  }
+}
+
+// 加载指定月份的分类数据
+const loadCategoryData = async () => {
+  try {
+    chartsLoading.value = true
+    
+    // 获取选择月份的第一天和最后一天
+    const startDate = selectedMonth.value.startOf('month').format('YYYY-MM-DD')
+    const endDate = selectedMonth.value.endOf('month').format('YYYY-MM-DD')
+    
+    console.log('月份切换时间范围:', startDate, '到', endDate) // 调试信息
+    
+    // 获取分类统计（支出）
+    const categoryResponse = await BillApi.getCategoryStatistics(startDate, endDate, TransactionType.EXPENSE)
+    console.log('月份切换-分类数据响应:', categoryResponse) // 调试信息
+    
+    if (categoryResponse.code === 200 || categoryResponse.code === 0) {
+      // 处理分类数据 - 确保数据格式正确，兼容大小写字段名
+      console.log('月份切换-原始分类数据:', categoryResponse.data) // 调试信息
+      const categoryResult = (categoryResponse.data || []).map((item: any) => ({
+        categoryName: item.categoryName || item.CATEGORYNAME || item.name || '未分类',
+        amount: parseFloat(item.amount || item.AMOUNT || 0),
+        count: parseInt(item.count || item.COUNT || 0)
+      }))
+      console.log('月份切换-处理后的分类数据:', categoryResult) // 调试信息
+      
+      // 更新分类数据
+      categoryData.value = categoryResult
+        .filter(item => item.amount > 0) // 只显示有金额的分类
+        .map(item => ({
+          name: item.categoryName,
+          value: item.amount
+        }))
+      console.log('月份切换-最终分类数据:', categoryData.value) // 调试信息
+      
+      // 数据更新后，确保图表重新渲染
+      await nextTick()
+    } else {
+      message.error(categoryResponse.message || '获取分类数据失败')
+    }
+  } catch (error) {
+    console.error('加载分类数据失败：', error)
+    message.error('加载分类数据失败')
   } finally {
     chartsLoading.value = false
   }
@@ -390,26 +567,31 @@ const loadRecentBills = async () => {
     // 调用真实API获取最近账单
     const response = await BillApi.list()
     
-    if (response.code === 200 || response.code === 0) {
+    if (response.code === 200 || response.code === 1 || response.code === 0) {
       recentBills.value = response.data as Bill[]
     } else {
+      console.error('获取最近账单失败:', response.message)
       message.error(response.message || '获取最近账单失败')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('加载最近账单失败：', error)
-    message.error('加载最近账单失败')
+    // 提供更详细的错误信息
+    const errorMessage = error.response?.data?.message || error.message || '加载最近账单失败'
+    message.error(`加载最近账单失败: ${errorMessage}`)
   } finally {
     billsLoading.value = false
   }
 }
 
 onMounted(async () => {
+  console.log('开始加载仪表板数据...') // 调试信息
   // 并发加载数据
   await Promise.all([
-    loadTodayStats(),
+    loadExpenseStats(),
     loadChartData(),
     loadRecentBills()
   ])
+  console.log('仪表板数据加载完成') // 调试信息
 })
 </script>
 
@@ -418,6 +600,7 @@ onMounted(async () => {
   padding: 24px;
   background: #f0f2f5;
   min-height: 100vh;
+  padding-left: 80px; /* 为左上角的home图标留出空间 */
 }
 
 .stats-row {
@@ -428,42 +611,143 @@ onMounted(async () => {
   margin-bottom: 24px;
 }
 
-.recent-bills-row {
-  margin-bottom: 24px;
-}
-
-.bill-title {
+.chart-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.bill-description {
-  font-weight: 500;
+.month-picker {
+  width: 100px;
 }
 
-.bill-meta {
+.recent-bills-row {
+  margin-bottom: 24px;
+}
+
+.recent-bills-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.bills-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.bill-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+  position: relative;
+  text-align: left;
+  display: block;
+}
+
+.bill-item:hover {
+  background-color: #fafafa;
+  border-radius: 4px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.bill-item:last-child {
+  border-bottom: none;
+}
+
+.bill-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   display: flex;
-  gap: 16px;
-  color: rgba(0, 0, 0, 0.45);
-  font-size: 12px;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.bill-avatar.income {
+  background: linear-gradient(135deg, #52c41a, #389e0d);
+}
+
+.bill-avatar.expense {
+  background: linear-gradient(135deg, #ff4d4f, #f5222d);
+}
+
+.bill-content {
+  display: flex;
+  width: 100%;
+  text-align: left;
+}
+
+.bill-main-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  text-align: left;
+  align-items: flex-start;
+}
+
+.bill-description {
+  font-weight: 500;
+  font-size: 16px;
+  color: #262626;
+  margin-bottom: 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.bill-details-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 4px;
+  text-align: left;
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .bill-amount {
-  text-align: right;
-}
-
-.amount-text {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
+  white-space: nowrap;
+  text-align: left;
 }
 
-.amount-text.income {
+.bill-amount.income {
   color: #52c41a;
 }
 
-.amount-text.expense {
+.bill-amount.expense {
   color: #ff4d4f;
+}
+
+.bill-type-tag {
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.bill-meta-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  text-align: left;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.bill-category-small,
+.bill-date-small {
+  font-size: 12px;
+  color: #8c8c8c;
+  text-align: left;
+}
+
+.separator {
+  color: #d9d9d9;
+  font-size: 12px;
 }
 
 .quick-actions {
@@ -473,11 +757,37 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .dashboard {
     padding: 16px;
+    padding-left: 60px; /* 移动端为home图标留出空间 */
   }
   
-  .bill-meta {
+  .bill-amount {
+    font-size: 16px;
+  }
+  
+  .bill-item:hover {
+    padding: 16px 0;
+    box-shadow: none;
+  }
+  
+  .bill-content,
+  .bill-main-info,
+  .bill-description,
+  .bill-details-row,
+  .bill-meta-info,
+  .bill-category-small,
+  .bill-date-small {
+    text-align: left;
+    align-items: flex-start;
+  }
+  
+  .chart-title {
     flex-direction: column;
-    gap: 4px;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .month-picker {
+    width: 100%;
   }
 }
 </style>

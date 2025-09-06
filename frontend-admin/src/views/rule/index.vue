@@ -207,8 +207,8 @@ const formData = reactive({
   ruleName: '',
   keywords: '',
   transactionType: 'EXPENSE',
-  categoryId: null,
-  amount: null
+  categoryId: undefined as number | undefined,
+  amount: undefined as number | undefined
 })
 
 const formRules = {
@@ -247,8 +247,8 @@ const handleEdit = (record: Rule) => {
   formData.ruleName = record.ruleName
   formData.keywords = record.keywords
   formData.transactionType = record.transactionType
-  formData.categoryId = record.categoryId
-  formData.amount = record.amount
+  formData.categoryId = record.categoryId !== null ? record.categoryId : undefined
+  formData.amount = record.amount !== null ? record.amount : undefined
   editModalVisible.value = true
 }
 
@@ -267,7 +267,20 @@ const handleSave = async () => {
     await formRef.value?.validate()
     saving.value = true
     
-    const data = { ...formData }
+    // 确保必填字段有值
+    if (formData.categoryId === undefined) {
+      message.error('请选择分类')
+      saving.value = false
+      return
+    }
+    
+    const data = {
+      ruleName: formData.ruleName,
+      keywords: formData.keywords,
+      transactionType: formData.transactionType,
+      categoryId: formData.categoryId,
+      amount: formData.amount
+    }
     
     if (editMode.value === 'create') {
       await ruleStore.createRule(data as CreateRuleDto)
@@ -316,8 +329,8 @@ const resetForm = () => {
   formData.ruleName = ''
   formData.keywords = ''
   formData.transactionType = 'EXPENSE'
-  formData.categoryId = null
-  formData.amount = null
+  formData.categoryId = undefined
+  formData.amount = undefined
   formRef.value?.resetFields()
 }
 
@@ -333,6 +346,7 @@ onMounted(async () => {
 <style scoped>
 .rule-management {
   padding: 24px;
+  padding-left: 70px; /* 为左上角的home图标留出空间 */
 }
 
 .keywords-text {
@@ -350,5 +364,12 @@ onMounted(async () => {
 
 .test-result {
   margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .rule-management {
+    padding: 16px;
+    padding-left: 60px; /* 移动端为home图标留出空间 */
+  }
 }
 </style>

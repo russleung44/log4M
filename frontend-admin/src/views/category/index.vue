@@ -121,7 +121,7 @@ const formRef = ref()
 
 const formData = reactive({
   categoryName: '',
-  parentCategoryId: null
+  parentCategoryId: undefined as number | undefined
 })
 
 const formRules = {
@@ -164,7 +164,7 @@ const handleEdit = (record: Category) => {
   editMode.value = 'edit'
   currentRecord.value = record
   formData.categoryName = record.categoryName
-  formData.parentCategoryId = record.parentCategoryId
+  formData.parentCategoryId = record.parentCategoryId !== null ? record.parentCategoryId : undefined
   editModalVisible.value = true
 }
 
@@ -185,7 +185,8 @@ const handleSave = async () => {
     
     const data = {
       categoryName: formData.categoryName,
-      parentCategoryId: formData.parentCategoryId
+      parentCategoryId: formData.parentCategoryId,
+      categoryType: currentRecord.value?.categoryType || 'EXPENSE' // 默认使用支出类型
     }
     
     if (editMode.value === 'create') {
@@ -210,7 +211,7 @@ const handleCancel = () => {
 
 const resetForm = () => {
   formData.categoryName = ''
-  formData.parentCategoryId = null
+  formData.parentCategoryId = undefined
   formRef.value?.resetFields()
 }
 
@@ -223,6 +224,7 @@ onMounted(async () => {
 <style scoped>
 .category-management {
   padding: 24px;
+  padding-left: 70px; /* 为左上角的home图标留出空间 */
 }
 
 .category-name {
@@ -241,5 +243,12 @@ onMounted(async () => {
 
 .root-category {
   color: #8c8c8c;
+}
+
+@media (max-width: 768px) {
+  .category-management {
+    padding: 16px;
+    padding-left: 60px; /* 移动端为home图标留出空间 */
+  }
 }
 </style>

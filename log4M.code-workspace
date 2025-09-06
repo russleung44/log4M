@@ -16,7 +16,8 @@
     "settings": {
         "java.configuration.updateBuildConfiguration": "automatic",
         "java.import.maven.enabled": true,
-        "java.maven.downloadSources": true
+        "java.maven.downloadSources": true,
+        "java.compile.nullAnalysis.mode": "automatic"
     },
     "extensions": {
         "recommendations": [

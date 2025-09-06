@@ -238,4 +238,60 @@ public class BillController {
         List<Map<String, Object>> result = billService.getTrendStatistics(days);
         return ResultVO.success(result);
     }
+
+    /**
+     * 获取年统计
+     */
+    @GetMapping("/statistics/yearly")
+    public ResultVO<Map<String, Object>> getYearlyStatistics(
+            @RequestParam(name = "year") String year // 格式: yyyy
+    ) {
+        LocalDate startDate = LocalDate.of(Integer.parseInt(year), 1, 1);
+        LocalDate endDate = startDate.plusYears(1).minusDays(1);
+
+        Map<String, Object> result = new HashMap<>();
+
+        // 年支出
+        BigDecimal expense = billService.lambdaQuery()
+                .ge(Bill::getBillDate, startDate)
+                .le(Bill::getBillDate, endDate)
+                .eq(Bill::getTransactionType, TransactionType.EXPENSE)
+                .list()
+                .stream()
+                .map(Bill::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        result.put("year", year);
+        result.put("expense", expense);
+
+        return ResultVO.success(result);
+    }
+
+    /**
+     * 获取年支出统计（仅支出）
+     */
+    @GetMapping("/statistics/yearly/expense")
+    public ResultVO<Map<String, Object>> getYearlyExpenseStatistics(
+            @RequestParam(name = "year") String year // 格式: yyyy
+    ) {
+        LocalDate startDate = LocalDate.of(Integer.parseInt(year), 1, 1);
+        LocalDate endDate = startDate.plusYears(1).minusDays(1);
+
+        Map<String, Object> result = new HashMap<>();
+
+        // 年支出
+        BigDecimal expense = billService.lambdaQuery()
+                .ge(Bill::getBillDate, startDate)
+                .le(Bill::getBillDate, endDate)
+                .eq(Bill::getTransactionType, TransactionType.EXPENSE)
+                .list()
+                .stream()
+                .map(Bill::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        result.put("year", year);
+        result.put("expense", expense);
+
+        return ResultVO.success(result);
+    }
 }

@@ -37,8 +37,13 @@ export class BillApi {
    * 获取账单列表（简单列表）
    */
   static async list() {
-    const response = await http.get<ApiResponse<Bill[]>>('/bills/list')
-    return response.data
+    try {
+      const response = await http.get<ApiResponse<Bill[]>>('/bills/list')
+      return response.data
+    } catch (error) {
+      console.error('获取账单列表失败:', error)
+      throw error
+    }
   }
 
   /**
@@ -115,8 +120,28 @@ export class BillApi {
    * 获取趋势统计数据
    */
   static async getTrendStatistics(days: number = 7) {
-    const response = await http.get<ApiResponse<{date: string, income: number, expense: number}[]>>('/bills/statistics/trend', {
+    const response = await http.get<ApiResponse<TrendStatistics[]>>('/bills/statistics/trend', {
       params: { days }
+    })
+    return response.data
+  }
+
+  /**
+   * 获取年统计
+   */
+  static async getYearlyStatistics(year: string) {
+    const response = await http.get<ApiResponse<YearlyStatistics>>('/bills/statistics/yearly', {
+      params: { year }
+    })
+    return response.data
+  }
+  
+  /**
+   * 获取年支出统计（仅支出）
+   */
+  static async getYearlyExpenseStatistics(year: string) {
+    const response = await http.get<ApiResponse<YearlyStatistics>>('/bills/statistics/yearly/expense', {
+      params: { year }
     })
     return response.data
   }

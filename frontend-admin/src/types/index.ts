@@ -193,6 +193,12 @@ export interface TrendStatistics {
   expense: number
 }
 
+// 年统计接口
+export interface YearlyStatistics {
+  year: string
+  expense: number
+}
+
 // 批量删除DTO
 export interface BatchDeleteDto {
   ids: number[]

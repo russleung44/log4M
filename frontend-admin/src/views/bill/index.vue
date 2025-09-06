@@ -138,7 +138,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { PlusOutlined, ExportOutlined } from '@ant-design/icons-vue'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 
 import { DataTable, BaseForm } from '@/components'
 import { useBillStore, useCategoryStore, useAccountStore } from '@/stores'
@@ -199,11 +199,11 @@ const selectedRows = ref<Bill[]>([])
 const formRef = ref()
 
 const formData = reactive({
-  billDate: null,
+  billDate: null as Dayjs | null,
   transactionType: 'EXPENSE',
-  amount: null,
-  categoryId: null,
-  accountId: null,
+  amount: undefined as number | undefined,
+  categoryId: undefined as number | undefined,
+  accountId: undefined as number | undefined,
   note: ''
 })
 
@@ -291,6 +291,14 @@ const handleSave = async () => {
     await formRef.value?.validate()
     saving.value = true
     
+    // 确保必填字段有值
+    if (!formData.billDate || formData.amount === undefined || 
+        formData.categoryId === undefined || formData.accountId === undefined) {
+      message.error('请填写所有必填字段')
+      saving.value = false
+      return
+    }
+    
     const data = {
       billDate: formData.billDate.format('YYYY-MM-DD'),
       transactionType: formData.transactionType,
@@ -327,9 +335,9 @@ const handleExport = () => {
 const resetForm = () => {
   formData.billDate = null
   formData.transactionType = 'EXPENSE'
-  formData.amount = null
-  formData.categoryId = null
-  formData.accountId = null
+  formData.amount = undefined
+  formData.categoryId = undefined
+  formData.accountId = undefined
   formData.note = ''
   formRef.value?.resetFields()
 }
@@ -347,6 +355,7 @@ onMounted(async () => {
 <style scoped>
 .bill-management {
   padding: 24px;
+  padding-left: 70px; /* 为左上角的home图标留出空间 */
 }
 
 .amount-text {
@@ -359,5 +368,12 @@ onMounted(async () => {
 
 .amount-text.expense {
   color: #ff4d4f;
+}
+
+@media (max-width: 768px) {
+  .bill-management {
+    padding: 16px;
+    padding-left: 60px; /* 移动端为home图标留出空间 */
+  }
 }
 </style>

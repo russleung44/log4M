@@ -7,8 +7,16 @@ import App from './App.vue'
 import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
 
+// 导入所有Ant Design Icons
+import * as Icons from '@ant-design/icons-vue'
+
 // 创建应用实例
 const app = createApp(App)
+
+// 注册所有图标组件
+Object.keys(Icons).forEach(key => {
+  app.component(key, Icons[key as keyof typeof Icons])
+})
 
 // 使用插件
 app.use(createPinia())
