@@ -4,6 +4,12 @@ target/
 !**/src/main/**
 !**/src/test/**
 
+# Environment Variables
+.env.local
+.env.*.local
+application-local.yml
+application-dev.yml
+
 ### STS ###
 .apt_generated
 .classpath
@@ -33,27 +39,3 @@ build/
 /src/test/
 /data/
 /.qoder/
-
-# Environment Variables
-.env.local
-.env.*.local
-application-local.yml
-application-dev.yml
-
-# Local run scripts with actual tokens
-run-local-with-token.bat
-run-local-with-token.ps1
-
-# Frontend Admin - Common ignores
-frontend-admin/node_modules/
-frontend-admin/dist/
-frontend-admin/.env.local
-frontend-admin/.env.*.local
-frontend-admin/.vscode/
-frontend-admin/.npmrc
-frontend-admin/npm-debug.log*
-frontend-admin/.eslintcache
-frontend-admin/.DS_Store
-frontend-admin/coverage/
-frontend-admin/*.log
-frontend-admin/.nyc_output/
