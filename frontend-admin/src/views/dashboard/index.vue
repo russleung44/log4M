@@ -66,13 +66,13 @@
             height="300px"
             :loading="chartsLoading"
             @chart-click="handleTrendClick"
-            :key="`trend-chart-${chartKey}`"
+            :key="`trend-chart-${trendChartKey}`"
           />
         </a-card>
       </a-col>
       
       <a-col :xs="24" :lg="12">
-        <a-card :loading="chartsLoading">
+        <a-card :loading="categoryChartLoading">
           <template #title>
             <div class="chart-title">
               <span>支出分类</span>
@@ -81,20 +81,42 @@
                 picker="month"
                 size="small"
                 :allowClear="false"
-                :disabled="chartsLoading"
+                :disabled="categoryChartLoading"
                 @change="handleMonthChange"
                 class="month-picker"
               />
             </div>
           </template>
-          <EChart
-            ref="categoryChartRef"
-            :option="categoryChartOption"
-            height="300px"
-            :loading="chartsLoading"
-            @chart-click="handleCategoryClick"
-            :key="`category-chart-${chartKey}`"
-          />
+          <a-row :gutter="16">
+            <a-col :span="14">
+              <EChart
+                ref="categoryChartRef"
+                :option="categoryChartOption"
+                height="300px"
+                :loading="categoryChartLoading"
+                @chart-click="handleCategoryClick"
+                :key="`category-chart-${categoryChartKey}`"
+              />
+            </a-col>
+            <a-col :span="10">
+              <div class="category-data-container">
+                <!-- 总支出统计 -->
+                <div class="category-total-item">
+                  <span class="category-total-label">总支出</span>
+                  <span class="category-total-amount">¥{{ formatAmount(totalCategoryExpense) }}</span>
+                </div>
+                <!-- 分类支出数据 -->
+                <div 
+                  v-for="item in categoryData" 
+                  :key="item.name"
+                  class="category-data-item"
+                >
+                  <span class="category-name">{{ item.name }}</span>
+                  <span class="category-amount">¥{{ formatAmount(item.value) }}</span>
+                </div>
+              </div>
+            </a-col>
+          </a-row>
         </a-card>
       </a-col>
     </a-row>
@@ -220,7 +242,9 @@ const categoryStore = useCategoryStore()
 const statsLoading = ref(false)
 const chartsLoading = ref(false)
 const billsLoading = ref(false)
-const chartKey = ref(0) // 用于强制重新渲染图表
+const categoryChartLoading = ref(false) // 专门用于分类图表的加载状态
+const trendChartKey = ref(0) // 用于强制重新渲染趋势图表
+const categoryChartKey = ref(0) // 用于强制重新渲染分类图表
 
 // 新的支出统计数据
 const todayExpense = ref(0)
@@ -238,6 +262,11 @@ const selectedMonth = ref<Dayjs>(dayjs())
 // 图表引用
 const trendChartRef = ref()
 const categoryChartRef = ref()
+
+// 计算总分类支出
+const totalCategoryExpense = computed(() => {
+  return categoryData.value.reduce((total, item) => total + item.value, 0)
+})
 
 // 图表配置
 const trendChartOption = computed<EChartsOption>(() => {
@@ -345,11 +374,11 @@ const formatAmount = (amount: number) => {
 const handleMonthChange = async () => {
   console.log('月份切换到:', selectedMonth.value.format('YYYY-MM')) // 调试信息
   await loadCategoryData()
-  // 增加chartKey强制重新渲染图表
-  chartKey.value++
-  console.log('月份切换后更新chartKey:', chartKey.value) // 调试信息
+  // 只增加分类图表的key
+  categoryChartKey.value++
+  console.log('月份切换后更新categoryChartKey:', categoryChartKey.value) // 调试信息
   
-  // 手动触发图表更新
+  // 手动触发分类图表更新
   await nextTick()
   if (categoryChartRef.value) {
     console.log('手动更新分类图表')
@@ -491,19 +520,15 @@ const loadChartData = async () => {
       message.error(categoryResponse.message || '获取分类数据失败')
     }
     
-    // 增加chartKey强制重新渲染图表
-    chartKey.value++
-    console.log('更新chartKey:', chartKey.value) // 调试信息
+    // 只增加趋势图表的key，分类图表的key由handleMonthChange函数控制
+    trendChartKey.value++
+    console.log('更新trendChartKey:', trendChartKey.value) // 调试信息
     
-    // 手动触发图表更新
+    // 手动触发趋势图表更新
     await nextTick()
     if (trendChartRef.value) {
       console.log('手动更新趋势图表')
       trendChartRef.value.updateChart()
-    }
-    if (categoryChartRef.value) {
-      console.log('手动更新分类图表')
-      categoryChartRef.value.updateChart()
     }
   } catch (error) {
     console.error('加载图表数据失败：', error)
@@ -516,7 +541,7 @@ const loadChartData = async () => {
 // 加载指定月份的分类数据
 const loadCategoryData = async () => {
   try {
-    chartsLoading.value = true
+    categoryChartLoading.value = true
     
     // 获取选择月份的第一天和最后一天
     const startDate = selectedMonth.value.startOf('month').format('YYYY-MM-DD')
@@ -556,7 +581,7 @@ const loadCategoryData = async () => {
     console.error('加载分类数据失败：', error)
     message.error('加载分类数据失败')
   } finally {
-    chartsLoading.value = false
+    categoryChartLoading.value = false
   }
 }
 
@@ -754,6 +779,61 @@ onMounted(async () => {
   margin-top: 24px;
 }
 
+/* 分类数据容器样式 */
+.category-data-container {
+  height: 300px;
+  overflow-y: auto;
+  padding: 10px 0;
+}
+
+/* 总支出统计样式 */
+.category-total-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: 8px;
+}
+
+.category-total-label {
+  color: #262626;
+}
+
+.category-total-amount {
+  color: #ff4d4f;
+}
+
+/* 分类支出数据样式 */
+.category-data-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 12px;
+  border-bottom: 1px dashed #f0f0f0;
+}
+
+.category-data-item:last-child {
+  border-bottom: none;
+}
+
+.category-name {
+  color: #595959;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-amount {
+  color: #ff4d4f;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
   .dashboard {
     padding: 16px;
@@ -788,6 +868,26 @@ onMounted(async () => {
   
   .month-picker {
     width: 100%;
+  }
+  
+  /* 移动端分类数据容器样式 */
+  .category-data-container {
+    height: auto;
+    max-height: 150px;
+  }
+  
+  .category-total-item {
+    padding: 6px 0;
+    font-size: 12px;
+  }
+  
+  .category-data-item {
+    padding: 4px 0;
+  }
+  
+  .category-name,
+  .category-amount {
+    font-size: 11px;
   }
 }
 </style>
