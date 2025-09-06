@@ -1,5 +1,6 @@
 package com.tony.log4m.models.entity;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
@@ -9,6 +10,7 @@ import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 /**
  * 记录
@@ -30,6 +32,7 @@ public class Bill extends BaseEntity<Bill> {
 
     private Long accountId;
 
+    @JSONField(format = "yyyy-MM-dd")
     private LocalDate billDate;
 
     private String billMonth;

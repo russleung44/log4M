@@ -1,0 +1,24 @@
+{
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-21",
+            "path": "${env:JAVA_HOME}",
+            "default": true
+        }
+    ],
+    "java.debug.settings.console": "integratedTerminal",
+    "terminal.integrated.shellArgs.windows": ["-NoExit", "-Command", "chcp 65001"],
+    "terminal.integrated.env.windows": {
+        "JAVA_TOOL_OPTIONS": "-Dfile.encoding=UTF-8",
+        "LANG": "zh_CN.UTF-8",
+        "LC_ALL": "zh_CN.UTF-8"
+    },
+    "java.jdt.ls.vmargs": "-Dfile.encoding=UTF-8 -Dconsole.encoding=UTF-8",
+    "maven.terminal.customEnv": [
+        {
+            "environmentVariable": "JAVA_TOOL_OPTIONS",
+            "value": "-Dfile.encoding=UTF-8"
+        }
+    ],
+    "java.compile.nullAnalysis.mode": "automatic"
+}

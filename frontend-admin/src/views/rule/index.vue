@@ -162,33 +162,28 @@ const columns = [
   {
     title: '规则名称',
     dataIndex: 'ruleName',
-    key: 'ruleName',
-    width: 150
+    key: 'ruleName'
   },
   {
     title: '关键词',
     dataIndex: 'keywords',
     key: 'keywords',
-    width: 200,
     ellipsis: true
   },
   {
     title: '类型',
     dataIndex: 'transactionType',
-    key: 'transactionType',
-    width: 80
+    key: 'transactionType'
   },
   {
     title: '默认金额',
     dataIndex: 'amount',
-    key: 'amount',
-    width: 100
+    key: 'amount'
   },
   {
     title: '创建时间',
     dataIndex: 'crTime',
-    key: 'crTime',
-    width: 180
+    key: 'crTime'
   }
 ]
 

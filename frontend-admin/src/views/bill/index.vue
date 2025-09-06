@@ -154,33 +154,28 @@ const columns = [
     title: '日期',
     dataIndex: 'billDate',
     key: 'billDate',
-    width: 120,
     sorter: true
   },
   {
     title: '类型',
     dataIndex: 'transactionType',
-    key: 'transactionType',
-    width: 80
+    key: 'transactionType'
   },
   {
     title: '金额',
     dataIndex: 'amount',
     key: 'amount',
-    width: 120,
     sorter: true
   },
   {
     title: '分类',
     dataIndex: 'categoryName',
-    key: 'categoryName',
-    width: 100
+    key: 'categoryName'
   },
   {
     title: '账户',
     dataIndex: 'accountName',
-    key: 'accountName',
-    width: 100
+    key: 'accountName'
   },
   {
     title: '备注',
@@ -224,7 +219,43 @@ const paginationConfig = computed(() => ({
 
 // 方法
 const formatDate = (date: string) => {
-  return dayjs(date).format('YYYY-MM-DD')
+  console.log('账单页面格式化日期:', date, '类型:', typeof date)
+  
+  // 处理空值
+  if (!date) return ''
+  
+  // 如果已经是 yyyy-MM-dd 格式，直接返回
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return date
+  }
+  
+  // 如果是 ISO 格式 (yyyy-MM-ddTHH:mm:ss) 或其他包含时间的部分，只取日期部分
+  if (typeof date === 'string' && date.includes('T')) {
+    try {
+      // 使用 dayjs 解析并格式化
+      const formatted = dayjs(date).format('YYYY-MM-DD')
+      console.log('ISO格式化结果:', formatted)
+      return formatted
+    } catch (error) {
+      console.error('ISO日期格式化错误:', error)
+      // 如果解析失败，尝试手动截取
+      const datePart = date.split('T')[0]
+      if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        return datePart
+      }
+      return date
+    }
+  }
+  
+  // 处理其他可能的日期格式
+  try {
+    const formatted = dayjs(date).format('YYYY-MM-DD')
+    console.log('通用格式化结果:', formatted)
+    return formatted
+  } catch (error) {
+    console.error('通用日期格式化错误:', error)
+    return date
+  }
 }
 
 const filterOption = (input: string, option: any) => {

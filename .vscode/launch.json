@@ -1,0 +1,36 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch Log4M Application",
+            "request": "launch",
+            "mainClass": "com.tony.log4m.Log4MApplication",
+            "projectName": "log4M-backend",
+            "cwd": "${workspaceFolder}/backend",
+            "vmArgs": "-Dfile.encoding=UTF-8 -Dconsole.encoding=UTF-8",
+            "args": "",
+            "env": {
+                "BOT_TOKEN": "YOUR_BOT_TOKEN_HERE",
+                "spring.profiles.active": "local"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "java",
+            "name": "Launch Log4M Application (Maven)",
+            "request": "launch",
+            "mainClass": "com.tony.log4m.Log4MApplication",
+            "projectName": "log4M-backend",
+            "cwd": "${workspaceFolder}/backend",
+            "vmArgs": "-Dfile.encoding=UTF-8 -Dconsole.encoding=UTF-8",
+            "args": "",
+            "env": {
+                "BOT_TOKEN": "YOUR_BOT_TOKEN_HERE",
+                "spring.profiles.active": "local"
+            },
+            "console": "integratedTerminal",
+            "preLaunchTask": "mvn-spring-boot-run"
+        }
+    ]
+}

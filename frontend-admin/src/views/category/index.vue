@@ -83,32 +83,27 @@ const columns = [
   {
     title: '分类名称',
     dataIndex: 'categoryName',
-    key: 'categoryName',
-    width: 200
+    key: 'categoryName'
   },
   {
     title: '父分类',
     dataIndex: 'parentCategoryName',
-    key: 'parentCategoryName',
-    width: 150
+    key: 'parentCategoryName'
   },
   {
     title: '排序',
     dataIndex: 'sort',
-    key: 'sort',
-    width: 80
+    key: 'sort'
   },
   {
     title: '是否默认',
     dataIndex: 'isDefault',
-    key: 'isDefault',
-    width: 100
+    key: 'isDefault'
   },
   {
     title: '创建时间',
     dataIndex: 'crTime',
-    key: 'crTime',
-    width: 180
+    key: 'crTime'
   }
 ]
 

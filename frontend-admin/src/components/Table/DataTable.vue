@@ -81,7 +81,8 @@ const props = withDefaults(defineProps<Props>(), {
   showSearch: true,
   searchPlaceholder: '请输入搜索关键词',
   showActions: true,
-  selectable: true
+  selectable: true,
+  scroll: undefined
 })
 
 const emit = defineEmits<{
