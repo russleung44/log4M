@@ -52,12 +52,12 @@ public class SystemCommand implements CommandStrategy {
                         查询月份总结: /month/yyyyMM
                         查询月份详情: /month_detail/yyyyMM
                         查询日期详情: /month/yyyyMMdd
-                        \n👇 点击下方按钮，从最近账单快速生成规则
+                        \n👇 点击下方按钮，快捷操作
                         """;
                 SendMessage msg = new SendMessage(chatId, help);
-                InlineKeyboardMarkup markup = new InlineKeyboardMarkup(
-                        new InlineKeyboardButton("➕ 快速添加规则").callbackData("help_rule::start")
-                );
+                InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+                markup.addRow(new InlineKeyboardButton("💰 设置预算").callbackData("help_budget::start"));
+                markup.addRow(new InlineKeyboardButton("➕ 快速添加规则").callbackData("help_rule::start"));
                 msg.replyMarkup(markup);
                 return msg;
             }
