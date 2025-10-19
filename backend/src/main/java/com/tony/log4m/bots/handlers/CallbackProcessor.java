@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.message.MaybeInaccessibleMessage;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -53,10 +54,10 @@ public class CallbackProcessor {
         Integer messageId = message.messageId();
 
         try {
-            String responseText = processCallbackData(chatId, data);
-            InlineKeyboardMarkup markup = BotUtil.buildKeyboardMarkup(data);
+            CallbackResult result = processCallbackData(chatId, data);
+            InlineKeyboardMarkup markup = result.markup != null ? result.markup : BotUtil.buildKeyboardMarkup(data);
 
-            EditMessageText editRequest = new EditMessageText(chatId, messageId, responseText)
+            EditMessageText editRequest = new EditMessageText(chatId, messageId, result.text)
                     .replyMarkup(markup);
             bot.execute(editRequest);
 
@@ -132,27 +133,82 @@ public class CallbackProcessor {
     }
 
 
-    private String processCallbackData(Long chatId, String data) {
+    private CallbackResult processCallbackData(Long chatId, String data) {
         String[] parts = data.split("::");
         String prefix = parts[0];
-        String targetId = parts[1];
+        String targetId = parts.length > 1 ? parts[1] : null;
 
         return switch (prefix) {
-            case "bill" -> buildBillDetails(targetId);
-            case "rule" -> ruleService.buildRuleDetails(targetId);
-            case "category" -> categoryService.buildCategoryDetails(targetId);
+            case "bill" -> new CallbackResult(buildBillDetails(targetId), null);
+            case "rule" -> new CallbackResult(ruleService.buildRuleDetails(targetId), null);
+            case "category" -> new CallbackResult(categoryService.buildCategoryDetails(targetId), null);
             case "bill_remark" -> {
                 // 开始备注输入会话
                 remarkSessionManager.startRemark(chatId, Long.valueOf(targetId));
-                yield "📝 请输入备注内容，直接回复此消息。";
+                yield new CallbackResult("📝 请输入备注内容，直接回复此消息。", null);
             }
-            case "bill_del" -> deleteBill(targetId);
-            case "rule_del" -> deleteRule(targetId);
-            case "category_del" -> deleteCategory(targetId);
+            case "bill_del" -> new CallbackResult(deleteBill(targetId), null);
+            case "rule_del" -> new CallbackResult(deleteRule(targetId), null);
+            case "category_del" -> new CallbackResult(deleteCategory(targetId), null);
+            case "bill_rule" -> createRuleFromBill(targetId);
+            case "help_rule" -> showRecentBillsForRule();
             default -> throw new Log4mException("未知操作类型: " + prefix);
         };
     }
 
+    private CallbackResult showRecentBillsForRule() {
+        java.util.List<Bill> bills = billService.lambdaQuery()
+                .orderByDesc(Bill::getBillDate)
+                .orderByDesc(Bill::getBillId)
+                .last("limit 15").list();
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        for (Bill b : bills) {
+            String label = String.format("%s ¥%s %s %s",
+                    b.getBillDate(),
+                    b.getAmount().stripTrailingZeros().toPlainString(),
+                    StrUtil.nullToEmpty(b.getNote()),
+                    StrUtil.nullToEmpty(b.getCategoryName()));
+            InlineKeyboardButton button = new InlineKeyboardButton(label).callbackData("bill_rule::" + b.getBillId());
+            markup.addRow(button);
+        }
+        return new CallbackResult("请选择一条账单生成规则", markup);
+    }
+
+    private CallbackResult createRuleFromBill(String billId) {
+        Bill bill = billService.getOptById(billId).orElseThrow();
+
+        String keyword = deriveKeyword(bill);
+        if (StrUtil.isBlank(keyword)) {
+            keyword = "规则" + bill.getBillId();
+        }
+
+        // 如果存在同名规则则更新，否则创建
+        Rule rule = ruleService.lambdaQuery().eq(Rule::getRuleName, keyword).last("limit 1").one();
+        if (rule == null) {
+            rule = new Rule(keyword, bill.getAmount(), bill.getTransactionType());
+            rule.setCategoryId(bill.getCategoryId());
+            rule.insert();
+        } else {
+            rule.setAmount(bill.getAmount());
+            rule.setTransactionType(bill.getTransactionType());
+            if (bill.getCategoryId() != null) {
+                rule.setCategoryId(bill.getCategoryId());
+            }
+            rule.updateById();
+        }
+
+        String details = ruleService.buildRuleDetails(rule);
+        return new CallbackResult(details, BotUtil.buildKeyboardMarkup("rule::" + rule.getRuleId()));
+    }
+
+    private String deriveKeyword(Bill bill) {
+        if (StrUtil.isNotBlank(bill.getNote())) return bill.getNote();
+        if (StrUtil.isNotBlank(bill.getRemark())) return bill.getRemark();
+        if (StrUtil.isNotBlank(bill.getCategoryName())) return bill.getCategoryName();
+        return null;
+    }
+
+    private record CallbackResult(String text, InlineKeyboardMarkup markup) {}
 
 
 }

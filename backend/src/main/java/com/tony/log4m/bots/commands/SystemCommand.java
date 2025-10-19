@@ -3,6 +3,8 @@ package com.tony.log4m.bots.commands;
 import cn.hutool.core.io.FileUtil;
 import com.pengrad.telegrambot.request.SendDocument;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.tony.log4m.bots.core.MoneyBot;
 import com.tony.log4m.bots.enums.Command;
 import lombok.RequiredArgsConstructor;
@@ -50,8 +52,14 @@ public class SystemCommand implements CommandStrategy {
                         查询月份总结: /month/yyyyMM
                         查询月份详情: /month_detail/yyyyMM
                         查询日期详情: /month/yyyyMMdd
+                        \n👇 点击下方按钮，从最近账单快速生成规则
                         """;
-                return new SendMessage(chatId, help);
+                SendMessage msg = new SendMessage(chatId, help);
+                InlineKeyboardMarkup markup = new InlineKeyboardMarkup(
+                        new InlineKeyboardButton("➕ 快速添加规则").callbackData("help_rule::start")
+                );
+                msg.replyMarkup(markup);
+                return msg;
             }
 
             case RESET -> {
