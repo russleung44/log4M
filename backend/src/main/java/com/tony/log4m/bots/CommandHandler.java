@@ -146,8 +146,13 @@ public class CommandHandler {
             }
         }
 
-        // 4. 关键词映射: luckin -> 饮
-        if (StrUtil.isBlank(bill.getCategoryName()) && StrUtil.containsIgnoreCase(text, "luckin")) {
+        // 4. 关键词映射: 饮品关键词 -> 饮
+        if (StrUtil.isBlank(bill.getCategoryName()) && (
+                StrUtil.containsIgnoreCase(text, "luckin")
+                        || StrUtil.contains(text, "茉莉奶白")
+                        || StrUtil.contains(text, "霸王茶姬")
+                        || StrUtil.contains(text, "库迪")
+        )) {
             Category drink = categoryService.getOrCreate("饮");
             CategoryConvert.INSTANCE.updateBill(bill, drink);
         }
