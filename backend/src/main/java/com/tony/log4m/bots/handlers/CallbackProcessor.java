@@ -141,7 +141,7 @@ public class CallbackProcessor {
             case "bill" -> buildBillDetails(targetId);
             case "rule" -> ruleService.buildRuleDetails(targetId);
             case "category" -> categoryService.buildCategoryDetails(targetId);
-            case "bill_note" -> {
+            case "bill_remark" -> {
                 // 开始备注输入会话
                 remarkSessionManager.startRemark(chatId, Long.valueOf(targetId));
                 yield "📝 请输入备注内容，直接回复此消息。";
