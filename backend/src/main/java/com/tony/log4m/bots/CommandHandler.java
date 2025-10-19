@@ -72,7 +72,7 @@ public class CommandHandler {
     }
 
     private InlineKeyboardMarkup createDeleteMarkup(Long billId) {
-        return BotUtil.createButton("删除", DELETE_CALLBACK, billId);
+        return BotUtil.buildKeyboardMarkup("bill::" + billId);
     }
 
     protected Bill saveBill(String rawText) {
