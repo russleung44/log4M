@@ -30,6 +30,7 @@ public class BotUtil {
                 金额:        {}
                 日期:        {}
                 备注:        {}
+                附注:        {}
                 分类:        {}
                 本月:        {}
                 预算:        {}
@@ -41,6 +42,7 @@ public class BotUtil {
                 MoneyUtil.formatBigDecimal(bill.getAmount()),
                 bill.getBillDate(),
                 bill.getNote(),
+                bill.getRemark(),
                 bill.getCategoryName(),
                 MoneyUtil.formatBigDecimal(monthAmount),
                 MoneyUtil.formatBigDecimal(budget),
@@ -63,7 +65,7 @@ public class BotUtil {
 
         switch (prefix) {
             case "bill" -> {
-                InlineKeyboardButton remarkButton = createButton("📝 备注", "bill_note", targetId);
+                InlineKeyboardButton remarkButton = createButton("📝 备注", "bill_remark", targetId);
                 InlineKeyboardButton deleteButton = createButton("❌ 删除记录", "bill_del", targetId);
                 inlineKeyboardMarkup.addRow(remarkButton, deleteButton);
             }

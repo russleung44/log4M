@@ -35,7 +35,7 @@ public class MessageProcessor {
             Long billId = remarkSessionManager.consumeRemarkTarget(chatId);
             if (billId != null) {
                 com.tony.log4m.models.entity.Bill bill = billService.getOptById(String.valueOf(billId)).orElseThrow();
-                bill.setNote(text);
+                bill.setRemark(text);
                 bill.updateById();
 
                 java.math.BigDecimal budget = accountService.getBudget();

@@ -63,6 +63,11 @@ public class Bill extends BaseEntity<Bill> {
     private String note;
 
     /**
+     * 备注按钮单独字段
+     */
+    private String remark;
+
+    /**
      * 货币
      */
     private String currency;
