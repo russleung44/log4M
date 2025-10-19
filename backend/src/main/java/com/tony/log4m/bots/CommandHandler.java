@@ -146,7 +146,13 @@ public class CommandHandler {
             }
         }
 
-        // 4. 获取默认分类
+        // 4. 关键词映射: luckin -> 饮
+        if (StrUtil.isBlank(bill.getCategoryName()) && StrUtil.containsIgnoreCase(text, "luckin")) {
+            Category drink = categoryService.getOrCreate("饮");
+            CategoryConvert.INSTANCE.updateBill(bill, drink);
+        }
+
+        // 5. 获取默认分类
         if (StrUtil.isBlank(bill.getCategoryName())) {
             Category category = categoryService.getDefaultCategory();
             if (category != null) {
