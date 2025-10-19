@@ -65,10 +65,9 @@ public class BotUtil {
 
         switch (prefix) {
             case "bill" -> {
-                InlineKeyboardButton addRuleButton = createButton("➕ 新建规则", "bill_rule", targetId);
                 InlineKeyboardButton remarkButton = createButton("📝 备注", "bill_remark", targetId);
                 InlineKeyboardButton deleteButton = createButton("❌ 删除记录", "bill_del", targetId);
-                inlineKeyboardMarkup.addRow(addRuleButton, remarkButton, deleteButton);
+                inlineKeyboardMarkup.addRow(remarkButton, deleteButton);
             }
             case "rule" -> inlineKeyboardMarkup.addRow(createButton("❌ 删除规则", "rule_del", targetId));
             case "category" -> inlineKeyboardMarkup.addRow(createButton("❌ 删除分类", "category_del", targetId));

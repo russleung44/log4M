@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.CallbackQuery;
 import com.pengrad.telegrambot.model.message.MaybeInaccessibleMessage;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -54,12 +55,7 @@ public class CallbackProcessor {
 
         try {
             CallbackResult result = processCallbackData(chatId, data);
-            InlineKeyboardMarkup markup;
-            if (result.markupData != null && !result.markupData.isBlank()) {
-                markup = BotUtil.buildKeyboardMarkup(result.markupData);
-            } else {
-                markup = BotUtil.buildKeyboardMarkup(data);
-            }
+            InlineKeyboardMarkup markup = result.markup != null ? result.markup : BotUtil.buildKeyboardMarkup(data);
 
             EditMessageText editRequest = new EditMessageText(chatId, messageId, result.text)
                     .replyMarkup(markup);
@@ -140,7 +136,7 @@ public class CallbackProcessor {
     private CallbackResult processCallbackData(Long chatId, String data) {
         String[] parts = data.split("::");
         String prefix = parts[0];
-        String targetId = parts[1];
+        String targetId = parts.length > 1 ? parts[1] : null;
 
         return switch (prefix) {
             case "bill" -> new CallbackResult(buildBillDetails(targetId), null);
@@ -155,8 +151,27 @@ public class CallbackProcessor {
             case "rule_del" -> new CallbackResult(deleteRule(targetId), null);
             case "category_del" -> new CallbackResult(deleteCategory(targetId), null);
             case "bill_rule" -> createRuleFromBill(targetId);
+            case "help_rule" -> showRecentBillsForRule();
             default -> throw new Log4mException("未知操作类型: " + prefix);
         };
+    }
+
+    private CallbackResult showRecentBillsForRule() {
+        java.util.List<Bill> bills = billService.lambdaQuery()
+                .orderByDesc(Bill::getBillDate)
+                .orderByDesc(Bill::getBillId)
+                .last("limit 15").list();
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        for (Bill b : bills) {
+            String label = String.format("%s ¥%s %s %s",
+                    b.getBillDate(),
+                    b.getAmount().stripTrailingZeros().toPlainString(),
+                    StrUtil.nullToEmpty(b.getNote()),
+                    StrUtil.nullToEmpty(b.getCategoryName()));
+            InlineKeyboardButton button = new InlineKeyboardButton(label).callbackData("bill_rule::" + b.getBillId());
+            markup.addRow(button);
+        }
+        return new CallbackResult("请选择一条账单生成规则", markup);
     }
 
     private CallbackResult createRuleFromBill(String billId) {
@@ -183,7 +198,7 @@ public class CallbackProcessor {
         }
 
         String details = ruleService.buildRuleDetails(rule);
-        return new CallbackResult(details, "rule::" + rule.getRuleId());
+        return new CallbackResult(details, BotUtil.buildKeyboardMarkup("rule::" + rule.getRuleId()));
     }
 
     private String deriveKeyword(Bill bill) {
@@ -193,7 +208,7 @@ public class CallbackProcessor {
         return null;
     }
 
-    private record CallbackResult(String text, String markupData) {}
+    private record CallbackResult(String text, InlineKeyboardMarkup markup) {}
 
 
 }
