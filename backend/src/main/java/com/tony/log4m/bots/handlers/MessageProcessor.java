@@ -19,6 +19,9 @@ import java.util.Optional;
 public class MessageProcessor {
 
     private final CommandHandler commandHandler;
+    private final com.tony.log4m.bots.core.RemarkSessionManager remarkSessionManager;
+    private final com.tony.log4m.service.BillService billService;
+    private final com.tony.log4m.service.AccountService accountService;
 
     public void process(TelegramBot bot, Message message) {
         String text = message.text();
@@ -27,6 +30,22 @@ public class MessageProcessor {
             return;
         }
         Long chatId = chat.id();
+
+        if (remarkSessionManager.isAwaitingRemark(chatId)) {
+            Long billId = remarkSessionManager.consumeRemarkTarget(chatId);
+            if (billId != null) {
+                com.tony.log4m.models.entity.Bill bill = billService.getOptById(String.valueOf(billId)).orElseThrow();
+                bill.setNote(text);
+                bill.updateById();
+
+                java.math.BigDecimal budget = accountService.getBudget();
+                String currentMonth = com.tony.log4m.utils.MoneyUtil.getMonth(java.time.LocalDate.now());
+                java.math.BigDecimal monthAmount = billService.getAmountByMonth(currentMonth);
+                String reply = "备注已保存\n" + com.tony.log4m.bots.core.BotUtil.getBillFormatted(bill, budget, monthAmount);
+                bot.execute(new SendMessage(chatId, reply).replyMarkup(com.tony.log4m.bots.core.BotUtil.buildKeyboardMarkup("bill::" + billId)));
+                return;
+            }
+        }
 
         SendMessage response = Optional.ofNullable(text)
                 .filter(t -> t.startsWith("/"))

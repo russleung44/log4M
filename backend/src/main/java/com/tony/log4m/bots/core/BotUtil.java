@@ -61,15 +61,17 @@ public class BotUtil {
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 
-        InlineKeyboardButton button = switch (prefix) {
-            case "bill" -> createButton("❌ 删除记录", "bill_del", targetId);
-            case "rule" -> createButton("❌ 删除规则", "rule_del", targetId);
-            case "category" -> createButton("❌ 删除分类", "category_del", targetId);
-            default -> null;
-        };
-
-        if (button != null) {
-            inlineKeyboardMarkup.addRow(button);
+        switch (prefix) {
+            case "bill" -> {
+                InlineKeyboardButton remarkButton = createButton("📝 备注", "bill_note", targetId);
+                InlineKeyboardButton deleteButton = createButton("❌ 删除记录", "bill_del", targetId);
+                inlineKeyboardMarkup.addRow(remarkButton, deleteButton);
+            }
+            case "rule" -> inlineKeyboardMarkup.addRow(createButton("❌ 删除规则", "rule_del", targetId));
+            case "category" -> inlineKeyboardMarkup.addRow(createButton("❌ 删除分类", "category_del", targetId));
+            default -> {
+                // no-op
+            }
         }
 
         return inlineKeyboardMarkup;

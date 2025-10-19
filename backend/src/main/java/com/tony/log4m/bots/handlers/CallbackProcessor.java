@@ -41,6 +41,7 @@ public class CallbackProcessor {
     private final RuleService ruleService;
     private final AccountService accountService;
     private final CategoryService categoryService;
+    private final com.tony.log4m.bots.core.RemarkSessionManager remarkSessionManager;
 
     /**
      * 处理所有回调查询
@@ -52,7 +53,7 @@ public class CallbackProcessor {
         Integer messageId = message.messageId();
 
         try {
-            String responseText = processCallbackData(data);
+            String responseText = processCallbackData(chatId, data);
             InlineKeyboardMarkup markup = BotUtil.buildKeyboardMarkup(data);
 
             EditMessageText editRequest = new EditMessageText(chatId, messageId, responseText)
@@ -131,7 +132,7 @@ public class CallbackProcessor {
     }
 
 
-    private String processCallbackData(String data) {
+    private String processCallbackData(Long chatId, String data) {
         String[] parts = data.split("::");
         String prefix = parts[0];
         String targetId = parts[1];
@@ -140,6 +141,11 @@ public class CallbackProcessor {
             case "bill" -> buildBillDetails(targetId);
             case "rule" -> ruleService.buildRuleDetails(targetId);
             case "category" -> categoryService.buildCategoryDetails(targetId);
+            case "bill_note" -> {
+                // 开始备注输入会话
+                remarkSessionManager.startRemark(chatId, Long.valueOf(targetId));
+                yield "📝 请输入备注内容，直接回复此消息。";
+            }
             case "bill_del" -> deleteBill(targetId);
             case "rule_del" -> deleteRule(targetId);
             case "category_del" -> deleteCategory(targetId);
