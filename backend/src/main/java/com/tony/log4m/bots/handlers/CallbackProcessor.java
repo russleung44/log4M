@@ -152,6 +152,8 @@ public class CallbackProcessor {
             case "category_del" -> new CallbackResult(deleteCategory(targetId), null);
             case "bill_rule" -> createRuleFromBill(targetId);
             case "help_rule" -> showRecentBillsForRule();
+            case "help_budget" -> showBudgetMenu();
+            case "help_budget_set" -> setBudgetAndSummary(targetId);
             default -> throw new Log4mException("未知操作类型: " + prefix);
         };
     }
@@ -206,6 +208,45 @@ public class CallbackProcessor {
         if (StrUtil.isNotBlank(bill.getRemark())) return bill.getRemark();
         if (StrUtil.isNotBlank(bill.getCategoryName())) return bill.getCategoryName();
         return null;
+    }
+
+    private CallbackResult showBudgetMenu() {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        String[] options = {"1000", "1500", "2000", "2500", "3000", "4000", "5000"};
+        for (String opt : options) {
+            InlineKeyboardButton btn = new InlineKeyboardButton("¥" + opt).callbackData("help_budget_set::" + opt);
+            markup.addRow(btn);
+        }
+        String text = "请选择预算金额\n或发送指令：/budget/{金额}";
+        return new CallbackResult(text, markup);
+    }
+
+    private CallbackResult setBudgetAndSummary(String amountStr) {
+        try {
+            java.math.BigDecimal amount = new java.math.BigDecimal(amountStr);
+            com.tony.log4m.models.entity.Account acct = accountService.getOrCreateDefaultAccount();
+            acct.setBudget(amount).updateById();
+
+            String currentMonth = com.tony.log4m.utils.MoneyUtil.getMonth(java.time.LocalDate.now());
+            java.math.BigDecimal monthAmount = billService.getAmountByMonth(currentMonth);
+
+            String template = """
+                    ✅ 预算设置成功
+                    ---------
+                    本月:        {}
+                    预算:        {}
+                    可用:        {}
+                    """;
+            String text = cn.hutool.core.util.StrUtil.format(
+                    template,
+                    com.tony.log4m.utils.MoneyUtil.formatBigDecimal(monthAmount),
+                    com.tony.log4m.utils.MoneyUtil.formatBigDecimal(amount),
+                    com.tony.log4m.utils.MoneyUtil.formatBigDecimal(amount.subtract(monthAmount))
+            );
+            return new CallbackResult(text, showBudgetMenu().markup());
+        } catch (Exception e) {
+            return new CallbackResult("请输入正确的金额，例如：/budget/2000", showBudgetMenu().markup());
+        }
     }
 
     private record CallbackResult(String text, InlineKeyboardMarkup markup) {}
