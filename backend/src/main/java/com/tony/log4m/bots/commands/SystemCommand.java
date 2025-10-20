@@ -51,13 +51,34 @@ public class SystemCommand implements CommandStrategy {
                         设预算: /budget/2000
                         查询月份总结: /month/yyyyMM
                         查询月份详情: /month_detail/yyyyMM
-                        查询日期详情: /month/yyyyMMdd
+                        查询日期详情: /date/yyyyMMdd
                         \n👇 点击下方按钮，快捷操作
                         """;
                 SendMessage msg = new SendMessage(chatId, help);
                 InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-                markup.addRow(new InlineKeyboardButton("💰 设置预算").callbackData("help_budget::start"));
-                markup.addRow(new InlineKeyboardButton("➕ 快速添加规则").callbackData("help_rule::start"));
+                // 预算与规则
+                markup.addRow(
+                        new InlineKeyboardButton("💰 设置预算").callbackData("help_budget::start"),
+                        new InlineKeyboardButton("➕ 快速添加规则").callbackData("help_rule::start")
+                );
+                // 本月/上月快捷查询
+                markup.addRow(
+                        new InlineKeyboardButton("📊 本月总结").callbackData("help_exec::this_month_summary"),
+                        new InlineKeyboardButton("📒 本月记录").callbackData("help_exec::this_month")
+                );
+                markup.addRow(
+                        new InlineKeyboardButton("📊 上月总结").callbackData("help_exec::last_month_summary"),
+                        new InlineKeyboardButton("📒 上月记录").callbackData("help_exec::last_month")
+                );
+                // 指定时间查询
+                markup.addRow(
+                        new InlineKeyboardButton("📅 指定月份总结").callbackData("help_month::start"),
+                        new InlineKeyboardButton("📜 指定月份明细").callbackData("help_month_detail::start")
+                );
+                markup.addRow(
+                        new InlineKeyboardButton("📆 指定日期明细").callbackData("help_date::start"),
+                        new InlineKeyboardButton("🏷️ 设置默认分类").callbackData("help_default_category::start")
+                );
                 msg.replyMarkup(markup);
                 return msg;
             }

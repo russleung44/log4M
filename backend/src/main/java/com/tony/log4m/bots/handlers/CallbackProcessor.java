@@ -8,7 +8,9 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendMessage;
+import cn.hutool.core.date.DateUtil;
 import com.tony.log4m.bots.core.BotUtil;
+import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.exception.Log4mException;
 import com.tony.log4m.models.entity.Account;
 import com.tony.log4m.models.entity.Bill;
@@ -25,7 +27,9 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.NoSuchElementException;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.tony.log4m.enums.TransactionType.EXPENSE;
 
@@ -154,6 +158,12 @@ public class CallbackProcessor {
             case "help_rule" -> showRecentBillsForRule();
             case "help_budget" -> showBudgetMenu();
             case "help_budget_set" -> setBudgetAndSummary(targetId);
+            case "help_month" -> showMonthMenu("month");
+            case "help_month_detail" -> showMonthMenu("month_detail");
+            case "help_date" -> showDateMenu();
+            case "help_default_category" -> showCategoriesForDefault();
+            case "help_set_default_category" -> setDefaultCategory(targetId);
+            case "help_exec" -> handleHelpExec(parts);
             default -> throw new Log4mException("未知操作类型: " + prefix);
         };
     }
@@ -249,7 +259,190 @@ public class CallbackProcessor {
         }
     }
 
-    private record CallbackResult(String text, InlineKeyboardMarkup markup) {}
+    private CallbackResult showMonthMenu(String type) {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        LocalDate now = LocalDate.now();
+        DateTimeFormatter dispFmt = DateTimeFormatter.ofPattern("yyyy-MM");
+        for (int i = 0; i < 12; i++) {
+            LocalDate d = now.minusMonths(i);
+            String label = d.format(dispFmt);
+            String value = MoneyUtil.getMonth(d);
+            InlineKeyboardButton btn = new InlineKeyboardButton(label)
+                    .callbackData("help_exec::" + type + "::" + value);
+            markup.addRow(btn);
+        }
+        String text = "请选择月份";
+        return new CallbackResult(text, markup);
+    }
 
+    private CallbackResult showDateMenu() {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        LocalDate now = LocalDate.now();
+        DateTimeFormatter dispFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        for (int i = 0; i < 14; i++) {
+            LocalDate d = now.minusDays(i);
+            String label = d.format(dispFmt);
+            InlineKeyboardButton btn = new InlineKeyboardButton(label)
+                    .callbackData("help_exec::date::" + label);
+            markup.addRow(btn);
+        }
+        String text = "请选择日期";
+        return new CallbackResult(text, markup);
+    }
+
+    private CallbackResult showCategoriesForDefault() {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<Category> categories = categoryService.lambdaQuery().list();
+        for (Category c : categories) {
+            String name = Optional.ofNullable(c.getCategoryName()).orElse("未命名");
+            InlineKeyboardButton btn = new InlineKeyboardButton(name)
+                    .callbackData("help_set_default_category::" + c.getCategoryId());
+            markup.addRow(btn);
+        }
+        return new CallbackResult("请选择要设置为默认的分类", markup);
+    }
+
+    private CallbackResult setDefaultCategory(String categoryId) {
+        Category category = categoryService.getOptById(categoryId).orElseThrow();
+        category.setIsDefault(true).updateById();
+        return new CallbackResult("✅ 默认分类设置成功：" + category.getCategoryName(), showCategoriesForDefault().markup());
+    }
+
+    private CallbackResult handleHelpExec(String[] parts) {
+        String commandName = parts.length > 1 ? parts[1] : "";
+        String param = parts.length > 2 ? parts[2] : "";
+        Command cmd = Command.getByCommand(commandName);
+        List<Bill> bills = fetchBillsByCommand(cmd, param);
+        String template = generateTemplate(cmd, param, bills);
+        InlineKeyboardMarkup markup = createKeyboardMarkup(cmd, bills);
+        return new CallbackResult(template, markup);
+    }
+
+    private List<Bill> fetchBillsByCommand(Command command, String param) {
+        try {
+            return switch (command) {
+                case TODAY -> billService.lambdaQuery()
+                        .eq(Bill::getBillDate, DateUtil.today())
+                        .orderByDesc(Bill::getBillDate)
+                        .orderByDesc(Bill::getBillId)
+                        .list();
+                case YESTERDAY -> billService.lambdaQuery()
+                        .eq(Bill::getBillDate, DateUtil.yesterday().toDateStr())
+                        .orderByDesc(Bill::getBillDate)
+                        .orderByDesc(Bill::getBillId)
+                        .list();
+                case LAST_MONTH, LAST_MONTH_SUMMARY -> {
+                    String lastMonth = MoneyUtil.getMonth(DateUtil.lastMonth().toLocalDateTime().toLocalDate());
+                    yield billService.lambdaQuery()
+                            .eq(Bill::getBillMonth, lastMonth)
+                            .orderByAsc(Bill::getBillDate)
+                            .orderByAsc(Bill::getBillId)
+                            .list();
+                }
+                case THIS_MONTH, THIS_MONTH_SUMMARY -> {
+                    String currentMonth = MoneyUtil.getMonth(LocalDate.now());
+                    yield billService.lambdaQuery()
+                            .eq(Bill::getBillMonth, currentMonth)
+                            .orderByAsc(Bill::getBillDate)
+                            .orderByAsc(Bill::getBillId)
+                            .list();
+                }
+                case MONTH_SUMMARY_QUERY, MONTH_DETAIL_QUERY -> billService.lambdaQuery()
+                        .eq(Bill::getBillMonth, param)
+                        .orderByAsc(Bill::getBillDate)
+                        .orderByAsc(Bill::getBillId)
+                        .list();
+                case DATE_QUERY -> billService.lambdaQuery()
+                        .eq(Bill::getBillDate, param)
+                        .orderByAsc(Bill::getBillDate)
+                        .orderByAsc(Bill::getBillId)
+                        .list();
+                default -> new ArrayList<>();
+            };
+        } catch (Exception e) {
+            log.error("Error fetching bills: {}", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    private BigDecimal calculateTotalAmount(List<Bill> bills) {
+        if (bills == null || bills.isEmpty()) return BigDecimal.ZERO;
+        return bills.stream().map(Bill::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private String generateTemplate(Command command, String param, List<Bill> bills) {
+        BigDecimal amount = calculateTotalAmount(bills);
+        String description;
+        switch (command) {
+            case MONTH_SUMMARY_QUERY, MONTH_DETAIL_QUERY, DATE_QUERY -> description = param;
+            default -> description = command.getDesc();
+        }
+        StringBuilder template = new StringBuilder();
+        template.append(String.format("%s总计：%.2f元%n---------%n", description, amount));
+        switch (command) {
+            case MONTH_SUMMARY_QUERY, LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY -> {
+                Map<String, Double> categoryMap = bills.stream()
+                        .collect(Collectors.groupingBy(
+                                Bill::getCategoryName,
+                                Collectors.summingDouble(b -> b.getAmount().doubleValue())
+                        ));
+                if (categoryMap.containsKey(null) || categoryMap.containsKey("")) {
+                    double unclassifiedAmount = categoryMap.getOrDefault(null, 0.0) + categoryMap.getOrDefault("", 0.0);
+                    categoryMap.put("未分类", unclassifiedAmount);
+                    categoryMap.remove(null);
+                    categoryMap.remove("");
+                }
+                int maxCategoryLength = categoryMap.keySet().stream().mapToInt(String::length).max().orElse(10);
+                int categoryLength = Math.max(maxCategoryLength, 10);
+                categoryMap.entrySet().stream()
+                        .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                        .forEach(entry -> {
+                            String categoryName = entry.getKey();
+                            int padding = Math.max(0, categoryLength * 2 - calculateDisplayWidth(categoryName));
+                            template.append(String.format("%s%s  ¥%.2f\n", categoryName, " ".repeat(padding), entry.getValue()));
+                        });
+            }
+        }
+        return template.toString();
+    }
+
+    private int calculateDisplayWidth(String str) {
+        if (str == null) return 0;
+        int width = 0;
+        for (char c : str.toCharArray()) {
+            if (Character.UnicodeBlock.of(c).equals(Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS)) {
+                width += 2; // 中文字符占2个字符宽度
+            } else {
+                width += 1; // 英文字符占1个字符宽度
+            }
+        }
+        return width;
+    }
+
+    private InlineKeyboardMarkup createKeyboardMarkup(Command command, List<Bill> bills) {
+        switch (command) {
+            case MONTH_SUMMARY_QUERY, LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY -> {
+                return new InlineKeyboardMarkup();
+            }
+        }
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        for (Bill bill : bills) {
+            String billFormatted = formatBillForButton(bill);
+            InlineKeyboardButton button = new InlineKeyboardButton(billFormatted).callbackData("bill::" + bill.getBillId());
+            inlineKeyboardMarkup.addRow(button);
+        }
+        return inlineKeyboardMarkup;
+    }
+
+    private String formatBillForButton(Bill bill) {
+        return "%s ¥%s %s %s".formatted(
+                bill.getBillDate(),
+                bill.getAmount().stripTrailingZeros().toPlainString(),
+                StrUtil.nullToEmpty(bill.getNote()),
+                StrUtil.nullToEmpty(bill.getCategoryName())
+        );
+    }
+
+    private record CallbackResult(String text, InlineKeyboardMarkup markup) {}
 
 }
