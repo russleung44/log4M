@@ -1,10 +1,10 @@
 package com.tony.log4m.bots.commands;
 
 import cn.hutool.core.io.FileUtil;
-import com.pengrad.telegrambot.request.SendDocument;
-import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.pengrad.telegrambot.request.SendDocument;
+import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.core.MoneyBot;
 import com.tony.log4m.bots.enums.Command;
 import lombok.RequiredArgsConstructor;
@@ -44,16 +44,7 @@ public class SystemCommand implements CommandStrategy {
     public SendMessage execute(Command command, String param, Long chatId) {
         switch (command) {
             case HELP -> {
-                String help = """
-                        新建规则: /rule_add/{规则名称}-{金额}-{1:支付，0:收入}-{分类}
-                        规则示例: /rule_add/鸭肶-18-1-吔
-                        默认分类: /category_default/吔
-                        设预算: /budget/2000
-                        查询月份总结: /month/yyyyMM
-                        查询月份详情: /month_detail/yyyyMM
-                        查询日期详情: /date/yyyyMMdd
-                        \n👇 点击下方按钮，快捷操作
-                        """;
+                String help = "👇 点击下方按钮，快捷操作";
                 SendMessage msg = new SendMessage(chatId, help);
                 InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
                 // 预算与规则

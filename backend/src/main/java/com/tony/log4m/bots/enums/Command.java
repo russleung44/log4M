@@ -23,7 +23,7 @@ public enum Command {
     MONTH_DETAIL_QUERY("month_detail", "查询指定月份", "bill", false),
     MONTH_SUMMARY_QUERY("month", "查询指定月份总结", "bill", false),
     DATE_QUERY("date", "查询指定日期", "bill", false),
-    BUDGET("budget", "预算", "bill"),
+    BUDGET("budget", "预算", "bill", false),
 
     // ==============rule===================
     RULES("rules", "规则列表", "rule"),
@@ -32,7 +32,7 @@ public enum Command {
     // ==============category===================
     CATEGORIES("categories", "分类列表", "category"),
     CATEGORY_ADD("category_add", "添加分类", "category", false),
-    CATEGORY_DEFAULT("category_default", "设置默认分类", "category"),
+    CATEGORY_DEFAULT("category_default", "设置默认分类", "category", false),
 
     // ==============system===================
     HELP("help", "帮助", "system"),

@@ -37,6 +37,9 @@ public class BillCommand implements CommandStrategy {
     @Override
     public SendMessage execute(Command command, String param, Long chatId) {
         if (Command.BUDGET == command) {
+            if (param == null || param.isEmpty()) {
+                return new SendMessage(chatId, "请输入预算金额");
+            }
             accountService.getOrCreateDefaultAccount().setBudget(new BigDecimal(param)).updateById();
             return new SendMessage(chatId, "预算设置成功");
         }
