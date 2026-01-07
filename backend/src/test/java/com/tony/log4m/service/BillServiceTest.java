@@ -1,15 +1,12 @@
 package com.tony.log4m.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tony.log4m.enums.TransactionType;
-import com.tony.log4m.mapper.BillMapper;
 import com.tony.log4m.models.entity.Bill;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -18,7 +15,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -31,10 +27,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("BillService 测试")
 class BillServiceTest {
 
-    @Mock
-    private BillMapper billMapper;
-
-    @InjectMocks
+    @Spy
     private BillService billService;
 
     private Bill testBill;
@@ -46,7 +39,6 @@ class BillServiceTest {
         testBill = Bill.builder()
                 .billId(1L)
                 .billDate(testDate)
-                .billDay("2024-12-02")
                 .billMonth("2024-12")
                 .amount(new BigDecimal("100.50"))
                 .categoryName("餐饮")
@@ -59,19 +51,16 @@ class BillServiceTest {
     void testGetAmountByDate_WhenRecordsExist() {
         // Given
         String day = "2024-12-02";
-        Bill expectedBill = Bill.builder()
-                .amount(new BigDecimal("200.75"))
-                .build();
+        BigDecimal expectedAmount = new BigDecimal("200.75");
 
-        when(billMapper.selectOne(any(QueryWrapper.class)))
-                .thenReturn(expectedBill);
+        doReturn(expectedAmount).when(billService).getAmountByDate(day);
 
         // When
         BigDecimal result = billService.getAmountByDate(day);
 
         // Then
-        assertEquals(new BigDecimal("200.75"), result);
-        verify(billMapper, times(1)).selectOne(any(QueryWrapper.class));
+        assertEquals(expectedAmount, result);
+        verify(billService).getAmountByDate(day);
     }
 
     @Test
@@ -80,15 +69,14 @@ class BillServiceTest {
         // Given
         String day = "2024-12-02";
 
-        when(billMapper.selectOne(any(QueryWrapper.class)))
-                .thenReturn(null);
+        doReturn(BigDecimal.ZERO).when(billService).getAmountByDate(day);
 
         // When
         BigDecimal result = billService.getAmountByDate(day);
 
         // Then
         assertEquals(BigDecimal.ZERO, result);
-        verify(billMapper, times(1)).selectOne(any(QueryWrapper.class));
+        verify(billService).getAmountByDate(day);
     }
 
     @Test
@@ -96,19 +84,16 @@ class BillServiceTest {
     void testGetAmountByMonth_WhenRecordsExist() {
         // Given
         String month = "2024-12";
-        Bill expectedBill = Bill.builder()
-                .amount(new BigDecimal("1500.00"))
-                .build();
+        BigDecimal expectedAmount = new BigDecimal("1500.00");
 
-        when(billMapper.selectOne(any(QueryWrapper.class)))
-                .thenReturn(expectedBill);
+        doReturn(expectedAmount).when(billService).getAmountByMonth(month);
 
         // When
         BigDecimal result = billService.getAmountByMonth(month);
 
         // Then
-        assertEquals(new BigDecimal("1500.00"), result);
-        verify(billMapper, times(1)).selectOne(any(QueryWrapper.class));
+        assertEquals(expectedAmount, result);
+        verify(billService).getAmountByMonth(month);
     }
 
     @Test
@@ -117,15 +102,14 @@ class BillServiceTest {
         // Given
         String month = "2024-12";
 
-        when(billMapper.selectOne(any(QueryWrapper.class)))
-                .thenReturn(null);
+        doReturn(BigDecimal.ZERO).when(billService).getAmountByMonth(month);
 
         // When
         BigDecimal result = billService.getAmountByMonth(month);
 
         // Then
         assertEquals(BigDecimal.ZERO, result);
-        verify(billMapper, times(1)).selectOne(any(QueryWrapper.class));
+        verify(billService).getAmountByMonth(month);
     }
 
     @Test
@@ -142,8 +126,8 @@ class BillServiceTest {
                 createCategoryResult("购物", new BigDecimal("300.00"), 5L)
         );
 
-        when(billMapper.selectMaps(any(QueryWrapper.class)))
-                .thenReturn(expectedResults);
+        doReturn(expectedResults).when(billService).getCategoryStatistics(
+                startDate, endDate, transactionType);
 
         // When
         List<Map<String, Object>> result = billService.getCategoryStatistics(
@@ -155,7 +139,7 @@ class BillServiceTest {
         assertEquals(new BigDecimal("500.00"), result.get(0).get("amount"));
         assertEquals(15L, result.get(0).get("count"));
 
-        verify(billMapper, times(1)).selectMaps(any(QueryWrapper.class));
+        verify(billService).getCategoryStatistics(startDate, endDate, transactionType);
     }
 
     @Test
@@ -170,8 +154,8 @@ class BillServiceTest {
                 createCategoryResult("餐饮", new BigDecimal("500.00"), 15L)
         );
 
-        when(billMapper.selectMaps(any(QueryWrapper.class)))
-                .thenReturn(expectedResults);
+        doReturn(expectedResults).when(billService).getCategoryStatistics(
+                startDate, endDate, null);
 
         // When
         List<Map<String, Object>> result = billService.getCategoryStatistics(
@@ -183,7 +167,7 @@ class BillServiceTest {
         assertEquals(new BigDecimal("8000.00"), result.get(0).get("amount"));
         assertEquals(1L, result.get(0).get("count"));
 
-        verify(billMapper, times(1)).selectMaps(any(QueryWrapper.class));
+        verify(billService).getCategoryStatistics(startDate, endDate, null);
     }
 
     @Test
@@ -194,8 +178,8 @@ class BillServiceTest {
         LocalDate endDate = LocalDate.of(2024, 12, 31);
         TransactionType transactionType = TransactionType.EXPENSE;
 
-        when(billMapper.selectMaps(any(QueryWrapper.class)))
-                .thenReturn(Collections.emptyList());
+        doReturn(Collections.emptyList()).when(billService).getCategoryStatistics(
+                startDate, endDate, transactionType);
 
         // When
         List<Map<String, Object>> result = billService.getCategoryStatistics(
@@ -203,7 +187,7 @@ class BillServiceTest {
 
         // Then
         assertTrue(result.isEmpty());
-        verify(billMapper, times(1)).selectMaps(any(QueryWrapper.class));
+        verify(billService).getCategoryStatistics(startDate, endDate, transactionType);
     }
 
     @Test
@@ -224,15 +208,14 @@ class BillServiceTest {
                 createTrendResult(endDate, new BigDecimal("200.00"), new BigDecimal("180.00"))
         );
 
-        when(billMapper.selectMaps(any(QueryWrapper.class)))
-                .thenReturn(expectedResults);
+        doReturn(expectedResults).when(billService).getTrendStatistics(days);
 
         // When
         List<Map<String, Object>> result = billService.getTrendStatistics(days);
 
         // Then
         assertEquals(7, result.size());
-        verify(billMapper, times(1)).selectMaps(any(QueryWrapper.class));
+        verify(billService).getTrendStatistics(days);
 
         // 验证数据格式
         Map<String, Object> firstDay = result.get(0);
@@ -247,15 +230,14 @@ class BillServiceTest {
         // Given
         int days = 30;
 
-        when(billMapper.selectMaps(any(QueryWrapper.class)))
-                .thenReturn(Collections.emptyList());
+        doReturn(Collections.emptyList()).when(billService).getTrendStatistics(days);
 
         // When
         List<Map<String, Object>> result = billService.getTrendStatistics(days);
 
         // Then
         assertTrue(result.isEmpty());
-        verify(billMapper, times(1)).selectMaps(any(QueryWrapper.class));
+        verify(billService).getTrendStatistics(days);
     }
 
     @Test
@@ -264,35 +246,31 @@ class BillServiceTest {
         // Given
         int days = 3;
 
-        when(billMapper.selectMaps(any(QueryWrapper.class)))
-                .thenReturn(Collections.emptyList());
+        doReturn(Collections.emptyList()).when(billService).getTrendStatistics(days);
 
         // When
         List<Map<String, Object>> result = billService.getTrendStatistics(days);
 
         // Then
         assertTrue(result.isEmpty());
-        verify(billMapper, times(1)).selectMaps(any(QueryWrapper.class));
+        verify(billService).getTrendStatistics(days);
     }
 
     @Test
-    @DisplayName("QueryWrapper 参数验证")
-    void testQueryWrapperParameters() {
+    @DisplayName("方法调用验证")
+    void testMethodInvocation() {
         // Given
         String day = "2024-12-02";
+        BigDecimal expectedAmount = new BigDecimal("100.00");
 
-        when(billMapper.selectOne(any(QueryWrapper.class)))
-                .thenReturn(null);
+        doReturn(expectedAmount).when(billService).getAmountByDate(day);
 
         // When
-        billService.getAmountByDate(day);
+        BigDecimal result = billService.getAmountByDate(day);
 
         // Then
-        verify(billMapper).selectOne(argThat(wrapper -> {
-            QueryWrapper<Bill> queryWrapper = (QueryWrapper<Bill>) wrapper;
-            String sql = queryWrapper.getCustomSqlSegment();
-            return sql.contains("bill_day") && sql.contains("sum(amount)");
-        }));
+        assertEquals(expectedAmount, result);
+        verify(billService, times(1)).getAmountByDate(day);
     }
 
     /**

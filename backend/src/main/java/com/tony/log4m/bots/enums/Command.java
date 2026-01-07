@@ -15,15 +15,15 @@ public enum Command {
 
     //================bill===================
     TODAY("today", "今日消费", "bill"),
-    YESTERDAY("yesterday", "昨日消费", "bill"),
+    YESTERDAY("yesterday", "昨日消费", "bill", false),
     THIS_MONTH_SUMMARY("this_month_summary", "本月总结", "bill"),
-    THIS_MONTH("this_month", "本月记录", "bill"),
+    THIS_MONTH("this_month", "本月记录", "bill", false),
     LAST_MONTH_SUMMARY("last_month_summary", "上月总结", "bill"),
-    LAST_MONTH("last_month", "上月记录", "bill"),
+    LAST_MONTH("last_month", "上月记录", "bill", false),
     MONTH_DETAIL_QUERY("month_detail", "查询指定月份", "bill", false),
     MONTH_SUMMARY_QUERY("month", "查询指定月份总结", "bill", false),
     DATE_QUERY("date", "查询指定日期", "bill", false),
-    YEAR("year", "年度统计", "bill", false),
+    YEAR("year", "年度统计", "bill"),
     BUDGET("budget", "预算", "bill", false),
 
     // ==============rule===================
@@ -37,8 +37,8 @@ public enum Command {
 
     // ==============system===================
     HELP("help", "帮助", "system"),
-    RESET("reset", "重置", "system"),
-    EXPORT("export", "导出", "system"),
+    RESET("reset", "重置", "system", false),
+    EXPORT("export", "导出", "system", false),
 
     ;
 
