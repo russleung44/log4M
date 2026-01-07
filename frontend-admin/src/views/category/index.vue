@@ -4,7 +4,9 @@
       :columns="columns"
       :data-source="categoryStore.categories"
       :loading="categoryStore.loading"
+      :pagination="paginationConfig"
       @search="handleSearch"
+      @change="handleTableChange"
       @edit="handleEdit"
       @delete="handleDelete"
     >
@@ -138,14 +140,25 @@ const categoryTreeData = computed(() => {
         children: buildTree(categories, cat.categoryId)
       }))
   }
-  
+
   return buildTree(categoryStore.categories)
 })
+
+const paginationConfig = computed(() => ({
+  current: categoryStore.pagination.current,
+  pageSize: categoryStore.pagination.pageSize,
+  total: categoryStore.pagination.total
+}))
 
 // 方法
 const handleSearch = (keyword: string) => {
   // 实现搜索逻辑
   console.log('搜索分类:', keyword)
+}
+
+const handleTableChange = (pagination: any, filters: any, sorter: any) => {
+  categoryStore.setPagination(pagination.current, pagination.pageSize)
+  categoryStore.fetchCategories()
 }
 
 const handleCreate = () => {

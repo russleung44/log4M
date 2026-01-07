@@ -7,8 +7,10 @@ import com.tony.log4m.models.dto.BatchDeleteDto;
 import com.tony.log4m.models.dto.CreateBillDto;
 import com.tony.log4m.models.dto.UpdateBillDto;
 import com.tony.log4m.models.entity.Bill;
+import com.tony.log4m.models.entity.Category;
 import com.tony.log4m.models.vo.ResultVO;
 import com.tony.log4m.service.BillService;
+import com.tony.log4m.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class BillController {
 
     private final BillService billService;
+    private final CategoryService categoryService;
 
     @GetMapping("/list")
     public List<Bill> list() {
@@ -51,15 +54,26 @@ public class BillController {
             @RequestParam(name = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam(name = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
             @RequestParam(name = "transactionType", required = false) TransactionType transactionType,
-            @RequestParam(name = "keyword", required = false) String keyword) {
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "minAmount", required = false) java.math.BigDecimal minAmount,
+            @RequestParam(name = "maxAmount", required = false) java.math.BigDecimal maxAmount) {
         Page<Bill> page = new Page<>(current, size);
 
-        LambdaQueryWrapper<Bill> queryWrapper = new LambdaQueryWrapper<Bill>()
-                .eq(categoryId != null, Bill::getCategoryId, categoryId)
-                .eq(accountId != null, Bill::getAccountId, accountId)
+        LambdaQueryWrapper<Bill> queryWrapper = new LambdaQueryWrapper<>();
+
+        // 处理分类筛选：-1 表示查询未分类的账单（categoryId 为 0）
+        if (categoryId != null && categoryId == -1) {
+            queryWrapper.eq(Bill::getCategoryId, 0);
+        } else if (categoryId != null) {
+            queryWrapper.eq(Bill::getCategoryId, categoryId);
+        }
+
+        queryWrapper.eq(accountId != null, Bill::getAccountId, accountId)
                 .ge(startDate != null, Bill::getBillDate, startDate)
                 .le(endDate != null, Bill::getBillDate, endDate)
                 .eq(transactionType != null, Bill::getTransactionType, transactionType)
+                .ge(minAmount != null, Bill::getAmount, minAmount)
+                .le(maxAmount != null, Bill::getAmount, maxAmount)
                 .like(keyword != null && !keyword.trim().isEmpty(), Bill::getNote, keyword)
                 .orderByDesc(Bill::getBillDate)
                 .orderByDesc(Bill::getBillId);
@@ -81,6 +95,30 @@ public class BillController {
         bill.setAccountId(dto.getAccountId());
         bill.setTagId(dto.getTagId());
         bill.setTransactionType(dto.getTransactionType());
+
+        // 同步设置分类名称
+        if (dto.getCategoryId() != null) {
+            try {
+                Category category = categoryService.getById(dto.getCategoryId());
+                bill.setCategoryName(category.getCategoryName());
+                bill.setParentCategoryId(category.getParentCategoryId());
+
+                // 只有当 parentCategoryId 不为 null 且不为 0 时才查询父分类
+                if (category.getParentCategoryId() != null && category.getParentCategoryId() != 0) {
+                    Category parentCategory = categoryService.getById(category.getParentCategoryId());
+                    bill.setParentCategoryName(parentCategory.getCategoryName());
+                } else {
+                    bill.setParentCategoryName(null);
+                }
+            } catch (Exception e) {
+                // 如果分类不存在，设置为默认值
+                bill.setCategoryName("未分类");
+                bill.setParentCategoryName(null);
+            }
+        } else {
+            bill.setCategoryName("未分类");
+            bill.setParentCategoryName(null);
+        }
 
         boolean saved = billService.save(bill);
         if (saved) {
@@ -107,6 +145,30 @@ public class BillController {
         bill.setAccountId(dto.getAccountId());
         bill.setTagId(dto.getTagId());
         bill.setTransactionType(dto.getTransactionType());
+
+        // 同步更新分类名称
+        if (dto.getCategoryId() != null) {
+            try {
+                Category category = categoryService.getById(dto.getCategoryId());
+                bill.setCategoryName(category.getCategoryName());
+                bill.setParentCategoryId(category.getParentCategoryId());
+
+                // 只有当 parentCategoryId 不为 null 且不为 0 时才查询父分类
+                if (category.getParentCategoryId() != null && category.getParentCategoryId() != 0) {
+                    Category parentCategory = categoryService.getById(category.getParentCategoryId());
+                    bill.setParentCategoryName(parentCategory.getCategoryName());
+                } else {
+                    bill.setParentCategoryName(null);
+                }
+            } catch (Exception e) {
+                // 如果分类不存在，设置为默认值
+                bill.setCategoryName("未分类");
+                bill.setParentCategoryName(null);
+            }
+        } else {
+            bill.setCategoryName("未分类");
+            bill.setParentCategoryName(null);
+        }
 
         boolean updated = billService.updateById(bill);
         return ResultVO.success(updated);
@@ -292,6 +354,17 @@ public class BillController {
         result.put("year", year);
         result.put("expense", expense);
 
+        return ResultVO.success(result);
+    }
+
+    /**
+     * 获取年度月度支出统计
+     */
+    @GetMapping("/statistics/yearly/monthly")
+    public ResultVO<List<Map<String, Object>>> getYearlyMonthlyStatistics(
+            @RequestParam(name = "year") String year // 格式: yyyy
+    ) {
+        List<Map<String, Object>> result = billService.getYearlyMonthlyStatistics(year);
         return ResultVO.success(result);
     }
 }

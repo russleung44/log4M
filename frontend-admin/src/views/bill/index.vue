@@ -1,5 +1,82 @@
 <template>
   <div class="bill-management">
+    <!-- 筛选区域 -->
+    <div class="filter-section">
+      <a-space size="middle">
+        <div class="filter-item">
+          <label>分类：</label>
+          <a-select
+            v-model:value="selectedCategoryId"
+            placeholder="全部分类"
+            style="width: 180px"
+            allow-clear
+            show-search
+            :filter-option="filterOption"
+            @change="handleCategoryChange"
+          >
+            <a-select-option :value="-1">
+              未分类
+            </a-select-option>
+            <a-select-option
+              v-for="category in categoryStore.categories"
+              :key="category.categoryId"
+              :value="category.categoryId"
+            >
+              {{ category.categoryName }}
+            </a-select-option>
+          </a-select>
+        </div>
+
+        <div class="filter-item">
+          <label>交易类型：</label>
+          <a-select
+            v-model:value="selectedTransactionType"
+            placeholder="全部类型"
+            style="width: 120px"
+            allow-clear
+            @change="handleTransactionTypeChange"
+          >
+            <a-select-option value="EXPENSE">支出</a-select-option>
+            <a-select-option value="INCOME">收入</a-select-option>
+          </a-select>
+        </div>
+
+        <div class="filter-item">
+          <label>日期范围：</label>
+          <a-range-picker
+            v-model:value="dateRange"
+            format="YYYY-MM-DD"
+            :placeholder="['开始日期', '结束日期']"
+            style="width: 260px"
+            @change="handleDateRangeChange"
+          />
+        </div>
+
+        <div class="filter-item">
+          <label>金额范围：</label>
+          <a-input-group compact style="display: flex; align-items: center; gap: 4px;">
+            <a-input-number
+              v-model:value="minAmount"
+              placeholder="最小金额"
+              :min="0"
+              :precision="2"
+              style="width: 110px"
+              @change="handleAmountChange"
+            />
+            <span style="padding: 0 4px;">~</span>
+            <a-input-number
+              v-model:value="maxAmount"
+              placeholder="最大金额"
+              :min="0"
+              :precision="2"
+              style="width: 110px"
+              @change="handleAmountChange"
+            />
+          </a-input-group>
+        </div>
+      </a-space>
+    </div>
+
     <DataTable
       :columns="columns"
       :data-source="billStore.bills"
@@ -17,9 +94,16 @@
             <PlusOutlined />
             新增账单
           </a-button>
-          <a-button 
-            v-if="selectedRows.length > 0" 
-            danger 
+          <a-button
+            v-if="hasActiveFilters"
+            @click="handleResetFilters"
+          >
+            <ReloadOutlined />
+            重置筛选
+          </a-button>
+          <a-button
+            v-if="selectedRows.length > 0"
+            danger
             @click="handleBatchDelete"
           >
             批量删除 ({{ selectedRows.length }})
@@ -137,7 +221,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
-import { PlusOutlined, ExportOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, ExportOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import dayjs, { Dayjs } from 'dayjs'
 
 import { DataTable, BaseForm } from '@/components'
@@ -157,9 +241,10 @@ const columns = [
     sorter: true
   },
   {
-    title: '类型',
-    dataIndex: 'transactionType',
-    key: 'transactionType'
+    title: '备注',
+    dataIndex: 'note',
+    key: 'note',
+    ellipsis: true
   },
   {
     title: '金额',
@@ -173,15 +258,9 @@ const columns = [
     key: 'categoryName'
   },
   {
-    title: '账户',
-    dataIndex: 'accountName',
-    key: 'accountName'
-  },
-  {
-    title: '备注',
-    dataIndex: 'note',
-    key: 'note',
-    ellipsis: true
+    title: '类型',
+    dataIndex: 'transactionType',
+    key: 'transactionType'
   }
 ]
 
@@ -192,6 +271,11 @@ const currentRecord = ref<Bill | null>(null)
 const saving = ref(false)
 const selectedRows = ref<Bill[]>([])
 const formRef = ref()
+const selectedCategoryId = ref<number | undefined>()
+const selectedTransactionType = ref<'INCOME' | 'EXPENSE' | undefined>()
+const dateRange = ref<[Dayjs, Dayjs] | null>()
+const minAmount = ref<number | undefined>()
+const maxAmount = ref<number | undefined>()
 
 const formData = reactive({
   billDate: null as Dayjs | null,
@@ -216,6 +300,14 @@ const paginationConfig = computed(() => ({
   pageSize: billStore.pagination.pageSize,
   total: billStore.pagination.total
 }))
+
+const hasActiveFilters = computed(() => {
+  return selectedCategoryId.value !== undefined ||
+         selectedTransactionType.value !== undefined ||
+         dateRange.value !== null ||
+         minAmount.value !== undefined ||
+         maxAmount.value !== undefined
+})
 
 // 方法
 const formatDate = (date: string) => {
@@ -265,6 +357,65 @@ const filterOption = (input: string, option: any) => {
 const handleSearch = (keyword: string) => {
   billStore.setFilters({ keyword })
   billStore.fetchBills()
+}
+
+const handleCategoryChange = (value: number | undefined) => {
+  // -1 表示筛选未分类，undefined 表示不筛选（显示所有）
+  // 直接传递 value 给后端，后端会处理 -1 的情况
+  billStore.setFilters({ categoryId: value })
+  billStore.setPagination(1, billStore.pagination.pageSize) // 重置到第一页
+  billStore.fetchBills()
+}
+
+const handleTransactionTypeChange = (value: 'INCOME' | 'EXPENSE' | undefined) => {
+  billStore.setFilters({ transactionType: value })
+  billStore.setPagination(1, billStore.pagination.pageSize) // 重置到第一页
+  billStore.fetchBills()
+}
+
+const handleDateRangeChange = (dates: [Dayjs, Dayjs] | null) => {
+  if (dates && dates.length === 2) {
+    billStore.setFilters({
+      startDate: dates[0].format('YYYY-MM-DD'),
+      endDate: dates[1].format('YYYY-MM-DD')
+    })
+  } else {
+    // 清空日期范围
+    billStore.setFilters({
+      startDate: undefined,
+      endDate: undefined
+    })
+  }
+  billStore.setPagination(1, billStore.pagination.pageSize) // 重置到第一页
+  billStore.fetchBills()
+}
+
+const handleAmountChange = () => {
+  billStore.setFilters({
+    minAmount: minAmount.value,
+    maxAmount: maxAmount.value
+  })
+  billStore.setPagination(1, billStore.pagination.pageSize) // 重置到第一页
+  billStore.fetchBills()
+}
+
+// 重置筛���条件
+const resetFilters = () => {
+  // 重置本地筛选状态
+  selectedCategoryId.value = undefined
+  selectedTransactionType.value = undefined
+  dateRange.value = null
+  minAmount.value = undefined
+  maxAmount.value = undefined
+
+  // 重置 store 中的筛选条件
+  billStore.resetFilters()
+}
+
+const handleResetFilters = async () => {
+  resetFilters()
+  await billStore.fetchBills()
+  message.success('已重置筛选条件')
 }
 
 const handleTableChange = (pagination: any, filters: any, sorter: any) => {
@@ -375,6 +526,9 @@ const resetForm = () => {
 
 // 生命周期
 onMounted(async () => {
+  // 重置筛选条件
+  resetFilters()
+
   await Promise.all([
     billStore.fetchBills(),
     categoryStore.fetchAllCategories(),
@@ -387,6 +541,25 @@ onMounted(async () => {
 .bill-management {
   padding: 24px;
   padding-left: 70px; /* 为左上角的home图标留出空间 */
+}
+
+.filter-section {
+  background: #fff;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-item label {
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
 }
 
 .amount-text {

@@ -2,13 +2,31 @@
   <div class="data-table">
     <!-- 搜索和操作区域 -->
     <div v-if="showSearch || showActions" class="table-header">
-      <a-input-search
-        v-if="showSearch"
-        v-model:value="searchValue"
-        :placeholder="searchPlaceholder"
-        style="width: 300px"
-        @search="handleSearch"
-      />
+      <div class="search-pagination-area">
+        <a-input-search
+          v-if="showSearch"
+          v-model:value="searchValue"
+          :placeholder="searchPlaceholder"
+          style="width: 300px"
+          @search="handleSearch"
+        />
+        <a-space v-if="paginationConfig && paginationConfig.total > 0" :size="8" style="margin-left: 16px;">
+          <a-button
+            size="small"
+            :disabled="paginationConfig.current <= 1"
+            @click="handlePrevPage"
+          >
+            上一页
+          </a-button>
+          <a-button
+            size="small"
+            :disabled="paginationConfig.current >= Math.ceil(paginationConfig.total / paginationConfig.pageSize)"
+            @click="handleNextPage"
+          >
+            下一页
+          </a-button>
+        </a-space>
+      </div>
       <div class="action-area">
         <slot name="actions" :selected-rows="selectedRows" />
       </div>
@@ -113,14 +131,23 @@ const computedColumns = computed(() => {
 
 const paginationConfig = computed(() => {
   if (props.pagination === false) return false
+
+  const pageSize = Number(props.pagination?.pageSize) || 20
+  const total = Number(props.pagination?.total) || 0
+  const current = Number(props.pagination?.current) || 1
+
   return {
-    current: 1,
-    pageSize: 20,
+    current,
+    pageSize,
+    total,
+    pageSizeOptions: ['10', '20', '50', '100', '200'],
     showSizeChanger: true,
     showQuickJumper: true,
-    showTotal: (total: number, range: [number, number]) => 
-      `共 ${total} 条记录，当前显示 ${range[0]}-${range[1]} 条`,
-    ...props.pagination
+    showTotal: (total: number, range: [number, number]) => {
+      const totalPage = Math.ceil(total / pageSize)
+      return `第 ${range[0]}-${range[1]} 条，共 ${total} 条 / ${totalPage} 页`
+    },
+    size: 'small'
   }
 })
 
@@ -144,6 +171,27 @@ const handleTableChange = (pagination: any, filters: any, sorter: any) => {
   emit('change', pagination, filters, sorter)
 }
 
+const handlePrevPage = () => {
+  if (paginationConfig.value && paginationConfig.value.current > 1) {
+    emit('change', {
+      current: paginationConfig.value.current - 1,
+      pageSize: paginationConfig.value.pageSize
+    }, {}, {})
+  }
+}
+
+const handleNextPage = () => {
+  if (paginationConfig.value) {
+    const totalPages = Math.ceil(paginationConfig.value.total / paginationConfig.value.pageSize)
+    if (paginationConfig.value.current < totalPages) {
+      emit('change', {
+        current: paginationConfig.value.current + 1,
+        pageSize: paginationConfig.value.pageSize
+      }, {}, {})
+    }
+  }
+}
+
 defineExpose({
   selectedRowKeys,
   selectedRows
@@ -162,6 +210,11 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+}
+
+.search-pagination-area {
+  display: flex;
+  align-items: center;
 }
 
 .action-area {

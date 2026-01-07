@@ -21,7 +21,9 @@ export const useBillStore = defineStore('bill', () => {
     startDate: undefined,
     endDate: undefined,
     transactionType: undefined,
-    keyword: undefined
+    keyword: undefined,
+    minAmount: undefined,
+    maxAmount: undefined
   })
 
   // Getters
@@ -196,7 +198,9 @@ export const useBillStore = defineStore('bill', () => {
       startDate: undefined,
       endDate: undefined,
       transactionType: undefined,
-      keyword: undefined
+      keyword: undefined,
+      minAmount: undefined,
+      maxAmount: undefined
     }
   }
 

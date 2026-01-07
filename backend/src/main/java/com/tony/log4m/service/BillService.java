@@ -63,16 +63,34 @@ public class BillService extends ServiceImpl<BillMapper, Bill> {
     public List<Map<String, Object>> getTrendStatistics(int days) {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(days - 1);
-        
+
         com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Bill> queryWrapper = new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<>();
-        queryWrapper.select("bill_date as date", 
+        queryWrapper.select("bill_date as date",
                 "sum(case when transaction_type = 'INCOME' then amount else 0 end) as income",
                 "sum(case when transaction_type = 'EXPENSE' then amount else 0 end) as expense")
                 .ge("bill_date", startDate)
                 .le("bill_date", endDate)
                 .groupBy("bill_date")
                 .orderByAsc("bill_date");
-        
+
+        return this.getBaseMapper().selectMaps(queryWrapper);
+    }
+
+    /**
+     * 获取年度月度支出统计
+     * @param year 年份（格式: yyyy）
+     * @return 年度月度统计数据
+     */
+    public List<Map<String, Object>> getYearlyMonthlyStatistics(String year) {
+        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Bill> queryWrapper = new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<>();
+        queryWrapper.select(
+                        "bill_month",
+                        "sum(case when transaction_type = 'EXPENSE' then amount else 0 end) as expense",
+                        "sum(case when transaction_type = 'INCOME' then amount else 0 end) as income")
+                .likeRight("bill_month", year)
+                .groupBy("bill_month")
+                .orderByAsc("bill_month");
+
         return this.getBaseMapper().selectMaps(queryWrapper);
     }
 

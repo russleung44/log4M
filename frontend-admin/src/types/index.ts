@@ -199,6 +199,12 @@ export interface YearlyStatistics {
   expense: number
 }
 
+export interface YearlyMonthlyStatistics {
+  month: number
+  income: number
+  expense: number
+}
+
 // 批量删除DTO
 export interface BatchDeleteDto {
   ids: number[]

@@ -22,6 +22,8 @@ export interface BillQueryParams {
   endDate?: string
   transactionType?: TransactionType
   keyword?: string
+  minAmount?: number
+  maxAmount?: number
 }
 
 export class BillApi {
@@ -141,6 +143,16 @@ export class BillApi {
    */
   static async getYearlyExpenseStatistics(year: string) {
     const response = await http.get<ApiResponse<YearlyStatistics>>('/bills/statistics/yearly/expense', {
+      params: { year }
+    })
+    return response.data
+  }
+
+  /**
+   * 获取年度月度统计
+   */
+  static async getYearlyMonthlyStatistics(year: string) {
+    const response = await http.get<ApiResponse<YearlyMonthlyStatistics[]>>('/bills/statistics/yearly/monthly', {
       params: { year }
     })
     return response.data

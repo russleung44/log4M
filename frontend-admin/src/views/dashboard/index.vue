@@ -9,18 +9,6 @@
     <a-row :gutter="[16, 16]" class="stats-row">
       <a-col :xs="24" :sm="12" :lg="6">
         <StatisticCard
-          title="今日支出"
-          :value="todayExpense"
-          :icon="CalendarOutlined"
-          color="#ff4d4f"
-          suffix="元"
-          :precision="2"
-          :loading="statsLoading"
-        />
-      </a-col>
-      
-      <a-col :xs="24" :sm="12" :lg="6">
-        <StatisticCard
           title="昨日支出"
           :value="yesterdayExpense"
           :icon="CalendarOutlined"
@@ -30,7 +18,7 @@
           :loading="statsLoading"
         />
       </a-col>
-      
+
       <a-col :xs="24" :sm="12" :lg="6">
         <StatisticCard
           title="本月支出"
@@ -42,7 +30,19 @@
           :loading="statsLoading"
         />
       </a-col>
-      
+
+      <a-col :xs="24" :sm="12" :lg="6">
+        <StatisticCard
+          title="上月支出"
+          :value="lastMonthExpense"
+          :icon="CalendarOutlined"
+          color="#ff4d4f"
+          suffix="元"
+          :precision="2"
+          :loading="statsLoading"
+        />
+      </a-col>
+
       <a-col :xs="24" :sm="12" :lg="6">
         <StatisticCard
           title="本年支出"
@@ -70,7 +70,7 @@
           />
         </a-card>
       </a-col>
-      
+
       <a-col :xs="24" :lg="12">
         <a-card :loading="categoryChartLoading">
           <template #title>
@@ -106,8 +106,8 @@
                   <span class="category-total-amount">¥{{ formatAmount(totalCategoryExpense) }}</span>
                 </div>
                 <!-- 分类支出数据 -->
-                <div 
-                  v-for="item in categoryData" 
+                <div
+                  v-for="item in categoryData"
                   :key="item.name"
                   class="category-data-item"
                 >
@@ -117,6 +117,36 @@
               </div>
             </a-col>
           </a-row>
+        </a-card>
+      </a-col>
+    </a-row>
+
+    <!-- 年度支出趋势 -->
+    <a-row :gutter="[16, 16]" class="charts-row">
+      <a-col :xs="24" :lg="24">
+        <a-card :loading="yearlyChartLoading">
+          <template #title>
+            <div class="chart-title">
+              <span>年度支出趋势</span>
+              <a-date-picker
+                v-model:value="selectedYear"
+                picker="year"
+                size="small"
+                :allowClear="false"
+                :disabled="yearlyChartLoading"
+                @change="handleYearChange"
+                class="year-picker"
+              />
+            </div>
+          </template>
+          <EChart
+            ref="yearlyChartRef"
+            :option="yearlyChartOption"
+            height="350px"
+            :loading="yearlyChartLoading"
+            @chart-click="handleYearlyClick"
+            :key="`yearly-chart-${yearlyChartKey}`"
+          />
         </a-card>
       </a-col>
     </a-row>
@@ -141,7 +171,7 @@ import EChart from '@/components/Chart/EChart.vue'
 import StatisticCard from '@/components/StatisticCard/index.vue'
 import { useBillStore, useCategoryStore } from '@/stores'
 import { BillApi } from '@/api'
-import type { Bill, TrendStatistics, CategoryStatistics } from '@/types'
+import type { Bill, TrendStatistics, CategoryStatistics, YearlyMonthlyStatistics } from '@/types'
 import { TransactionType } from '@/types'
 
 const router = useRouter()
@@ -152,24 +182,29 @@ const categoryStore = useCategoryStore()
 const statsLoading = ref(false)
 const chartsLoading = ref(false)
 const categoryChartLoading = ref(false) // 专门用于分类图表的加载状态
+const yearlyChartLoading = ref(false) // 年度图表加载状态
 const trendChartKey = ref(0) // 用于强制重新渲染趋势图表
 const categoryChartKey = ref(0) // 用于强制重新渲染分类图表
+const yearlyChartKey = ref(0) // 用于强制重新渲染年度图表
 
-// 新的支出统计数据
-const todayExpense = ref(0)
+// 新的支���统计数据
 const yesterdayExpense = ref(0)
 const monthExpense = ref(0)
+const lastMonthExpense = ref(0)
 const yearExpense = ref(0)
 
 const trendData = ref<TrendStatistics[]>([])
 const categoryData = ref<{ name: string; value: number }[]>([])
+const yearlyData = ref<YearlyMonthlyStatistics[]>([])
 
-// 月份选择器数据
+// 月份和年份选择器数据
 const selectedMonth = ref<Dayjs>(dayjs())
+const selectedYear = ref<Dayjs>(dayjs())
 
 // 图表引用
 const trendChartRef = ref()
 const categoryChartRef = ref()
+const yearlyChartRef = ref()
 
 // 计算总分类支出
 const totalCategoryExpense = computed(() => {
@@ -248,6 +283,76 @@ const categoryChartOption = computed<EChartsOption>(() => {
   }
 })
 
+const yearlyChartOption = computed<EChartsOption>(() => {
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+        label: {
+          backgroundColor: '#6a7985'
+        }
+      }
+    },
+    legend: {
+      data: ['收入', '支出']
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: yearlyData.value.map(item => `${item.month}月`)
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: {
+        formatter: '¥{value}'
+      }
+    },
+    series: [
+      {
+        name: '收入',
+        type: 'line',
+        data: yearlyData.value.map(item => item.income),
+        smooth: true,
+        itemStyle: { color: '#52c41a' },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(82, 196, 26, 0.3)' },
+              { offset: 1, color: 'rgba(82, 196, 26, 0.05)' }
+            ]
+          }
+        }
+      },
+      {
+        name: '支出',
+        type: 'line',
+        data: yearlyData.value.map(item => item.expense),
+        smooth: true,
+        itemStyle: { color: '#ff4d4f' },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(255, 77, 79, 0.3)' },
+              { offset: 1, color: 'rgba(255, 77, 79, 0.05)' }
+            ]
+          }
+        }
+      }
+    ]
+  }
+})
+
 // 方法
 const navigateTo = (path: string) => {
   // 现在可以正常跳转到已实现的页面
@@ -270,6 +375,11 @@ const handleCategoryClick = (params: any) => {
   message.info(`点击了分类：${params.name}`)
 }
 
+const handleYearlyClick = (params: any) => {
+  console.log('年度图点击：', params)
+  message.info(`点击了 ${params.name} 的数据`)
+}
+
 const formatDate = (date: string) => {
   return dayjs(date).format('YYYY-MM-DD')
 }
@@ -285,7 +395,7 @@ const handleMonthChange = async () => {
   // 只增加分类图表的key
   categoryChartKey.value++
   console.log('月份切换后更新categoryChartKey:', categoryChartKey.value) // 调试信息
-  
+
   // 手动触发分类图表更新
   await nextTick()
   if (categoryChartRef.value) {
@@ -294,53 +404,64 @@ const handleMonthChange = async () => {
   }
 }
 
+// 年份改变处理函数
+const handleYearChange = async () => {
+  console.log('年份切换到:', selectedYear.value.format('YYYY')) // 调试信息
+  await loadYearlyData()
+  // 增加年度图表的key
+  yearlyChartKey.value++
+  console.log('年份切换后更新yearlyChartKey:', yearlyChartKey.value) // 调试信息
+
+  // 手动触发年度图表更新
+  await nextTick()
+  if (yearlyChartRef.value) {
+    console.log('手动更新年度图表')
+    yearlyChartRef.value.updateChart()
+  }
+}
+
 // 更新加载统计的方法名称
 const loadExpenseStats = async () => {
   try {
     statsLoading.value = true
-    
-    // 获取今天的日期格式
-    const today = dayjs().format('YYYY-MM-DD')
+
+    // 获取需要的日期格式
     const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD')
     const currentMonth = dayjs().format('YYYY-MM')
+    const lastMonth = dayjs().subtract(1, 'month').format('YYYY-MM')
     const currentYear = dayjs().format('YYYY')
-    
+
     // 并行获取所有统计数据
-    const [todayResponse, yesterdayResponse, monthResponse, yearResponse] = await Promise.all([
-      BillApi.getDailyStatistics(today),
+    const [yesterdayResponse, monthResponse, lastMonthResponse, yearResponse] = await Promise.all([
       BillApi.getDailyStatistics(yesterday),
       BillApi.getMonthlyStatistics(currentMonth),
-      // 使用新的年支出统计API
+      BillApi.getMonthlyStatistics(lastMonth),
       BillApi.getYearlyExpenseStatistics(currentYear)
     ])
-    
-    // 处理今日支出
-    if (todayResponse.code === 200 || todayResponse.code === 0) {
-      // 修复：从data中提取expense值
-      todayExpense.value = todayResponse.data.expense || 0
-    } else {
-      message.error(todayResponse.message || '获取今日支出数据失败')
-    }
-    
+
     // 处理昨日支出
     if (yesterdayResponse.code === 200 || yesterdayResponse.code === 0) {
-      // 修复：从data中提取expense值
       yesterdayExpense.value = yesterdayResponse.data.expense || 0
     } else {
       message.error(yesterdayResponse.message || '获取昨日支出数据失败')
     }
-    
+
     // 处理本月支出
     if (monthResponse.code === 200 || monthResponse.code === 0) {
-      // 修复：从data中提取expense值
       monthExpense.value = monthResponse.data.expense || 0
     } else {
       message.error(monthResponse.message || '获取本月支出数据失败')
     }
-    
+
+    // 处理上月支出
+    if (lastMonthResponse.code === 200 || lastMonthResponse.code === 0) {
+      lastMonthExpense.value = lastMonthResponse.data.expense || 0
+    } else {
+      message.error(lastMonthResponse.message || '获取上月支出数据失败')
+    }
+
     // 处理本年支出
     if (yearResponse.code === 200 || yearResponse.code === 0) {
-      // 修复：从data中提取expense值
       yearExpense.value = yearResponse.data.expense || 0
     } else {
       message.error(yearResponse.message || '获取本年支出数据失败')
@@ -493,12 +614,64 @@ const loadCategoryData = async () => {
   }
 }
 
+// 加载年度月度统计数据
+const loadYearlyData = async () => {
+  try {
+    yearlyChartLoading.value = true
+
+    const year = selectedYear.value.format('YYYY')
+    console.log('加载年度数据，年份:', year)
+
+    const yearlyResponse = await BillApi.getYearlyMonthlyStatistics(year)
+    console.log('年度数据响应:', yearlyResponse)
+
+    if (yearlyResponse.code === 200 || yearlyResponse.code === 0) {
+      // 处理年度数据 - bill_month 格式为 "202601"
+      const result = (yearlyResponse.data || []).map((item: any) => ({
+        month: item.bill_month || item.BILL_MONTH || '',
+        income: parseFloat(item.income || item.INCOME || 0),
+        expense: parseFloat(item.expense || item.EXPENSE || 0)
+      }))
+      console.log('处理后的年度数据:', result)
+
+      // 创建月份映射 - 从 "202601" 提取月份 1
+      const monthlyMap = new Map<number, { income: number; expense: number }>()
+      result.forEach(item => {
+        const monthNum = parseInt(item.month.substring(4, 6))
+        monthlyMap.set(monthNum, { income: item.income, expense: item.expense })
+      })
+
+      // 确保包含12个月的数据，缺失的月份用0填充
+      yearlyData.value = Array.from({ length: 12 }, (_, i) => {
+        const monthNum = i + 1
+        const data = monthlyMap.get(monthNum) || { income: 0, expense: 0 }
+        return {
+          month: monthNum,
+          income: data.income,
+          expense: data.expense
+        }
+      })
+      console.log('最终年度数据:', yearlyData.value)
+
+      await nextTick()
+    } else {
+      message.error(yearlyResponse.message || '获取年度数据失败')
+    }
+  } catch (error) {
+    console.error('加载年度数据失败：', error)
+    message.error('加载年度数据失败')
+  } finally {
+    yearlyChartLoading.value = false
+  }
+}
+
 onMounted(async () => {
   console.log('开始加载仪表板数据...') // 调试信息
   // 并发加载数据
   await Promise.all([
     loadExpenseStats(),
-    loadChartData()
+    loadChartData(),
+    loadYearlyData()
   ])
   console.log('仪表板数据加载完成') // 调试信息
 })
@@ -526,6 +699,10 @@ onMounted(async () => {
 }
 
 .month-picker {
+  width: 100px;
+}
+
+.year-picker {
   width: 100px;
 }
 
