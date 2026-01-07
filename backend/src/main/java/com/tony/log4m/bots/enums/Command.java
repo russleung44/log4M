@@ -23,6 +23,7 @@ public enum Command {
     MONTH_DETAIL_QUERY("month_detail", "查询指定月份", "bill", false),
     MONTH_SUMMARY_QUERY("month", "查询指定月份总结", "bill", false),
     DATE_QUERY("date", "查询指定日期", "bill", false),
+    YEAR("year", "年度统计", "bill", false),
     BUDGET("budget", "预算", "bill", false),
 
     // ==============rule===================

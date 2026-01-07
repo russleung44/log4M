@@ -1,5 +1,6 @@
 package com.tony.log4m.bots.handlers;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.CallbackQuery;
@@ -8,7 +9,6 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendMessage;
-import cn.hutool.core.date.DateUtil;
 import com.tony.log4m.bots.core.BotUtil;
 import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.exception.Log4mException;
@@ -164,6 +164,7 @@ public class CallbackProcessor {
             case "help_default_category" -> showCategoriesForDefault();
             case "help_set_default_category" -> setDefaultCategory(targetId);
             case "help_exec" -> handleHelpExec(parts);
+            case "year_view" -> handleYearView(parts);
             default -> throw new Log4mException("未知操作类型: " + prefix);
         };
     }
@@ -441,6 +442,116 @@ public class CallbackProcessor {
                 StrUtil.nullToEmpty(bill.getNote()),
                 StrUtil.nullToEmpty(bill.getCategoryName())
         );
+    }
+
+    private CallbackResult handleYearView(String[] parts) {
+        if (parts.length < 3) {
+            throw new Log4mException("Invalid year view format");
+        }
+
+        String yearStr = parts[1];
+        String viewType = parts[2]; // "month" or "category"
+        int year = Integer.parseInt(yearStr);
+
+        // 查询该年度的所有账单
+        List<Bill> bills = billService.lambdaQuery()
+                .likeRight(Bill::getBillMonth, yearStr)
+                .list();
+
+        BigDecimal total = bills.stream()
+                .map(Bill::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        StringBuilder template = new StringBuilder();
+        template.append(String.format("%d年度统计总计：%.2f元%n---------%n", year, total));
+
+        if ("month".equals(viewType)) {
+            template.append(generateMonthlyView(bills, year));
+        } else if ("category".equals(viewType)) {
+            template.append(generateCategoryView(bills));
+        }
+
+        // 创建切换按钮
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.addRow(
+                new InlineKeyboardButton("📊 按月查看")
+                        .callbackData("year_view::" + year + "::month"),
+                new InlineKeyboardButton("📈 按分类查看")
+                        .callbackData("year_view::" + year + "::category")
+        );
+
+        // 年份导航
+        markup.addRow(
+                new InlineKeyboardButton("◀ " + (year - 1))
+                        .callbackData("help_exec::year::" + (year - 1)),
+                new InlineKeyboardButton((year + 1) + " ▶")
+                        .callbackData("help_exec::year::" + (year + 1))
+        );
+
+        return new CallbackResult(template.toString(), markup);
+    }
+
+    private String generateMonthlyView(List<Bill> bills, int year) {
+        StringBuilder sb = new StringBuilder("按月统计\n---------\n");
+
+        Map<String, BigDecimal> monthlyTotals = bills.stream()
+                .collect(Collectors.groupingBy(
+                        Bill::getBillMonth,
+                        Collectors.reducing(
+                                BigDecimal.ZERO,
+                                Bill::getAmount,
+                                BigDecimal::add
+                        )
+                ));
+
+        for (int month = 1; month <= 12; month++) {
+            String monthKey = String.format("%d%02d", year, month);
+            BigDecimal monthTotal = monthlyTotals.getOrDefault(monthKey, BigDecimal.ZERO);
+            String monthName = String.format("%d年%d月", year, month);
+            int padding = Math.max(0, 12 - calculateDisplayWidth(monthName));
+            sb.append(String.format("%s%s  ¥%.2f\n",
+                    monthName, " ".repeat(padding), monthTotal));
+        }
+
+        return sb.toString();
+    }
+
+    private String generateCategoryView(List<Bill> bills) {
+        StringBuilder sb = new StringBuilder("按分类统计\n---------\n");
+
+        Map<String, Double> categoryMap = bills.stream()
+                .collect(Collectors.groupingBy(
+                        Bill::getCategoryName,
+                        Collectors.summingDouble(b -> b.getAmount().doubleValue())
+                ));
+
+        // 处理空分类名称
+        if (categoryMap.containsKey(null) || categoryMap.containsKey("")) {
+            double unclassifiedAmount = categoryMap.getOrDefault(null, 0.0) +
+                    categoryMap.getOrDefault("", 0.0);
+            categoryMap.put("未分类", unclassifiedAmount);
+            categoryMap.remove(null);
+            categoryMap.remove("");
+        }
+
+        // 计算最大分类名长度用于对齐
+        int maxCategoryLength = categoryMap.keySet().stream()
+                .mapToInt(String::length)
+                .max()
+                .orElse(10);
+        int categoryLength = Math.max(maxCategoryLength, 10);
+
+        // 按金额排序并格式化
+        categoryMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .forEach(entry -> {
+                    String categoryName = entry.getKey();
+                    int padding = Math.max(0, categoryLength * 2 - calculateDisplayWidth(categoryName));
+                    sb.append(String.format("%s%s  ¥%.2f\n",
+                            categoryName, " ".repeat(padding), entry.getValue()));
+                });
+
+        return sb.toString();
     }
 
     private record CallbackResult(String text, InlineKeyboardMarkup markup) {}

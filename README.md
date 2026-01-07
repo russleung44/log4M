@@ -170,37 +170,6 @@ VITE_API_BASE_URL=http://localhost:9001/api
 VITE_APP_TITLE=log4M 管理后台
 ```
 
-## API 文档
-
-### 主要接口
-
-- **账单管理**: `/api/bills`
-  - GET `/api/bills` - 分页查询账单
-  - POST `/api/bills` - 创建账单
-  - PUT `/api/bills/{id}` - 更新账单
-  - DELETE `/api/bills/{id}` - 删除账单
-
-- **分类管理**: `/api/categories`
-  - GET `/api/categories/tree` - 获取分类树
-  - POST `/api/categories` - 创建分类
-  - PUT `/api/categories/{id}` - 更新分类
-  - DELETE `/api/categories/{id}` - 删除分类
-
-- **规则管理**: `/api/rules`
-  - GET `/api/rules` - 分页查询规则
-  - POST `/api/rules/test` - 测试规则匹配
-  - POST `/api/rules` - 创建规则
-  - PUT `/api/rules/{id}` - 更新规则
-  - DELETE `/api/rules/{id}` - 删除规则
-
-- **账户管理**: `/api/accounts`
-  - GET `/api/accounts` - 查询账户列表
-  - POST `/api/accounts` - 创建账户
-  - PUT `/api/accounts/{id}` - 更新账户
-  - DELETE `/api/accounts/{id}` - 删除账户
-
-更多API详情请查看源代码中的Controller类。
-
 ## 部署指南
 
 ### 生产环境部署

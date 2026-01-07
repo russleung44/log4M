@@ -70,6 +70,10 @@ public class SystemCommand implements CommandStrategy {
                         new InlineKeyboardButton("📆 指定日期明细").callbackData("help_date::start"),
                         new InlineKeyboardButton("🏷️ 设置默认分类").callbackData("help_default_category::start")
                 );
+                // 年度统计
+                markup.addRow(
+                        new InlineKeyboardButton("📅 年度统计").callbackData("help_exec::year::" + java.time.LocalDate.now().getYear())
+                );
                 msg.replyMarkup(markup);
                 return msg;
             }

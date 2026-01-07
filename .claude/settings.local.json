@@ -1,0 +1,29 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://cc.foxhank.cn/api",
+    "ANTHROPIC_AUTH_TOKEN": "cr_652d6a99014d048c8e660145327e57e4834f54853a7bb5887f10371ee746ab98",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew compileJava:*)",
+      "Bash(mvn compile:*)",
+      "Bash(find:*)",
+      "Bash(mvn:*)",
+      "Bash(dir:*)",
+      "Bash(javac:*)",
+      "WebSearch",
+      "Bash(while read hash)",
+      "Bash(do echo \"=== Commit: $hash ===\")",
+      "Bash(done)",
+      "Bash(\"C:\\Users\\tony\\Github\\Server\\SQL\\UPDATE.SQL\")",
+      "Bash(move:*)",
+      "Bash(/c/Users/tony/Github/Server)",
+      "Bash(npm view:*)",
+      "Bash(npm install:*)",
+      "Bash(claude:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

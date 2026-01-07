@@ -49,7 +49,7 @@ public class BillCommand implements CommandStrategy {
         String template = generateTemplate(command, param, bills);
 
         // 生成键盘按钮
-        InlineKeyboardMarkup inlineKeyboardMarkup = createKeyboardMarkup(command, bills);
+        InlineKeyboardMarkup inlineKeyboardMarkup = createKeyboardMarkup(command, param, bills);
 
         // 构建发送消息对象
         SendMessage sendMessage = new SendMessage(chatId, template);
@@ -99,6 +99,17 @@ public class BillCommand implements CommandStrategy {
                         .orderByAsc(Bill::getBillDate)
                         .orderByAsc(Bill::getBillId)
                         .list();
+                case YEAR -> {
+                    int year = (param != null && !param.isEmpty()) ?
+                            Integer.parseInt(param) : LocalDate.now().getYear();
+                    String yearPrefix = String.valueOf(year);
+                    yield billService.lambdaQuery()
+                            .likeRight(Bill::getBillMonth, yearPrefix)
+                            .orderByAsc(Bill::getBillMonth)
+                            .orderByAsc(Bill::getBillDate)
+                            .orderByAsc(Bill::getBillId)
+                            .list();
+                }
                 default -> new ArrayList<>();
             };
         } catch (Exception e) {
@@ -137,6 +148,34 @@ public class BillCommand implements CommandStrategy {
         template.append(String.format("%s总计：%.2f元%n---------\n", description, amount));
 
         switch (command) {
+            case YEAR -> {
+                int year = (param != null && !param.isEmpty()) ?
+                        Integer.parseInt(param) : LocalDate.now().getYear();
+
+                // 默认视图：按月统计
+                template.append("按月统计\n---------\n");
+
+                Map<String, BigDecimal> monthlyTotals = bills.stream()
+                        .collect(Collectors.groupingBy(
+                                Bill::getBillMonth,
+                                Collectors.reducing(
+                                        BigDecimal.ZERO,
+                                        Bill::getAmount,
+                                        BigDecimal::add
+                                )
+                        ));
+
+                for (int month = 1; month <= 12; month++) {
+                    String monthKey = String.format("%d%02d", year, month);
+                    BigDecimal monthTotal = monthlyTotals.getOrDefault(monthKey, BigDecimal.ZERO);
+                    String monthName = String.format("%d年%d月", year, month);
+                    int padding = Math.max(0, 12 - calculateDisplayWidth(monthName));
+                    template.append(String.format("%s%s  ¥%.2f\n",
+                            monthName, " ".repeat(padding), monthTotal));
+                }
+
+                template.append("\n💡 点击下方按钮切换视图");
+            }
             case MONTH_SUMMARY_QUERY, LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY -> {
                 // 按账单分类统计金额
                 Map<String, Double> categoryMap = bills.stream()
@@ -194,8 +233,32 @@ public class BillCommand implements CommandStrategy {
     /**
      * 创建键盘按钮
      */
-    private InlineKeyboardMarkup createKeyboardMarkup(Command command, List<Bill> bills) {
+    private InlineKeyboardMarkup createKeyboardMarkup(Command command, String param, List<Bill> bills) {
         switch (command) {
+            case YEAR -> {
+                int year = (param != null && !param.isEmpty()) ?
+                        Integer.parseInt(param) : LocalDate.now().getYear();
+
+                InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+
+                // 视图切换按钮
+                markup.addRow(
+                        new InlineKeyboardButton("📊 按月查看")
+                                .callbackData("year_view::" + year + "::month"),
+                        new InlineKeyboardButton("📈 按分类查看")
+                                .callbackData("year_view::" + year + "::category")
+                );
+
+                // 年份导航
+                markup.addRow(
+                        new InlineKeyboardButton("◀ " + (year - 1))
+                                .callbackData("help_exec::year::" + (year - 1)),
+                        new InlineKeyboardButton((year + 1) + " ▶")
+                                .callbackData("help_exec::year::" + (year + 1))
+                );
+
+                return markup;
+            }
             case MONTH_SUMMARY_QUERY, LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY -> {
                 return new InlineKeyboardMarkup();
             }
