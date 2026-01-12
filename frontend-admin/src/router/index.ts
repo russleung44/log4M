@@ -37,6 +37,14 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: '规则管理'
     }
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('@/views/about/index.vue'),
+    meta: {
+      title: '关于'
+    }
   }
 ]
 

@@ -4,7 +4,6 @@
 *.iml
 *.ipr
 
-
 ### VS Code ###
 /.mvn/
 /src/test/
@@ -12,4 +11,24 @@
 /.qoder/
 /.claude/
 /CLAUDE.md
-/.claude/
+
+### Environment variables ###
+.env
+.env.local
+.env.*.local
+
+### Logs ###
+*.log
+nohup.out
+
+### Data ###
+/data/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Build ###
+target/
+dist/
+node_modules/

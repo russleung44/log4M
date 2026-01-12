@@ -45,6 +45,12 @@
                 </template>
                 <span>规则管理</span>
               </a-menu-item>
+              <a-menu-item key="/about">
+                <template #icon>
+                  <InfoCircleOutlined />
+                </template>
+                <span>关于</span>
+              </a-menu-item>
             </a-menu>
           </a-layout-sider>
           
@@ -77,12 +83,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { 
-  HomeOutlined, 
+import {
+  HomeOutlined,
   DashboardOutlined,
   UnorderedListOutlined,
   AppstoreOutlined,
   SettingOutlined,
+  InfoCircleOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined
 } from '@ant-design/icons-vue'
