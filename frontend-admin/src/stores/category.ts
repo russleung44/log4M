@@ -10,7 +10,8 @@ export interface CategoryTreeNode extends Category {
 
 export const useCategoryStore = defineStore('category', () => {
   // State
-  const categories = ref<Category[]>([])
+  const categories = ref<Category[]>([]) // 分页数据，用于列表展示
+  const allCategories = ref<Category[]>([]) // ���量数据，用于选择器
   const categoryTree = ref<CategoryTreeNode[]>([])
   const currentCategory = ref<Category | null>(null)
   const loading = ref(false)
@@ -30,7 +31,7 @@ export const useCategoryStore = defineStore('category', () => {
   })
 
   const categoryOptions = computed(() => {
-    return categories.value.map(cat => ({
+    return allCategories.value.map(cat => ({
       label: cat.categoryName,
       value: cat.categoryId,
       type: cat.categoryType
@@ -75,8 +76,8 @@ export const useCategoryStore = defineStore('category', () => {
       console.log('getAllCategories 响应:', response)
 
       if (response.code === 200 || response.code === 0 || response.code === 1) {
-        categories.value = response.data
-        console.log('更新后的 categories:', categories.value)
+        allCategories.value = response.data
+        console.log('更新后的 allCategories:', allCategories.value)
       } else {
         message.error(response.msg || response.message || '获取所有分类失败')
       }
@@ -180,7 +181,7 @@ export const useCategoryStore = defineStore('category', () => {
     try {
       loading.value = true
       const response = await CategoryApi.delete(id)
-      
+
       if (response.code === 200 || response.code === 0) {
         message.success('删除分类成功')
         // 重新获取列表
@@ -188,12 +189,12 @@ export const useCategoryStore = defineStore('category', () => {
         await fetchAllCategories()
         return true
       } else {
-        message.error(response.message || '删除分类失败')
+        // HTTP 拦截器已经显示了错误消息
         return false
       }
     } catch (error) {
+      // HTTP 拦截器已经显示了错误消息
       console.error('Failed to delete category:', error)
-      message.error('删除分类失败')
       return false
     } finally {
       loading.value = false
@@ -232,16 +233,17 @@ export const useCategoryStore = defineStore('category', () => {
   return {
     // State
     categories,
+    allCategories,
     categoryTree,
     currentCategory,
     loading,
     pagination,
-    
+
     // Getters
     incomeCategories,
     expenseCategories,
     categoryOptions,
-    
+
     // Actions
     fetchCategories,
     fetchAllCategories,

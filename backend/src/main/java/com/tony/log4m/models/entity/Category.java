@@ -1,6 +1,8 @@
 package com.tony.log4m.models.entity;
 
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tony.log4m.base.BaseEntity;
@@ -25,8 +27,10 @@ public class Category extends BaseEntity<Category> {
 
     private String categoryName;
 
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private Long parentCategoryId;
 
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String parentCategoryName;
 
     private Integer sort;

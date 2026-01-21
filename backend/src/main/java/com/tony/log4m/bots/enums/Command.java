@@ -55,6 +55,10 @@ public enum Command {
         this.show = true;
     }
 
+    public String getDesc() {
+        return desc;
+    }
+
     public static Command getByCommand(String command) {
         if (StrUtil.isBlank(command)) {
             throw new Log4mException("指令不能为空");

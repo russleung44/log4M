@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { message, Modal } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 
 import { DataTable, BaseForm } from '@/components'
@@ -130,7 +130,7 @@ const formRules = {
 
 // 计算属性
 const categoryTreeData = computed(() => {
-  if (!categoryStore.categories || categoryStore.categories.length === 0) {
+  if (!categoryStore.allCategories || categoryStore.allCategories.length === 0) {
     return []
   }
 
@@ -159,7 +159,7 @@ const categoryTreeData = computed(() => {
       })
   }
 
-  return buildTree(categoryStore.categories)
+  return buildTree(categoryStore.allCategories)
 })
 
 const paginationConfig = computed(() => ({
@@ -202,32 +202,26 @@ const handleEdit = async (record: Category) => {
 }
 
 const handleDelete = (record: Category) => {
-  Modal.confirm({
-    title: '确认删除',
-    content: `确定要删除分类 "${record.categoryName}" 吗？删除后该分类下的账单将变为未分类。`,
-    onOk: async () => {
-      await categoryStore.deleteCategory(record.categoryId)
-    }
-  })
+  categoryStore.deleteCategory(record.categoryId)
 }
 
 const handleSave = async () => {
   try {
     await formRef.value?.validate()
     saving.value = true
-    
-    const data = {
+
+    const data: CreateCategoryDto | UpdateCategoryDto = {
       categoryName: formData.categoryName,
-      parentCategoryId: formData.parentCategoryId,
-      categoryType: currentRecord.value?.categoryType || 'EXPENSE' // 默认使用支出类型
+      parentCategoryId: formData.parentCategoryId || null, // undefined 转为 null
+      categoryType: 'EXPENSE' // 默认使用支出类型
     }
-    
+
     if (editMode.value === 'create') {
       await categoryStore.createCategory(data as CreateCategoryDto)
     } else {
       await categoryStore.updateCategory(currentRecord.value!.categoryId, data as UpdateCategoryDto)
     }
-    
+
     editModalVisible.value = false
     resetForm()
   } catch (error) {

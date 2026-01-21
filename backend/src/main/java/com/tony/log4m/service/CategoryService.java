@@ -21,6 +21,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryService extends ServiceImpl<CategoryMapper, Category> {
 
+    private final BillService billService;
+
     public Category getOrCreate(String categoryName) {
         return this.lambdaQuery().eq(Category::getCategoryName, categoryName)
                 .oneOpt().orElseGet(() -> createCategory(categoryName));
@@ -107,6 +109,10 @@ public class CategoryService extends ServiceImpl<CategoryMapper, Category> {
         // 检查是否有子分类
         if (this.lambdaQuery().eq(Category::getParentCategoryId, id).exists()) {
             throw new Log4mException("存在子分类，不能删除");
+        }
+        // 检查是否有关联的账单
+        if (billService.lambdaQuery().eq(com.tony.log4m.models.entity.Bill::getCategoryId, id).exists()) {
+            throw new Log4mException("该分类已关联账单，不能删除");
         }
         return this.removeById(id);
     }

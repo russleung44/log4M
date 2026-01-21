@@ -86,9 +86,12 @@ public class CategoryController {
         category.setCategoryName(dto.getCategoryName());
         category.setParentCategoryId(dto.getParentCategoryId());
 
-        Optional.ofNullable(categoryService.getById(category.getParentCategoryId())).ifPresent(parentCategory -> {
-            category.setParentCategoryName(parentCategory.getCategoryName());
-        });
+        // 同步更新父分类名称
+        if (category.getParentCategoryId() != null) {
+            Optional.ofNullable(categoryService.getById(category.getParentCategoryId())).ifPresent(parentCategory -> {
+                category.setParentCategoryName(parentCategory.getCategoryName());
+            });
+        }
 
         boolean saved = categoryService.save(category);
         if (saved) {
@@ -111,6 +114,15 @@ public class CategoryController {
         category.setCategoryName(dto.getCategoryName());
         category.setParentCategoryId(dto.getParentCategoryId());
 
+        // 同步更新父分类名称
+        if (category.getParentCategoryId() != null) {
+            Optional.ofNullable(categoryService.getById(category.getParentCategoryId())).ifPresent(parentCategory -> {
+                category.setParentCategoryName(parentCategory.getCategoryName());
+            });
+        } else {
+            category.setParentCategoryName(null);
+        }
+
         boolean updated = categoryService.updateById(category);
         return ResultVO.success(updated);
     }
@@ -120,8 +132,7 @@ public class CategoryController {
      */
     @DeleteMapping("/{id}")
     public ResultVO<Boolean> delete(@PathVariable Long id) {
-        // TODO: 检查是否有账单使用该分类
-        boolean deleted = categoryService.removeById(id);
+        boolean deleted = categoryService.deleteById(id);
         return ResultVO.success(deleted);
     }
 }

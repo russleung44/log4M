@@ -1,5 +1,6 @@
 package com.tony.log4m.exception;
 
+import com.tony.log4m.models.vo.ResultVO;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -26,6 +27,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(Log4mException.class)
+    public ResponseEntity<ResultVO<?>> handleLog4mException(Log4mException e, HttpServletRequest request) {
+        log.warn("Log4mException: [{}] {}", request.getRequestURL(), e.getMessage());
+        return ResponseEntity.badRequest().body(ResultVO.error(e.getMessage()));
+    }
 
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<?> handleThrowable(Throwable e, HttpServletRequest request) {
