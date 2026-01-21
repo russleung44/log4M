@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 分类管理Controller
@@ -84,6 +85,10 @@ public class CategoryController {
         Category category = new Category();
         category.setCategoryName(dto.getCategoryName());
         category.setParentCategoryId(dto.getParentCategoryId());
+
+        Optional.ofNullable(categoryService.getById(category.getParentCategoryId())).ifPresent(parentCategory -> {
+            category.setParentCategoryName(parentCategory.getCategoryName());
+        });
 
         boolean saved = categoryService.save(category);
         if (saved) {
