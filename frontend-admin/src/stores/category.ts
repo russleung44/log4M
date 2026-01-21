@@ -71,11 +71,14 @@ export const useCategoryStore = defineStore('category', () => {
     try {
       loading.value = true
       const response = await CategoryApi.getAllCategories()
-      
-      if (response.code === 200 || response.code === 0) {
+
+      console.log('getAllCategories 响应:', response)
+
+      if (response.code === 200 || response.code === 0 || response.code === 1) {
         categories.value = response.data
+        console.log('更新后的 categories:', categories.value)
       } else {
-        message.error(response.message || '获取所有分类失败')
+        message.error(response.msg || response.message || '获取所有分类失败')
       }
     } catch (error) {
       console.error('Failed to fetch all categories:', error)

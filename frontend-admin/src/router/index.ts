@@ -45,6 +45,14 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: '关于'
     }
+  },
+  {
+    path: '/yearly-summary',
+    name: 'YearlySummary',
+    component: () => import('@/views/yearly-summary/index.vue'),
+    meta: {
+      title: '年度总结'
+    }
   }
 ]
 

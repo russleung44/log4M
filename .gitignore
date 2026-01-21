@@ -32,3 +32,4 @@ Thumbs.db
 target/
 dist/
 node_modules/
+frontend-admin/claude_code_env.sh

@@ -4,7 +4,9 @@
       :columns="columns"
       :data-source="ruleStore.rules"
       :loading="ruleStore.loading"
+      :pagination="paginationConfig"
       @search="handleSearch"
+      @change="handleTableChange"
       @edit="handleEdit"
       @delete="handleDelete"
     >
@@ -146,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { PlusOutlined, ExperimentOutlined } from '@ant-design/icons-vue'
 
@@ -219,6 +221,13 @@ const formRules = {
   categoryId: [{ required: true, message: '请选择分类' }]
 }
 
+// 计算属性
+const paginationConfig = computed(() => ({
+  current: ruleStore.pagination.current,
+  pageSize: ruleStore.pagination.pageSize,
+  total: ruleStore.pagination.total
+}))
+
 // 方法
 const filterOption = (input: string, option: any) => {
   return option.children.toLowerCase().includes(input.toLowerCase())
@@ -226,6 +235,11 @@ const filterOption = (input: string, option: any) => {
 
 const handleSearch = (keyword: string) => {
   ruleStore.setFilters({ keyword })
+  ruleStore.fetchRules()
+}
+
+const handleTableChange = (pagination: any, filters: any, sorter: any) => {
+  ruleStore.setPagination(pagination.current, pagination.pageSize)
   ruleStore.fetchRules()
 }
 

@@ -420,6 +420,16 @@ const handleResetFilters = async () => {
 
 const handleTableChange = (pagination: any, filters: any, sorter: any) => {
   billStore.setPagination(pagination.current, pagination.pageSize)
+
+  // 处理排序
+  if (sorter && sorter.field) {
+    const sortField = sorter.field
+    const sortOrder = sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : null
+    billStore.setSort({ sortField, sortOrder })
+  } else {
+    billStore.setSort({ sortField: null, sortOrder: null })
+  }
+
   billStore.fetchBills()
 }
 

@@ -56,7 +56,9 @@ public class BillController {
             @RequestParam(name = "transactionType", required = false) TransactionType transactionType,
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "minAmount", required = false) java.math.BigDecimal minAmount,
-            @RequestParam(name = "maxAmount", required = false) java.math.BigDecimal maxAmount) {
+            @RequestParam(name = "maxAmount", required = false) java.math.BigDecimal maxAmount,
+            @RequestParam(name = "sortField", required = false) String sortField,
+            @RequestParam(name = "sortOrder", required = false) String sortOrder) {
         Page<Bill> page = new Page<>(current, size);
 
         LambdaQueryWrapper<Bill> queryWrapper = new LambdaQueryWrapper<>();
@@ -74,9 +76,34 @@ public class BillController {
                 .eq(transactionType != null, Bill::getTransactionType, transactionType)
                 .ge(minAmount != null, Bill::getAmount, minAmount)
                 .le(maxAmount != null, Bill::getAmount, maxAmount)
-                .like(keyword != null && !keyword.trim().isEmpty(), Bill::getNote, keyword)
-                .orderByDesc(Bill::getBillDate)
-                .orderByDesc(Bill::getBillId);
+                .like(keyword != null && !keyword.trim().isEmpty(), Bill::getNote, keyword);
+
+        // 处理排序
+        if (sortField != null && !sortField.trim().isEmpty() && sortOrder != null && !sortOrder.trim().isEmpty()) {
+            switch (sortField) {
+                case "billDate":
+                    if ("asc".equalsIgnoreCase(sortOrder)) {
+                        queryWrapper.orderByAsc(Bill::getBillDate);
+                    } else if ("desc".equalsIgnoreCase(sortOrder)) {
+                        queryWrapper.orderByDesc(Bill::getBillDate);
+                    }
+                    break;
+                case "amount":
+                    if ("asc".equalsIgnoreCase(sortOrder)) {
+                        queryWrapper.orderByAsc(Bill::getAmount);
+                    } else if ("desc".equalsIgnoreCase(sortOrder)) {
+                        queryWrapper.orderByDesc(Bill::getAmount);
+                    }
+                    break;
+                default:
+                    // 默认排序：按日期降序，按ID降序
+                    queryWrapper.orderByDesc(Bill::getBillDate).orderByDesc(Bill::getBillId);
+                    break;
+            }
+        } else {
+            // 默认排序：按日期降序，按ID降序
+            queryWrapper.orderByDesc(Bill::getBillDate).orderByDesc(Bill::getBillId);
+        }
 
         Page<Bill> result = billService.page(page, queryWrapper);
         return ResultVO.success(result);

@@ -130,15 +130,33 @@ const formRules = {
 
 // 计算属性
 const categoryTreeData = computed(() => {
-  const buildTree = (categories: Category[], parentId: number | null = null): any[] => {
+  if (!categoryStore.categories || categoryStore.categories.length === 0) {
+    return []
+  }
+
+  const buildTree = (categories: Category[], parentId?: number | string | null): any[] => {
+    // 判断是否为根节点：parentCategoryId 为 "0"、0 或 null
+    const isRoot = (cat: Category) => {
+      const pid = cat.parentCategoryId
+      return pid === '0' || pid === 0 || pid === null || pid === undefined
+    }
+
     return categories
-      .filter(cat => cat.parentCategoryId === parentId)
-      .map(cat => ({
-        title: cat.categoryName,
-        value: cat.categoryId,
-        key: cat.categoryId,
-        children: buildTree(categories, cat.categoryId)
-      }))
+      .filter(cat => {
+        if (!parentId || parentId === '0' || parentId === 0) {
+          return isRoot(cat)
+        }
+        return cat.parentCategoryId == parentId // 使用 == 而不是 ===，兼容字符串和数字
+      })
+      .map(cat => {
+        const children = buildTree(categories, cat.categoryId)
+        return {
+          title: cat.categoryName,
+          value: cat.categoryId,
+          key: cat.categoryId,
+          ...(children.length > 0 && { children })
+        }
+      })
   }
 
   return buildTree(categoryStore.categories)
@@ -161,18 +179,25 @@ const handleTableChange = (pagination: any, filters: any, sorter: any) => {
   categoryStore.fetchCategories()
 }
 
-const handleCreate = () => {
+const handleCreate = async () => {
   editMode.value = 'create'
   currentRecord.value = null
   resetForm()
+  // 获取所有分类用于父分类选择
+  await categoryStore.fetchAllCategories()
   editModalVisible.value = true
 }
 
-const handleEdit = (record: Category) => {
+const handleEdit = async (record: Category) => {
   editMode.value = 'edit'
   currentRecord.value = record
   formData.categoryName = record.categoryName
   formData.parentCategoryId = record.parentCategoryId !== null ? record.parentCategoryId : undefined
+  // 获取所有分类用于父分类选择
+  await categoryStore.fetchAllCategories()
+  console.log('分类数据:', categoryStore.categories)
+  console.log('第一个分类的 parentCategoryId:', categoryStore.categories[0]?.parentCategoryId)
+  console.log('树形数据:', categoryTreeData.value)
   editModalVisible.value = true
 }
 

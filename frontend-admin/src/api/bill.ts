@@ -10,6 +10,8 @@ import type {
   MonthlyStatistics,
   CategoryStatistics,
   TrendStatistics,
+  YearlyStatistics,
+  YearlyMonthlyStatistics,
   TransactionType
 } from '@/types'
 
@@ -24,6 +26,8 @@ export interface BillQueryParams {
   keyword?: string
   minAmount?: number
   maxAmount?: number
+  sortField?: string | null
+  sortOrder?: 'asc' | 'desc' | null
 }
 
 export class BillApi {

@@ -23,7 +23,9 @@ export const useBillStore = defineStore('bill', () => {
     transactionType: undefined,
     keyword: undefined,
     minAmount: undefined,
-    maxAmount: undefined
+    maxAmount: undefined,
+    sortField: null,
+    sortOrder: null
   })
 
   // Getters
@@ -200,8 +202,15 @@ export const useBillStore = defineStore('bill', () => {
       transactionType: undefined,
       keyword: undefined,
       minAmount: undefined,
-      maxAmount: undefined
+      maxAmount: undefined,
+      sortField: null,
+      sortOrder: null
     }
+  }
+
+  const setSort = (sort: { sortField: string | null, sortOrder: 'asc' | 'desc' | null }) => {
+    filters.value.sortField = sort.sortField
+    filters.value.sortOrder = sort.sortOrder
   }
 
   const setPagination = (current: number, pageSize: number) => {
@@ -216,12 +225,12 @@ export const useBillStore = defineStore('bill', () => {
     loading,
     pagination,
     filters,
-    
+
     // Getters
     totalIncome,
     totalExpense,
     balance,
-    
+
     // Actions
     fetchBills,
     fetchBillById,
@@ -231,6 +240,7 @@ export const useBillStore = defineStore('bill', () => {
     batchDeleteBills,
     setFilters,
     resetFilters,
+    setSort,
     setPagination
   }
 })
