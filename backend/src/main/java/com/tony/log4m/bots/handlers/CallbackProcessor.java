@@ -358,6 +358,15 @@ public class CallbackProcessor {
                         .orderByAsc(Bill::getBillDate)
                         .orderByAsc(Bill::getBillId)
                         .list();
+                case YEAR -> {
+                    String year = (param != null && !param.isEmpty()) ? param : String.valueOf(LocalDate.now().getYear());
+                    yield billService.lambdaQuery()
+                            .likeRight(Bill::getBillMonth, year)
+                            .orderByAsc(Bill::getBillMonth)
+                            .orderByAsc(Bill::getBillDate)
+                            .orderByAsc(Bill::getBillId)
+                            .list();
+                }
                 default -> new ArrayList<>();
             };
         } catch (Exception e) {
@@ -376,32 +385,55 @@ public class CallbackProcessor {
         String description;
         switch (command) {
             case MONTH_SUMMARY_QUERY, MONTH_DETAIL_QUERY, DATE_QUERY -> description = param;
+            case YEAR -> description = param + "年度";
             default -> description = command.getDesc();
         }
         StringBuilder template = new StringBuilder();
         template.append(String.format("%s总计：%.2f元%n---------%n", description, amount));
         switch (command) {
-            case MONTH_SUMMARY_QUERY, LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY -> {
-                Map<String, Double> categoryMap = bills.stream()
-                        .collect(Collectors.groupingBy(
-                                Bill::getCategoryName,
-                                Collectors.summingDouble(b -> b.getAmount().doubleValue())
-                        ));
-                if (categoryMap.containsKey(null) || categoryMap.containsKey("")) {
-                    double unclassifiedAmount = categoryMap.getOrDefault(null, 0.0) + categoryMap.getOrDefault("", 0.0);
-                    categoryMap.put("未分类", unclassifiedAmount);
-                    categoryMap.remove(null);
-                    categoryMap.remove("");
+            case MONTH_SUMMARY_QUERY, LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY, YEAR -> {
+                // 按月统计
+                if (command == Command.YEAR) {
+                    int year = Integer.parseInt(param);
+                    Map<String, BigDecimal> monthlyTotals = bills.stream()
+                            .collect(Collectors.groupingBy(
+                                    Bill::getBillMonth,
+                                    Collectors.reducing(
+                                            BigDecimal.ZERO,
+                                            Bill::getAmount,
+                                            BigDecimal::add
+                                    )
+                            ));
+                    for (int month = 1; month <= 12; month++) {
+                        String monthKey = String.format("%d%02d", year, month);
+                        BigDecimal monthTotal = monthlyTotals.getOrDefault(monthKey, BigDecimal.ZERO);
+                        String monthName = String.format("%d年%d月", year, month);
+                        int padding = Math.max(0, 12 - calculateDisplayWidth(monthName));
+                        template.append(String.format("%s%s  ¥%.2f\n",
+                                monthName, " ".repeat(padding), monthTotal));
+                    }
+                } else {
+                    Map<String, Double> categoryMap = bills.stream()
+                            .collect(Collectors.groupingBy(
+                                    Bill::getCategoryName,
+                                    Collectors.summingDouble(b -> b.getAmount().doubleValue())
+                            ));
+                    if (categoryMap.containsKey(null) || categoryMap.containsKey("")) {
+                        double unclassifiedAmount = categoryMap.getOrDefault(null, 0.0) + categoryMap.getOrDefault("", 0.0);
+                        categoryMap.put("未分类", unclassifiedAmount);
+                        categoryMap.remove(null);
+                        categoryMap.remove("");
+                    }
+                    int maxCategoryLength = categoryMap.keySet().stream().mapToInt(String::length).max().orElse(10);
+                    int categoryLength = Math.max(maxCategoryLength, 10);
+                    categoryMap.entrySet().stream()
+                            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                            .forEach(entry -> {
+                                String categoryName = entry.getKey();
+                                int padding = Math.max(0, categoryLength * 2 - calculateDisplayWidth(categoryName));
+                                template.append(String.format("%s%s  ¥%.2f\n", categoryName, " ".repeat(padding), entry.getValue()));
+                            });
                 }
-                int maxCategoryLength = categoryMap.keySet().stream().mapToInt(String::length).max().orElse(10);
-                int categoryLength = Math.max(maxCategoryLength, 10);
-                categoryMap.entrySet().stream()
-                        .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                        .forEach(entry -> {
-                            String categoryName = entry.getKey();
-                            int padding = Math.max(0, categoryLength * 2 - calculateDisplayWidth(categoryName));
-                            template.append(String.format("%s%s  ¥%.2f\n", categoryName, " ".repeat(padding), entry.getValue()));
-                        });
             }
         }
         return template.toString();
@@ -422,8 +454,31 @@ public class CallbackProcessor {
 
     private InlineKeyboardMarkup createKeyboardMarkup(Command command, List<Bill> bills) {
         switch (command) {
-            case MONTH_SUMMARY_QUERY, LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY -> {
-                return new InlineKeyboardMarkup();
+            case MONTH_SUMMARY_QUERY, LAST_MONTH_SUMMARY, THIS_MONTH_SUMMARY, YEAR -> {
+                InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+                if (command == Command.YEAR) {
+                    // 获取当前年份
+                    String currentYear = bills.isEmpty() ? String.valueOf(LocalDate.now().getYear()) :
+                            bills.get(0).getBillMonth().substring(0, 4);
+                    int year = Integer.parseInt(currentYear);
+
+                    // 视图切换按钮
+                    markup.addRow(
+                            new InlineKeyboardButton("📊 按月查看")
+                                    .callbackData("year_view::" + year + "::month"),
+                            new InlineKeyboardButton("📈 按分类查看")
+                                    .callbackData("year_view::" + year + "::category")
+                    );
+
+                    // 年份导航
+                    markup.addRow(
+                            new InlineKeyboardButton("◀ " + (year - 1))
+                                    .callbackData("help_exec::year::" + (year - 1)),
+                            new InlineKeyboardButton((year + 1) + " ▶")
+                                    .callbackData("help_exec::year::" + (year + 1))
+                    );
+                }
+                return markup;
             }
         }
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
