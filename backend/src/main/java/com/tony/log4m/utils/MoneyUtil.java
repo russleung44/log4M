@@ -41,7 +41,7 @@ public class MoneyUtil {
      * @return 金额, 可负数, 保留两位小数
      */
     public static String getAmount(String text) {
-        Pattern integerPattern = Pattern.compile("-?\\d+(\\.\\d{1,2})?");
+        Pattern integerPattern = Pattern.compile("[+-]?\\d+(\\.\\d{1,2})?");
         Matcher matcher = integerPattern.matcher(text);
         if (matcher.find()) {
             text = StrUtil.replace(text, matcher.group(), "");

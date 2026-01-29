@@ -123,6 +123,12 @@ public class CommandHandler {
     }
 
     private void parseFreeText(Bill bill, String text) {
+        // 0. 检测收入标记：如果包含 + 符号，设置为收入类型
+        if (text.contains("+")) {
+            bill.setTransactionType(TransactionType.INCOME);
+            text = text.replace("+", "");
+        }
+
         // 1. 提取日期
         MoneyUtil.Result dateRes = MoneyUtil.getDate(text);
         bill.setBillDate(dateRes.date());
