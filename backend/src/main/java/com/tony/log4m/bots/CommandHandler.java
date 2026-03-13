@@ -6,6 +6,7 @@ import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.commands.CommandStrategy;
 import com.tony.log4m.bots.core.BotUtil;
 import com.tony.log4m.bots.enums.Command;
+import com.tony.log4m.configs.CategoryKeywordProperties;
 import com.tony.log4m.convert.CategoryConvert;
 import com.tony.log4m.convert.RuleConvert;
 import com.tony.log4m.enums.TransactionType;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,6 +44,7 @@ public class CommandHandler {
     private final AccountService accountService;
     private final CategoryService categoryService;
     private final BillService billService;
+    private final CategoryKeywordProperties categoryKeywordProperties;
 
     public SendMessage handleCommand(String text, Long chatId) {
         if (StrUtil.isBlank(text)) {
@@ -152,15 +155,15 @@ public class CommandHandler {
             }
         }
 
-        // 4. 关键词映射: 饮品关键词 -> 饮
-        if (StrUtil.isBlank(bill.getCategoryName()) && (
-                StrUtil.containsIgnoreCase(text, "luckin")
-                        || StrUtil.contains(text, "茉莉奶白")
-                        || StrUtil.contains(text, "霸王茶姬")
-                        || StrUtil.contains(text, "库迪")
-        )) {
-            Category drink = categoryService.getOrCreate("饮");
-            CategoryConvert.INSTANCE.updateBill(bill, drink);
+        // 4. 关键词映射: 根据配置文件中的关键词自动分类
+        if (StrUtil.isBlank(bill.getCategoryName())) {
+            // 需要忽略大小写的关键词列表
+            List<String> ignoreCaseKeywords = List.of("luckin");
+            String matchedCategory = categoryKeywordProperties.matchCategoryIgnoreCase(text, ignoreCaseKeywords);
+            if (StrUtil.isNotBlank(matchedCategory)) {
+                Category category = categoryService.getOrCreate(matchedCategory);
+                CategoryConvert.INSTANCE.updateBill(bill, category);
+            }
         }
 
         // 5. 获取默认分类
