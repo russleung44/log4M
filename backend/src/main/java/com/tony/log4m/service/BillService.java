@@ -1,6 +1,7 @@
 package com.tony.log4m.service;
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tony.log4m.enums.TransactionType;
 import com.tony.log4m.mapper.BillMapper;
@@ -92,6 +93,49 @@ public class BillService extends ServiceImpl<BillMapper, Bill> {
                 .orderByAsc("bill_month");
 
         return this.getBaseMapper().selectMaps(queryWrapper);
+    }
+
+    // ==================== 回收站相关方法 ====================
+
+    /**
+     * 获取回收站账单列表
+     */
+    public Page<Bill> getTrashBills(Page<Bill> page) {
+        return (Page<Bill>) this.getBaseMapper().selectTrashPage(page);
+    }
+
+    /**
+     * 恢复账单
+     */
+    public boolean restoreBill(Long id) {
+        return this.getBaseMapper().restoreById(id) > 0;
+    }
+
+    /**
+     * 彻底删除账单
+     */
+    public boolean permanentDeleteBill(Long id) {
+        return this.getBaseMapper().permanentDeleteById(id) > 0;
+    }
+
+    /**
+     * 批量恢复账单
+     */
+    public boolean batchRestoreBills(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return false;
+        }
+        return this.getBaseMapper().batchRestoreByIds(ids) > 0;
+    }
+
+    /**
+     * 批量彻底删除账单
+     */
+    public boolean batchPermanentDeleteBills(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return false;
+        }
+        return this.getBaseMapper().batchPermanentDeleteByIds(ids) > 0;
     }
 
 }

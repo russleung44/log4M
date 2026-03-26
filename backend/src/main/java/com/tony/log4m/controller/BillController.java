@@ -394,4 +394,54 @@ public class BillController {
         List<Map<String, Object>> result = billService.getYearlyMonthlyStatistics(year);
         return ResultVO.success(result);
     }
+
+    // ==================== 回收站相关 API ====================
+
+    /**
+     * 获取回收站账单列表
+     */
+    @GetMapping("/trash")
+    public ResultVO<Page<Bill>> getTrashBills(
+            @RequestParam(name = "current", defaultValue = "1") int current,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+        Page<Bill> page = new Page<>(current, size);
+        Page<Bill> result = billService.getTrashBills(page);
+        return ResultVO.success(result);
+    }
+
+    /**
+     * 恢复账单
+     */
+    @PutMapping("/{id}/restore")
+    public ResultVO<Boolean> restoreBill(@PathVariable Long id) {
+        boolean restored = billService.restoreBill(id);
+        return ResultVO.success(restored);
+    }
+
+    /**
+     * 彻底删除账单
+     */
+    @DeleteMapping("/{id}/permanent")
+    public ResultVO<Boolean> permanentDeleteBill(@PathVariable Long id) {
+        boolean deleted = billService.permanentDeleteBill(id);
+        return ResultVO.success(deleted);
+    }
+
+    /**
+     * 批量恢复账单
+     */
+    @PutMapping("/batch-restore")
+    public ResultVO<Boolean> batchRestoreBills(@Valid @RequestBody BatchDeleteDto dto) {
+        boolean restored = billService.batchRestoreBills(dto.getIds());
+        return ResultVO.success(restored);
+    }
+
+    /**
+     * 批量彻底删除账单
+     */
+    @DeleteMapping("/batch-permanent")
+    public ResultVO<Boolean> batchPermanentDeleteBills(@Valid @RequestBody BatchDeleteDto dto) {
+        boolean deleted = billService.batchPermanentDeleteBills(dto.getIds());
+        return ResultVO.success(deleted);
+    }
 }

@@ -23,6 +23,14 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/trash',
+    name: 'Trash',
+    component: () => import('@/views/trash/index.vue'),
+    meta: {
+      title: '回收站'
+    }
+  },
+  {
     path: '/categories',
     name: 'CategoryManagement',
     component: () => import('@/views/category/index.vue'),

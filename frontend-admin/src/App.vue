@@ -33,6 +33,12 @@
                 </template>
                 <span>账单管理</span>
               </a-menu-item>
+              <a-menu-item key="/trash">
+                <template #icon>
+                  <DeleteOutlined />
+                </template>
+                <span>回收站</span>
+              </a-menu-item>
               <a-menu-item key="/categories">
                 <template #icon>
                   <AppstoreOutlined />
@@ -98,7 +104,8 @@ import {
   InfoCircleOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
-  RobotOutlined
+  RobotOutlined,
+  DeleteOutlined
 } from '@ant-design/icons-vue'
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
 

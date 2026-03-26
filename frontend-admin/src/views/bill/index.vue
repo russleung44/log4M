@@ -452,14 +452,8 @@ const handleEdit = (record: Bill) => {
   editModalVisible.value = true
 }
 
-const handleDelete = (record: Bill) => {
-  Modal.confirm({
-    title: '确认删除',
-    content: `确定要删除这条账单吗？`,
-    onOk: async () => {
-      await billStore.deleteBill(record.billId)
-    }
-  })
+const handleDelete = async (record: Bill) => {
+  await billStore.deleteBill(record.billId)
 }
 
 const handleBatchDelete = () => {

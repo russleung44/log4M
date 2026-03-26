@@ -161,4 +161,46 @@ export class BillApi {
     })
     return response.data
   }
+
+  // ==================== 回收站相关 API ====================
+
+  /**
+   * 获取回收站账单列表
+   */
+  static async getTrashBills(params: { current?: number; size?: number }) {
+    const response = await http.get<ApiResponse<PageResult<Bill>>>('/bills/trash', { params })
+    return response.data
+  }
+
+  /**
+   * 恢复账单
+   */
+  static async restoreBill(id: number) {
+    const response = await http.put<ApiResponse<boolean>>(`/bills/${id}/restore`)
+    return response.data
+  }
+
+  /**
+   * 彻底删除账单
+   */
+  static async permanentDeleteBill(id: number) {
+    const response = await http.delete<ApiResponse<boolean>>(`/bills/${id}/permanent`)
+    return response.data
+  }
+
+  /**
+   * 批量恢复账单
+   */
+  static async batchRestoreBills(ids: number[]) {
+    const response = await http.put<ApiResponse<boolean>>('/bills/batch-restore', { ids })
+    return response.data
+  }
+
+  /**
+   * 批量彻底删除账单
+   */
+  static async batchPermanentDeleteBills(ids: number[]) {
+    const response = await http.delete<ApiResponse<boolean>>('/bills/batch-permanent', { data: { ids } })
+    return response.data
+  }
 }
