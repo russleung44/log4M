@@ -40,11 +40,13 @@
     <div class="action-bar">
       <a-button
         type="primary"
-        :icon="ReloadOutlined"
         @click="replay"
         :loading="loading"
         :disabled="messages.length === 0"
       >
+        <template #icon>
+          <ReloadOutlined />
+        </template>
         重新播放
       </a-button>
     </div>
@@ -364,6 +366,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 64px);
+  padding-left: 70px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
