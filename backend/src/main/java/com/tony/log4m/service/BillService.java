@@ -95,6 +95,17 @@ public class BillService extends ServiceImpl<BillMapper, Bill> {
         return this.getBaseMapper().selectMaps(queryWrapper);
     }
 
+    /**
+     * 从账单派生规则关键词
+     * 优先级: note > remark > categoryName
+     */
+    public static String deriveKeyword(Bill bill) {
+        if (cn.hutool.core.util.StrUtil.isNotBlank(bill.getNote())) return bill.getNote();
+        if (cn.hutool.core.util.StrUtil.isNotBlank(bill.getRemark())) return bill.getRemark();
+        if (cn.hutool.core.util.StrUtil.isNotBlank(bill.getCategoryName())) return bill.getCategoryName();
+        return null;
+    }
+
     // ==================== 回收站相关方法 ====================
 
     /**

@@ -47,6 +47,7 @@ public class CallbackProcessor {
     private final AccountService accountService;
     private final CategoryService categoryService;
     private final com.tony.log4m.bots.core.RemarkSessionManager remarkSessionManager;
+    private final com.tony.log4m.bots.core.RuleKeywordSessionManager ruleKeywordSessionManager;
 
     /**
      * 处理所有回调查询
@@ -154,7 +155,7 @@ public class CallbackProcessor {
             case "bill_del" -> new CallbackResult(deleteBill(targetId), null);
             case "rule_del" -> new CallbackResult(deleteRule(targetId), null);
             case "category_del" -> new CallbackResult(deleteCategory(targetId), null);
-            case "bill_rule" -> createRuleFromBill(targetId);
+            case "bill_rule" -> createRuleFromBill(chatId, targetId);
             case "help_rule" -> showRecentBillsForRule();
             case "help_budget" -> showBudgetMenu();
             case "help_budget_set" -> setBudgetAndSummary(targetId);
@@ -187,38 +188,20 @@ public class CallbackProcessor {
         return new CallbackResult("请选择一条账单生成规则", markup);
     }
 
-    private CallbackResult createRuleFromBill(String billId) {
+    private CallbackResult createRuleFromBill(Long chatId, String billId) {
         Bill bill = billService.getOptById(billId).orElseThrow();
+        Long billIdLong = Long.valueOf(billId);
+        ruleKeywordSessionManager.startKeywordInput(chatId, billIdLong);
 
-        String keyword = deriveKeyword(bill);
-        if (StrUtil.isBlank(keyword)) {
-            keyword = "规则" + bill.getBillId();
+        String suggestion = com.tony.log4m.service.BillService.deriveKeyword(bill);
+        if (StrUtil.isBlank(suggestion)) {
+            suggestion = "规则" + bill.getBillId();
         }
 
-        // 如果存在同名规则则更新，否则创建
-        Rule rule = ruleService.lambdaQuery().eq(Rule::getRuleName, keyword).last("limit 1").one();
-        if (rule == null) {
-            rule = new Rule(keyword, bill.getAmount(), bill.getTransactionType());
-            rule.setCategoryId(bill.getCategoryId());
-            rule.insert();
-        } else {
-            rule.setAmount(bill.getAmount());
-            rule.setTransactionType(bill.getTransactionType());
-            if (bill.getCategoryId() != null) {
-                rule.setCategoryId(bill.getCategoryId());
-            }
-            rule.updateById();
-        }
-
-        String details = ruleService.buildRuleDetails(rule);
-        return new CallbackResult(details, BotUtil.buildKeyboardMarkup("rule::" + rule.getRuleId()));
-    }
-
-    private String deriveKeyword(Bill bill) {
-        if (StrUtil.isNotBlank(bill.getNote())) return bill.getNote();
-        if (StrUtil.isNotBlank(bill.getRemark())) return bill.getRemark();
-        if (StrUtil.isNotBlank(bill.getCategoryName())) return bill.getCategoryName();
-        return null;
+        return new CallbackResult(
+            "📝 请输入规则关键词\n\n建议关键词: " + suggestion + "\n\n直接回复此消息，输入您想要的关键词。",
+            null
+        );
     }
 
     private CallbackResult showBudgetMenu() {
