@@ -10,6 +10,8 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.tony.log4m.bots.core.BotUtil;
+import com.tony.log4m.bots.core.RemarkSessionManager;
+import com.tony.log4m.bots.core.RuleKeywordSessionManager;
 import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.exception.Log4mException;
 import com.tony.log4m.models.entity.Account;
@@ -46,8 +48,8 @@ public class CallbackProcessor {
     private final RuleService ruleService;
     private final AccountService accountService;
     private final CategoryService categoryService;
-    private final com.tony.log4m.bots.core.RemarkSessionManager remarkSessionManager;
-    private final com.tony.log4m.bots.core.RuleKeywordSessionManager ruleKeywordSessionManager;
+    private final RemarkSessionManager remarkSessionManager;
+    private final RuleKeywordSessionManager ruleKeywordSessionManager;
 
     /**
      * 处理所有回调查询
@@ -171,7 +173,7 @@ public class CallbackProcessor {
     }
 
     private CallbackResult showRecentBillsForRule() {
-        java.util.List<Bill> bills = billService.lambdaQuery()
+        List<Bill> bills = billService.lambdaQuery()
                 .orderByDesc(Bill::getBillDate)
                 .orderByDesc(Bill::getBillId)
                 .last("limit 15").list();
@@ -193,7 +195,7 @@ public class CallbackProcessor {
         Long billIdLong = Long.valueOf(billId);
         ruleKeywordSessionManager.startKeywordInput(chatId, billIdLong);
 
-        String suggestion = com.tony.log4m.service.BillService.deriveKeyword(bill);
+        String suggestion = BillService.deriveKeyword(bill);
         if (StrUtil.isBlank(suggestion)) {
             suggestion = "规则" + bill.getBillId();
         }
@@ -217,12 +219,12 @@ public class CallbackProcessor {
 
     private CallbackResult setBudgetAndSummary(String amountStr) {
         try {
-            java.math.BigDecimal amount = new java.math.BigDecimal(amountStr);
-            com.tony.log4m.models.entity.Account acct = accountService.getOrCreateDefaultAccount();
+            BigDecimal amount = new BigDecimal(amountStr);
+            Account acct = accountService.getOrCreateDefaultAccount();
             acct.setBudget(amount).updateById();
 
-            String currentMonth = com.tony.log4m.utils.MoneyUtil.getMonth(java.time.LocalDate.now());
-            java.math.BigDecimal monthAmount = billService.getAmountByMonth(currentMonth);
+            String currentMonth = MoneyUtil.getMonth(LocalDate.now());
+            BigDecimal monthAmount = billService.getAmountByMonth(currentMonth);
 
             String template = """
                     ✅ 预算设置成功
@@ -231,11 +233,11 @@ public class CallbackProcessor {
                     预算:        {}
                     可用:        {}
                     """;
-            String text = cn.hutool.core.util.StrUtil.format(
+            String text = StrUtil.format(
                     template,
-                    com.tony.log4m.utils.MoneyUtil.formatBigDecimal(monthAmount),
-                    com.tony.log4m.utils.MoneyUtil.formatBigDecimal(amount),
-                    com.tony.log4m.utils.MoneyUtil.formatBigDecimal(amount.subtract(monthAmount))
+                    MoneyUtil.formatBigDecimal(monthAmount),
+                    MoneyUtil.formatBigDecimal(amount),
+                    MoneyUtil.formatBigDecimal(amount.subtract(monthAmount))
             );
             return new CallbackResult(text, showBudgetMenu().markup());
         } catch (Exception e) {

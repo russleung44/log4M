@@ -1,8 +1,10 @@
 package com.tony.log4m.service;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import cn.hutool.core.util.StrUtil;
 import com.tony.log4m.enums.TransactionType;
 import com.tony.log4m.mapper.BillMapper;
 import com.tony.log4m.models.entity.Bill;
@@ -43,7 +45,7 @@ public class BillService extends ServiceImpl<BillMapper, Bill> {
      * @return 分类统计结果
      */
     public List<Map<String, Object>> getCategoryStatistics(LocalDate startDate, LocalDate endDate, TransactionType transactionType) {
-        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Bill> queryWrapper = new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<>();
+        QueryWrapper<Bill> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("category_name as categoryName", "sum(amount) as amount", "count(*) as count")
                 .ge("bill_date", startDate)
                 .le("bill_date", endDate)
@@ -65,7 +67,7 @@ public class BillService extends ServiceImpl<BillMapper, Bill> {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(days - 1);
 
-        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Bill> queryWrapper = new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<>();
+        QueryWrapper<Bill> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("bill_date as date",
                 "sum(case when transaction_type = 'INCOME' then amount else 0 end) as income",
                 "sum(case when transaction_type = 'EXPENSE' then amount else 0 end) as expense")
@@ -83,7 +85,7 @@ public class BillService extends ServiceImpl<BillMapper, Bill> {
      * @return 年度月度统计数据
      */
     public List<Map<String, Object>> getYearlyMonthlyStatistics(String year) {
-        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Bill> queryWrapper = new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<>();
+        QueryWrapper<Bill> queryWrapper = new QueryWrapper<>();
         queryWrapper.select(
                         "bill_month",
                         "sum(case when transaction_type = 'EXPENSE' then amount else 0 end) as expense",
@@ -100,9 +102,9 @@ public class BillService extends ServiceImpl<BillMapper, Bill> {
      * 优先级: note > remark > categoryName
      */
     public static String deriveKeyword(Bill bill) {
-        if (cn.hutool.core.util.StrUtil.isNotBlank(bill.getNote())) return bill.getNote();
-        if (cn.hutool.core.util.StrUtil.isNotBlank(bill.getRemark())) return bill.getRemark();
-        if (cn.hutool.core.util.StrUtil.isNotBlank(bill.getCategoryName())) return bill.getCategoryName();
+        if (StrUtil.isNotBlank(bill.getNote())) return bill.getNote();
+        if (StrUtil.isNotBlank(bill.getRemark())) return bill.getRemark();
+        if (StrUtil.isNotBlank(bill.getCategoryName())) return bill.getCategoryName();
         return null;
     }
 
