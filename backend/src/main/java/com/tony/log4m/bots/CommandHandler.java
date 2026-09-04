@@ -51,14 +51,24 @@ public class CommandHandler {
             return new SendMessage(chatId, "请输入有效命令");
         }
         String[] parts = text.trim().split("/", 3);
-        Command cmd = Command.getByCommand(parts.length > 1 ? parts[1] : "");
+        String cmdToken = parts.length > 1 ? parts[1] : "";
+        String param = parts.length > 2 ? parts[2] : "";
+
+        // 兼容 "/cmd param" 空格形式，如 /search 奶茶
+        if (parts.length == 2 && cmdToken.matches("\\S+\\s+.*")) {
+            String[] segments = cmdToken.split("\\s+", 2);
+            cmdToken = segments[0];
+            param = segments[1].trim();
+        }
+
+        Command cmd = Command.getByCommand(cmdToken);
         String key = cmd.getStrategy() + "Command";
 
         CommandStrategy strategy = systemStrategies.get(key);
         if (strategy == null) {
             return new SendMessage(chatId, "未识别的命令：" + cmd.getCommand());
         }
-        return strategy.execute(cmd, parts.length > 2 ? parts[2] : "", chatId);
+        return strategy.execute(cmd, param, chatId);
     }
 
     @Transactional

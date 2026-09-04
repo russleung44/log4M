@@ -36,6 +36,30 @@ public class BillService extends ServiceImpl<BillMapper, Bill> {
         return this.query().likeRight("bill_month", month).select("sum(amount) as amount")
                 .oneOpt().map(Bill::getAmount).orElse(BigDecimal.ZERO);
     }
+
+    /**
+     * 按备注关键词搜索账单（最新在前，最多100条）
+     *
+     * @param keyword 关键词
+     * @return 账单列表
+     */
+    public List<Bill> searchByNote(String keyword) {
+        return this.lambdaQuery()
+                .like(Bill::getNote, escapeLike(keyword))
+                .orderByDesc(Bill::getBillDate)
+                .orderByDesc(Bill::getBillId)
+                .last("LIMIT 100")
+                .list();
+    }
+
+    /**
+     * 转义 LIKE 通配符，避免关键词中的 % _ \ 被当作模式
+     */
+    private static String escapeLike(String keyword) {
+        return keyword.replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+    }
     
     /**
      * 获取分类统计

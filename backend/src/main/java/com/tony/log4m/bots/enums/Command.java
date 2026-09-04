@@ -26,6 +26,9 @@ public enum Command {
     YEAR("year", "年度统计", "bill"),
     BUDGET("budget", "预算", "bill", false),
 
+    // ==============search===================
+    SEARCH("search", "搜索账单", "search"),
+
     // ==============rule===================
     RULES("rules", "规则列表", "rule"),
     RULE_ADD("rule_add", "添加规则", "rule", false),
