@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 按备注关键词搜索账单：/search 关键词
+ * 按备注关键词搜索账单：/s 关键词
  *
  * @author Tony
  * @since 9/4/2026
@@ -42,7 +42,7 @@ public class SearchCommand implements CommandStrategy {
     public SendMessage execute(Command command, String param, Long chatId) {
         String keyword = StrUtil.trim(param);
         if (StrUtil.isBlank(keyword)) {
-            return new SendMessage(chatId, "请输入搜索关键词，例如：/search 奶茶");
+            return new SendMessage(chatId, "请输入搜索关键词，例如：/s 奶茶");
         }
 
         List<Bill> bills = billService.searchByNote(keyword);

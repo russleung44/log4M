@@ -27,7 +27,7 @@ public enum Command {
     BUDGET("budget", "预算", "bill", false),
 
     // ==============search===================
-    SEARCH("search", "搜索账单", "search"),
+    SEARCH("s", "搜索账单", "search"),
 
     // ==============rule===================
     RULES("rules", "规则列表", "rule"),
