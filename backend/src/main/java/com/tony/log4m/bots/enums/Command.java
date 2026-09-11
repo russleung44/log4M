@@ -36,6 +36,7 @@ public enum Command {
     // ==============category===================
     CATEGORIES("categories", "分类列表", "category"),
     CATEGORY_ADD("category_add", "添加分类", "category", false),
+    CATEGORY_KEYWORD_ADD("category_keyword_add", "添加分类关键词", "category"),
     CATEGORY_DEFAULT("category_default", "设置默认分类", "category", false),
 
     // ==============system===================

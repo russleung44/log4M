@@ -160,6 +160,7 @@ docker-compose up --build
 | 命令 | 说明 |
 |------|------|
 | `/category` | 分类管理 |
+| `/category_keyword_add/分类名-关键词` | 添加自动分类关键词，例如 `/category_keyword_add/交通-滴滴` |
 | `/account` | 账户管理 |
 | `/rule` | 规则管理 |
 | `/tag` | 标签管理 |
