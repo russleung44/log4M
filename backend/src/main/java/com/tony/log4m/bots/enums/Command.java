@@ -39,6 +39,10 @@ public enum Command {
     CATEGORY_KEYWORD_ADD("category_keyword_add", "添加分类关键词", "category"),
     CATEGORY_DEFAULT("category_default", "设置默认分类", "category", false),
 
+    // ==============schedule===================
+    CRONS("crons", "定时记账列表", "schedule"),
+    CRON_ADD("cron_add", "添加定时记账", "schedule", false),
+
     // ==============system===================
     HELP("help", "帮助", "system"),
     RESET("reset", "重置", "system", false),

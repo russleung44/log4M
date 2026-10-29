@@ -74,13 +74,17 @@ public class CommandHandler {
     public SendMessage handleQuickRecord(String text, Long chatId) {
         // 保存账单
         Bill bill = saveBill(text);
-        // 本月支出
+        return new SendMessage(chatId, buildBillText(bill)).replyMarkup(createDeleteMarkup(bill.getBillId()));
+    }
+
+    /**
+     * 构建账单通知文本（含本月统计与预算）
+     */
+    public String buildBillText(Bill bill) {
         String currentMonth = MoneyUtil.getMonth(LocalDate.now());
         BigDecimal monthAmount = billService.getAmountByMonth(currentMonth);
-        // 获取预算
         BigDecimal budget = accountService.getBudget();
-        String reply = BotUtil.getBillFormatted(bill, budget, monthAmount);
-        return new SendMessage(chatId, reply).replyMarkup(createDeleteMarkup(bill.getBillId()));
+        return BotUtil.getBillFormatted(bill, budget, monthAmount);
     }
 
     private InlineKeyboardMarkup createDeleteMarkup(Long billId) {

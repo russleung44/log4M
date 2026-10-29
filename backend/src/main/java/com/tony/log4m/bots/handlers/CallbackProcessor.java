@@ -16,9 +16,11 @@ import com.tony.log4m.bots.enums.Command;
 import com.tony.log4m.exception.Log4mException;
 import com.tony.log4m.models.entity.Account;
 import com.tony.log4m.models.entity.Bill;
+import com.tony.log4m.models.entity.BillSchedule;
 import com.tony.log4m.models.entity.Category;
 import com.tony.log4m.models.entity.Rule;
 import com.tony.log4m.service.AccountService;
+import com.tony.log4m.service.BillScheduleService;
 import com.tony.log4m.service.BillService;
 import com.tony.log4m.service.CategoryService;
 import com.tony.log4m.service.RuleService;
@@ -50,6 +52,7 @@ public class CallbackProcessor {
     private final CategoryService categoryService;
     private final RemarkSessionManager remarkSessionManager;
     private final RuleKeywordSessionManager ruleKeywordSessionManager;
+    private final BillScheduleService billScheduleService;
 
     /**
      * 处理所有回调查询
@@ -104,6 +107,12 @@ public class CallbackProcessor {
         return "✅ 规则已删除";
     }
 
+    private String deleteSchedule(String scheduleId) {
+        BillSchedule schedule = billScheduleService.getOptById(scheduleId).orElseThrow();
+        schedule.deleteById();
+        return "✅ 定时记账已删除";
+    }
+
     private String deleteCategory(String categoryId) {
         Category category = categoryService.getOptById(categoryId).orElseThrow();
         category.deleteById();
@@ -156,6 +165,7 @@ public class CallbackProcessor {
             }
             case "bill_del" -> new CallbackResult(deleteBill(targetId), null);
             case "rule_del" -> new CallbackResult(deleteRule(targetId), null);
+            case "cron_del" -> new CallbackResult(deleteSchedule(targetId), null);
             case "category_del" -> new CallbackResult(deleteCategory(targetId), null);
             case "bill_rule" -> createRuleFromBill(chatId, targetId);
             case "help_rule" -> showRecentBillsForRule();
