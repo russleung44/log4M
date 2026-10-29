@@ -51,6 +51,12 @@
                 </template>
                 <span>规则管理</span>
               </a-menu-item>
+              <a-menu-item key="/schedules">
+                <template #icon>
+                  <ClockCircleOutlined />
+                </template>
+                <span>定时记账</span>
+              </a-menu-item>
               <a-menu-item key="/yearly-summary">
                 <template #icon>
                   <RobotOutlined />
@@ -105,7 +111,8 @@ import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
   RobotOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons-vue'
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
 

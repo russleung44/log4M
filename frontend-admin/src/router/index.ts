@@ -47,6 +47,14 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/schedules',
+    name: 'ScheduleManagement',
+    component: () => import('@/views/schedule/index.vue'),
+    meta: {
+      title: '定时记账'
+    }
+  },
+  {
     path: '/about',
     name: 'About',
     component: () => import('@/views/about/index.vue'),

@@ -3,6 +3,7 @@ export { CategoryApi } from './category'
 export { RuleApi } from './rule'
 export { AccountApi } from './account'
 export { UserApi } from './user'
+export { BillScheduleApi } from './schedule'
 
 export type { BillQueryParams } from './bill'
 export type { CategoryQueryParams } from './category'

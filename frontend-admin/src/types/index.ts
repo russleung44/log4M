@@ -140,6 +140,31 @@ export interface UpdateRuleDto {
   isActive?: boolean
 }
 
+// 定时记账接口
+export interface BillSchedule {
+  scheduleId: number
+  chatId: number
+  note: string
+  categoryId: number
+  categoryName: string
+  amount: number
+  execTime: string
+  weekDays: string
+  enabled: boolean
+  crTime: string
+  mdTime: string
+}
+
+// 保存定时记账DTO（创建/更新共用）
+export interface SaveBillScheduleDto {
+  note: string
+  categoryId: number
+  amount: number
+  execTime: string
+  weekDays: string
+  enabled?: boolean
+}
+
 // 账户接口
 export interface Account {
   accountId: number
