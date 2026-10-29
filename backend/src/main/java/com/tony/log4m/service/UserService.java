@@ -31,6 +31,16 @@ public class UserService extends ServiceImpl<UserMapper, User> {
         }
     }
 
+    /**
+     * 获取首个 Telegram 用户的 chatId（单用户系统，网页端创建定时记账时用于推送）
+     */
+    public Long getPrimaryChatId() {
+        User user = this.lambdaQuery().isNotNull(User::getTgUserId)
+                .orderByDesc(User::getCrTime)
+                .last("LIMIT 1").one();
+        return user == null ? null : user.getTgUserId();
+    }
+
     // ========== 标准CRUD操作 ==========
 
     /**
